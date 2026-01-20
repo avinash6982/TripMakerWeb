@@ -70,6 +70,20 @@ ul {
   font-weight: 500;
 }
 
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.text-link {
+  font-weight: 600;
+}
+
+.text-link:hover {
+  color: var(--primary);
+}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -84,6 +98,13 @@ ul {
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.7;
+  box-shadow: none;
+  transform: none;
 }
 
 .btn.primary {
@@ -377,6 +398,109 @@ ul {
   font-size: 1rem;
 }
 
+.form-helper {
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.form-helper a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.auth-page {
+  background: var(--bg);
+  padding: 4rem 0 5rem;
+}
+
+.auth-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2.5rem;
+  align-items: start;
+}
+
+.auth-intro h1 {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  margin-bottom: 1rem;
+}
+
+.auth-list {
+  list-style: none;
+  margin-top: 1.5rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.auth-list li::before {
+  content: "-";
+  color: var(--accent);
+  font-weight: 700;
+  margin-right: 0.5rem;
+}
+
+.auth-card {
+  background: #fff;
+  padding: 2rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.1);
+}
+
+.auth-header h2 {
+  margin: 0 0 0.5rem;
+}
+
+.auth-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.auth-form input {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  font-size: 0.95rem;
+}
+
+.message.error {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.message.success {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.auth-meta {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.auth-footer {
+  margin-top: 1.5rem;
+  font-weight: 500;
+}
+
+.auth-footer a {
+  color: var(--primary);
+}
+
 .site-footer {
   background: #0f172a;
   color: #cbd5f5;
@@ -428,6 +552,12 @@ ul {
     width: 100%;
     justify-content: flex-start;
     flex-wrap: wrap;
+  }
+
+  .nav-actions {
+    order: 2;
+    width: 100%;
+    justify-content: flex-start;
   }
 }
 
