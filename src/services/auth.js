@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE = "https://tripmakerbe.vercel.app";
+const DEFAULT_API_BASE = "https://trip-maker-web-be.vercel.app";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/$/, "");
 
