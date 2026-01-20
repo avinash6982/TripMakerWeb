@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { loginUser } from "../services/auth";
+import { useTranslation } from "react-i18next";
+import { loginUser, setStoredUser } from "../services/auth";
+import { fetchProfile, saveProfile } from "../services/profile";
 
 const Login = () => {
+  const { t, i18n } = useTranslation();
   const [formState, setFormState] = useState({ email: "", password: "" });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -20,7 +23,7 @@ const Login = () => {
 
     if (!formState.email || !formState.password) {
       setStatus("error");
-      setMessage("Email and password are required.");
+      setMessage(t("auth.messages.required"));
       return;
     }
 
@@ -32,8 +35,18 @@ const Login = () => {
         password: formState.password,
       });
       setUser(data);
-      setMessage(data.message || "Login successful.");
+      setStoredUser(data);
+      setMessage(t("auth.messages.loginSuccess"));
       setStatus("success");
+      try {
+        const profile = await fetchProfile(data.id);
+        saveProfile(profile);
+        if (profile.language) {
+          i18n.changeLanguage(profile.language);
+        }
+      } catch (error) {
+        // Ignore profile failures for login.
+      }
     } catch (error) {
       setStatus("error");
       setMessage(error.message);
@@ -44,30 +57,28 @@ const Login = () => {
     <main className="auth-page">
       <section className="container auth-grid">
         <div className="auth-intro">
-          <p className="eyebrow">Welcome back</p>
-          <h1>Log in to keep planning together.</h1>
-          <p className="lead">
-            Access your shared itineraries, budgets, and group updates in one place.
-          </p>
+          <p className="eyebrow">{t("auth.login.eyebrow")}</p>
+          <h1>{t("auth.login.title")}</h1>
+          <p className="lead">{t("auth.login.subtitle")}</p>
           <ul className="auth-list">
-            <li>Pick up exactly where your group left off.</li>
-            <li>See real-time updates and booking statuses.</li>
-            <li>Stay aligned with automated reminders.</li>
+            {t("auth.login.list", { returnObjects: true }).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </div>
         <div className="auth-card">
           <div className="auth-header">
-            <h2>Log in</h2>
-            <p className="muted">Use the email you registered with.</p>
+            <h2>{t("auth.login.formTitle")}</h2>
+            <p className="muted">{t("auth.login.formSubtitle")}</p>
           </div>
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="field">
-              <label htmlFor="login-email">Email</label>
+              <label htmlFor="login-email">{t("auth.login.emailLabel")}</label>
               <input
                 id="login-email"
                 name="email"
                 type="email"
-                placeholder="you@team.com"
+                placeholder={t("profile.placeholders.email")}
                 autoComplete="email"
                 value={formState.email}
                 onChange={handleChange}
@@ -75,12 +86,12 @@ const Login = () => {
               />
             </div>
             <div className="field">
-              <label htmlFor="login-password">Password</label>
+              <label htmlFor="login-password">{t("auth.login.passwordLabel")}</label>
               <input
                 id="login-password"
                 name="password"
                 type="password"
-                placeholder="Enter your password"
+                placeholder={t("auth.login.passwordLabel")}
                 autoComplete="current-password"
                 value={formState.password}
                 onChange={handleChange}
@@ -96,18 +107,19 @@ const Login = () => {
               </div>
             )}
             <button className="btn primary full" type="submit" disabled={status === "loading"}>
-              {status === "loading" ? "Signing in..." : "Log in"}
+              {status === "loading" ? t("auth.login.loading") : t("auth.login.button")}
             </button>
           </form>
           {user && (
             <div className="auth-meta">
-              <p>
-                Signed in as <strong>{user.email}</strong>
-              </p>
+              <p>{t("auth.login.signedInAs", { email: user.email })}</p>
+              <Link className="btn ghost full" to="/profile">
+                {t("auth.login.profileCta")}
+              </Link>
             </div>
           )}
           <p className="auth-footer">
-            New to Waypoint? <Link to="/register">Create an account</Link>.
+            {t("auth.login.footer")} <Link to="/register">{t("auth.login.footerLink")}</Link>.
           </p>
         </div>
       </section>

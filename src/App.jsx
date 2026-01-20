@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import SiteLayout from "./layouts/SiteLayout";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
+import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 
 const App = () => {
@@ -11,6 +12,7 @@ const App = () => {
         <Route index element={<Landing />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+        <Route path="profile" element={<Profile />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

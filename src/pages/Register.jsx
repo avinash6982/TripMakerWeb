@@ -1,8 +1,11 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { registerUser } from "../services/auth";
+import { useTranslation } from "react-i18next";
+import { registerUser, setStoredUser } from "../services/auth";
+import { fetchProfile, saveProfile } from "../services/profile";
 
 const Register = () => {
+  const { t, i18n } = useTranslation();
   const [formState, setFormState] = useState({
     email: "",
     password: "",
@@ -24,13 +27,13 @@ const Register = () => {
 
     if (!formState.email || !formState.password) {
       setStatus("error");
-      setMessage("Email and password are required.");
+      setMessage(t("auth.messages.required"));
       return;
     }
 
     if (formState.password !== formState.confirmPassword) {
       setStatus("error");
-      setMessage("Passwords do not match.");
+      setMessage(t("auth.messages.passwordMismatch"));
       return;
     }
 
@@ -42,9 +45,19 @@ const Register = () => {
         password: formState.password,
       });
       setUser(data);
-      setMessage("Account created. You can now log in.");
+      setStoredUser(data);
+      setMessage(t("auth.messages.profileHint"));
       setStatus("success");
       setFormState((prev) => ({ ...prev, password: "", confirmPassword: "" }));
+      try {
+        const profile = await fetchProfile(data.id);
+        saveProfile(profile);
+        if (profile.language) {
+          i18n.changeLanguage(profile.language);
+        }
+      } catch (error) {
+        // Ignore profile fetch failures after registration.
+      }
     } catch (error) {
       setStatus("error");
       setMessage(error.message);
@@ -55,30 +68,28 @@ const Register = () => {
     <main className="auth-page">
       <section className="container auth-grid">
         <div className="auth-intro">
-          <p className="eyebrow">Start planning</p>
-          <h1>Create your Waypoint account.</h1>
-          <p className="lead">
-            Set up your trip hub, invite travelers, and keep every plan in sync.
-          </p>
+          <p className="eyebrow">{t("auth.register.eyebrow")}</p>
+          <h1>{t("auth.register.title")}</h1>
+          <p className="lead">{t("auth.register.subtitle")}</p>
           <ul className="auth-list">
-            <li>Organize itineraries, budgets, and checklists.</li>
-            <li>Keep every traveler aligned with real-time updates.</li>
-            <li>Move from idea to booked in one workspace.</li>
+            {t("auth.register.list", { returnObjects: true }).map((item) => (
+              <li key={item}>{item}</li>
+            ))}
           </ul>
         </div>
         <div className="auth-card">
           <div className="auth-header">
-            <h2>Create account</h2>
-            <p className="muted">Use your work email to get started.</p>
+            <h2>{t("auth.register.formTitle")}</h2>
+            <p className="muted">{t("auth.register.formSubtitle")}</p>
           </div>
           <form className="auth-form" onSubmit={handleSubmit}>
             <div className="field">
-              <label htmlFor="register-email">Email</label>
+              <label htmlFor="register-email">{t("auth.register.emailLabel")}</label>
               <input
                 id="register-email"
                 name="email"
                 type="email"
-                placeholder="you@team.com"
+                placeholder={t("profile.placeholders.email")}
                 autoComplete="email"
                 value={formState.email}
                 onChange={handleChange}
@@ -86,12 +97,12 @@ const Register = () => {
               />
             </div>
             <div className="field">
-              <label htmlFor="register-password">Password</label>
+              <label htmlFor="register-password">{t("auth.register.passwordLabel")}</label>
               <input
                 id="register-password"
                 name="password"
                 type="password"
-                placeholder="Create a password"
+                placeholder={t("auth.register.passwordLabel")}
                 autoComplete="new-password"
                 value={formState.password}
                 onChange={handleChange}
@@ -99,12 +110,14 @@ const Register = () => {
               />
             </div>
             <div className="field">
-              <label htmlFor="register-confirm-password">Confirm password</label>
+              <label htmlFor="register-confirm-password">
+                {t("auth.register.confirmLabel")}
+              </label>
               <input
                 id="register-confirm-password"
                 name="confirmPassword"
                 type="password"
-                placeholder="Confirm your password"
+                placeholder={t("auth.register.confirmLabel")}
                 autoComplete="new-password"
                 value={formState.confirmPassword}
                 onChange={handleChange}
@@ -120,23 +133,19 @@ const Register = () => {
               </div>
             )}
             <button className="btn primary full" type="submit" disabled={status === "loading"}>
-              {status === "loading" ? "Creating account..." : "Create account"}
+              {status === "loading" ? t("auth.register.loading") : t("auth.register.button")}
             </button>
           </form>
           {user && (
             <div className="auth-meta">
-              <p>
-                Account created for <strong>{user.email}</strong>
-              </p>
-              {user.createdAt && (
-                <p className="muted">
-                  Created at {new Date(user.createdAt).toLocaleString()}
-                </p>
-              )}
+              <p>{t("auth.messages.profileHint")}</p>
+              <Link className="btn ghost full" to="/profile">
+                {t("auth.register.profileCta")}
+              </Link>
             </div>
           )}
           <p className="auth-footer">
-            Already have an account? <Link to="/login">Log in</Link>.
+            {t("auth.register.footer")} <Link to="/login">{t("auth.register.footerLink")}</Link>.
           </p>
         </div>
       </section>

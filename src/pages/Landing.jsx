@@ -1,116 +1,24 @@
 import { Link } from "react-router-dom";
-
-const stats = [
-  { value: "4.9", label: "Average organizer rating" },
-  { value: "52k", label: "Trips coordinated in 2025" },
-  { value: "12 hrs", label: "Saved per group on average" },
-];
-
-const features = [
-  {
-    title: "Shared itinerary",
-    copy: "Drag, drop, and vote on activities. Each change updates every traveler instantly.",
-  },
-  {
-    title: "Smart budget tracking",
-    copy: "Split costs automatically, set caps, and see what is still outstanding in seconds.",
-  },
-  {
-    title: "Live group updates",
-    copy: "Built-in messaging, reminders, and checklists keep everyone on the same page.",
-  },
-  {
-    title: "Trip templates",
-    copy: "Start with curated templates for weekend getaways, retreats, or international tours.",
-  },
-  {
-    title: "Vendor marketplace",
-    copy: "Book stays, transport, and experiences directly from trusted partners.",
-  },
-  {
-    title: "Offline access",
-    copy: "Download your final plan so it is ready even when you are off the grid.",
-  },
-];
-
-const steps = [
-  {
-    title: "Create your trip hub",
-    copy: "Add dates, invite travelers, and drop in ideas from any device.",
-  },
-  {
-    title: "Vote and finalize",
-    copy: "Collect preferences, lock in bookings, and auto-build the daily schedule.",
-  },
-  {
-    title: "Travel together",
-    copy: "Share live updates, maps, and confirmations from one seamless itinerary.",
-  },
-];
-
-const checklist = [
-  "Automatically align arrival times and transport.",
-  "Pin meeting points for every day.",
-  "Set push reminders for the group.",
-];
-
-const timeline = [
-  { time: "8:00 AM", title: "Meet in Lisbon", detail: "Pickup and breakfast at Avenida." },
-  { time: "11:30 AM", title: "Coastal drive", detail: "Van booked, luggage packed." },
-  { time: "3:00 PM", title: "Check-in", detail: "Hotel Bahia, rooms ready." },
-  { time: "7:30 PM", title: "Welcome dinner", detail: "Group table reserved." },
-];
-
-const testimonials = [
-  {
-    quote:
-      "We planned a company retreat for 24 people and never once lost track of expenses. The shared itinerary kept everyone aligned.",
-    name: "Maya R.",
-    title: "People Operations, Northwind",
-  },
-  {
-    quote:
-      "Waypoint made it easy to vote on activities. We saved hours of back-and-forth and still felt heard.",
-    name: "Jordan P.",
-    title: "Travel organizer, Atlas Crew",
-  },
-];
-
-const pricingTiers = [
-  {
-    name: "Starter",
-    price: "$0",
-    note: "Perfect for weekend getaways.",
-    features: ["One active trip", "Group voting", "Basic budget tracking"],
-    cta: "Get started",
-    variant: "ghost",
-  },
-  {
-    name: "Collective",
-    price: "$12",
-    note: "Per organizer per month.",
-    features: [
-      "Unlimited trips",
-      "Live messaging",
-      "Shared templates",
-      "Automated reminders",
-    ],
-    cta: "Start free trial",
-    variant: "primary",
-    featured: true,
-    badge: "Most popular",
-  },
-  {
-    name: "Enterprise",
-    price: "Custom",
-    note: "Built for travel teams at scale.",
-    features: ["Dedicated concierge", "Advanced reporting", "Admin controls"],
-    cta: "Contact sales",
-    variant: "ghost",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 const Landing = () => {
+  const { t } = useTranslation();
+  const stats = t("landing.stats", { returnObjects: true });
+  const features = t("landing.features.items", { returnObjects: true });
+  const steps = t("landing.how.steps", { returnObjects: true });
+  const checklist = t("landing.demo.checklist", { returnObjects: true });
+  const timeline = t("landing.demo.timeline", { returnObjects: true });
+  const testimonials = t("landing.stories.testimonials", { returnObjects: true });
+  const pricingTiers = t("landing.pricing.tiers", { returnObjects: true });
+  const card = t("landing.card", { returnObjects: true });
+  const statsCounts = {
+    travelersConfirmed: "8",
+    travelersPending: "2",
+    budget: "$420",
+    ideas: "14",
+    booked: "6",
+  };
+
   const handleSubmit = (event) => {
     event.preventDefault();
   };
@@ -120,18 +28,15 @@ const Landing = () => {
       <section className="hero">
         <div className="container hero-grid">
           <div className="hero-copy">
-            <p className="eyebrow">Trip organization platform</p>
-            <h1>Plan trips that feel effortless from the first idea.</h1>
-            <p className="lead">
-              Keep itineraries, budgets, and group chats in one place. Waypoint helps your
-              crew make decisions fast so you can focus on the trip.
-            </p>
+            <p className="eyebrow">{t("landing.hero.eyebrow")}</p>
+            <h1>{t("landing.hero.title")}</h1>
+            <p className="lead">{t("landing.hero.lead")}</p>
             <div className="actions">
               <a className="btn primary" href="#plan">
-                Build your itinerary
+                {t("landing.hero.primary")}
               </a>
               <a className="btn ghost" href="#demo">
-                See how it works
+                {t("landing.hero.secondary")}
               </a>
             </div>
             <div className="stats">
@@ -145,28 +50,33 @@ const Landing = () => {
           </div>
           <div className="hero-card">
             <div className="card-header">
-              <p>Upcoming trip</p>
-              <span className="pill">Apr 18 - Apr 24</span>
+              <p>{card.header}</p>
+              <span className="pill">{card.dates}</span>
             </div>
-            <h3>Coastal Portugal Escape</h3>
+            <h3>{card.name}</h3>
             <ul>
               <li>
-                <strong>8</strong> travelers confirmed <span className="muted">+2 pending</span>
+                <strong>{statsCounts.travelersConfirmed}</strong>{" "}
+                {card.travelersConfirmedLabel}{" "}
+                <span className="muted">
+                  +{statsCounts.travelersPending} {card.travelersPendingLabel}
+                </span>
               </li>
               <li>
-                <strong>$420</strong> per traveler budget goal
+                <strong>{statsCounts.budget}</strong> {card.budgetLabel}
               </li>
               <li>
-                <strong>14</strong> saved ideas, <strong>6</strong> booked
+                <strong>{statsCounts.ideas}</strong> {card.ideasLabel},{" "}
+                <strong>{statsCounts.booked}</strong> {card.bookedLabel}
               </li>
             </ul>
             <button className="btn primary full" type="button">
-              Open itinerary
+              {t("actions.openItinerary")}
             </button>
             <div className="progress">
               <div className="progress-bar" style={{ width: "68%" }}></div>
             </div>
-            <p className="muted">68% of the plan is finalized</p>
+            <p className="muted">{card.progress}</p>
           </div>
         </div>
       </section>
@@ -174,11 +84,8 @@ const Landing = () => {
       <section id="features" className="section">
         <div className="container">
           <div className="section-title">
-            <h2>Everything your group needs to move quickly</h2>
-            <p>
-              Waypoint keeps decisions organized with shared to-do lists, calendars, and
-              budgets that update in real time.
-            </p>
+            <h2>{t("landing.features.title")}</h2>
+            <p>{t("landing.features.subtitle")}</p>
           </div>
           <div className="grid three">
             {features.map((feature) => (
@@ -194,8 +101,8 @@ const Landing = () => {
       <section id="how" className="section alt">
         <div className="container">
           <div className="section-title">
-            <h2>How Waypoint works</h2>
-            <p>Go from inspiration to confirmation in three focused steps.</p>
+            <h2>{t("landing.how.title")}</h2>
+            <p>{t("landing.how.subtitle")}</p>
           </div>
           <div className="steps">
             {steps.map((step, index) => (
@@ -212,11 +119,8 @@ const Landing = () => {
       <section id="demo" className="section">
         <div className="container demo">
           <div>
-            <h2>See your trip timeline at a glance</h2>
-            <p>
-              Waypoint surfaces daily agendas, transit windows, and group check-ins so no one
-              is left guessing.
-            </p>
+            <h2>{t("landing.demo.title")}</h2>
+            <p>{t("landing.demo.subtitle")}</p>
             <ul className="checklist">
               {checklist.map((item) => (
                 <li key={item}>{item}</li>
@@ -240,11 +144,8 @@ const Landing = () => {
       <section id="stories" className="section alt">
         <div className="container">
           <div className="section-title">
-            <h2>Teams and friend groups trust Waypoint</h2>
-            <p>
-              From offsites to bachelor parties, organizers rely on one shared source of
-              truth.
-            </p>
+            <h2>{t("landing.stories.title")}</h2>
+            <p>{t("landing.stories.subtitle")}</p>
           </div>
           <div className="grid two">
             {testimonials.map((story) => (
@@ -263,8 +164,8 @@ const Landing = () => {
       <section id="pricing" className="section">
         <div className="container">
           <div className="section-title">
-            <h2>Simple pricing for every trip</h2>
-            <p>Start free, upgrade when you need deeper coordination.</p>
+            <h2>{t("landing.pricing.title")}</h2>
+            <p>{t("landing.pricing.subtitle")}</p>
           </div>
           <div className="grid three">
             {pricingTiers.map((tier) => (
@@ -295,21 +196,24 @@ const Landing = () => {
       <section id="plan" className="cta">
         <div className="container cta-grid">
           <div>
-            <h2>Ready to organize your next trip?</h2>
-            <p>
-              Create your trip hub in minutes and invite your crew to start planning
-              together.
-            </p>
+            <h2>{t("landing.cta.title")}</h2>
+            <p>{t("landing.cta.subtitle")}</p>
           </div>
           <form className="cta-form" onSubmit={handleSubmit}>
-            <label htmlFor="email">Work email</label>
-            <input id="email" name="email" type="email" placeholder="you@team.com" required />
+            <label htmlFor="email">{t("landing.cta.label")}</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              placeholder={t("landing.cta.placeholder")}
+              required
+            />
             <button className="btn primary full" type="submit">
-              Start planning
+              {t("landing.cta.button")}
             </button>
-            <p className="muted">Free 14-day trial. No credit card required.</p>
+            <p className="muted">{t("landing.cta.note")}</p>
             <p className="form-helper">
-              Want a full account instead? <Link to="/register">Create one now</Link>.
+              {t("landing.cta.helper")} <Link to="/register">{t("landing.cta.helperLink")}</Link>.
             </p>
           </form>
         </div>
