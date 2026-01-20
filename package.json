@@ -1,0 +1,30 @@
+{
+  "name": "waypoint-landing",
+  "version": "1.0.0",
+  "description": "Landing page for a trip organization platform.",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avinash6982/TripMakerWeb.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/avinash6982/TripMakerWeb/issues"
+  },
+  "homepage": "https://github.com/avinash6982/TripMakerWeb#readme",
+  "dependencies": {
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^5.1.2",
+    "vite": "^7.3.1"
+  }
+}
