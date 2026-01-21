@@ -1,15 +1,22 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { loginUser, setStoredUser } from "../services/auth";
+import { getStoredUser, loginUser, setStoredUser } from "../services/auth";
 import { fetchProfile, saveProfile } from "../services/profile";
 
 const Login = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [formState, setFormState] = useState({ email: "", password: "" });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
-  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const user = getStoredUser();
+    if (user) {
+      navigate("/home", { replace: true });
+    }
+  }, [navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -19,8 +26,6 @@ const Login = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     setMessage("");
-    setUser(null);
-
     if (!formState.email || !formState.password) {
       setStatus("error");
       setMessage(t("auth.messages.required"));
@@ -34,7 +39,6 @@ const Login = () => {
         email: formState.email,
         password: formState.password,
       });
-      setUser(data);
       setStoredUser(data);
       setMessage(t("auth.messages.loginSuccess"));
       setStatus("success");
@@ -47,6 +51,7 @@ const Login = () => {
       } catch (error) {
         // Ignore profile failures for login.
       }
+      navigate("/home", { replace: true });
     } catch (error) {
       setStatus("error");
       setMessage(error.message);
@@ -55,20 +60,10 @@ const Login = () => {
 
   return (
     <main className="auth-page">
-      <section className="container auth-grid">
-        <div className="auth-intro">
-          <p className="eyebrow">{t("auth.login.eyebrow")}</p>
-          <h1>{t("auth.login.title")}</h1>
-          <p className="lead">{t("auth.login.subtitle")}</p>
-          <ul className="auth-list">
-            {t("auth.login.list", { returnObjects: true }).map((item) => (
-              <li key={item}>{item}</li>
-            ))}
-          </ul>
-        </div>
+      <section className="container auth-centered">
         <div className="auth-card">
           <div className="auth-header">
-            <h2>{t("auth.login.formTitle")}</h2>
+            <h2>{t("auth.login.title")}</h2>
             <p className="muted">{t("auth.login.formSubtitle")}</p>
           </div>
           <form className="auth-form" onSubmit={handleSubmit}>
@@ -110,14 +105,6 @@ const Login = () => {
               {status === "loading" ? t("auth.login.loading") : t("auth.login.button")}
             </button>
           </form>
-          {user && (
-            <div className="auth-meta">
-              <p>{t("auth.login.signedInAs", { email: user.email })}</p>
-              <Link className="btn ghost full" to="/profile">
-                {t("auth.login.profileCta")}
-              </Link>
-            </div>
-          )}
           <p className="auth-footer">
             {t("auth.login.footer")} <Link to="/register">{t("auth.login.footerLink")}</Link>.
           </p>

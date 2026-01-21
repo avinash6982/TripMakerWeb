@@ -6,6 +6,7 @@ const resources = {
     translation: {
       appName: "Waypoint",
       nav: {
+        home: "Home",
         features: "Features",
         how: "How it works",
         pricing: "Pricing",
@@ -23,6 +24,10 @@ const resources = {
       labels: {
         language: "Language",
         loading: "Loading...",
+      },
+      home: {
+        title: "Home",
+        subtitle: "Your trip workspace is ready.",
       },
       landing: {
         hero: {
@@ -332,6 +337,7 @@ const resources = {
     translation: {
       appName: "Waypoint",
       nav: {
+        home: "होम",
         features: "विशेषताएं",
         how: "कैसे काम करता है",
         pricing: "मूल्य निर्धारण",
@@ -349,6 +355,10 @@ const resources = {
       labels: {
         language: "भाषा",
         loading: "लोड हो रहा है...",
+      },
+      home: {
+        title: "होम",
+        subtitle: "आपका ट्रिप वर्कस्पेस तैयार है।",
       },
       landing: {
         hero: {
@@ -654,6 +664,7 @@ const resources = {
     translation: {
       appName: "Waypoint",
       nav: {
+        home: "ഹോം",
         features: "സവിശേഷതകൾ",
         how: "എങ്ങനെ പ്രവർത്തിക്കുന്നു",
         pricing: "വിലകൾ",
@@ -671,6 +682,10 @@ const resources = {
       labels: {
         language: "ഭാഷ",
         loading: "ലോഡിംഗ്...",
+      },
+      home: {
+        title: "ഹോം",
+        subtitle: "നിങ്ങളുടെ ട്രിപ്പ് വർക്ക്‌സ്‌പേസ് തയ്യാറാണ്.",
       },
       landing: {
         hero: {
@@ -974,6 +989,7 @@ const resources = {
     translation: {
       appName: "Waypoint",
       nav: {
+        home: "الرئيسية",
         features: "الميزات",
         how: "كيف يعمل",
         pricing: "الأسعار",
@@ -991,6 +1007,10 @@ const resources = {
       labels: {
         language: "اللغة",
         loading: "جار التحميل...",
+      },
+      home: {
+        title: "الرئيسية",
+        subtitle: "مساحة عمل رحلاتك جاهزة.",
       },
       landing: {
         hero: {
@@ -1293,6 +1313,7 @@ const resources = {
     translation: {
       appName: "Waypoint",
       nav: {
+        home: "Inicio",
         features: "Funciones",
         how: "Cómo funciona",
         pricing: "Precios",
@@ -1310,6 +1331,10 @@ const resources = {
       labels: {
         language: "Idioma",
         loading: "Cargando...",
+      },
+      home: {
+        title: "Inicio",
+        subtitle: "Tu espacio de viajes está listo.",
       },
       landing: {
         hero: {
@@ -1623,6 +1648,7 @@ const resources = {
     translation: {
       appName: "Waypoint",
       nav: {
+        home: "Start",
         features: "Funktionen",
         how: "So funktioniert es",
         pricing: "Preise",
@@ -1640,6 +1666,10 @@ const resources = {
       labels: {
         language: "Sprache",
         loading: "Wird geladen...",
+      },
+      home: {
+        title: "Start",
+        subtitle: "Dein Reisebereich ist bereit.",
       },
       landing: {
         hero: {

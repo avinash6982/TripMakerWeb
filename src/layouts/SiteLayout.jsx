@@ -27,37 +27,8 @@ const SiteLayout = () => {
   }, []);
 
   const navLinks = [
-    { href: "/#features", label: t("nav.features") },
-    { href: "/#how", label: t("nav.how") },
-    { href: "/#pricing", label: t("nav.pricing") },
-    { href: "/#stories", label: t("nav.stories") },
-  ];
-
-  const footerColumns = [
-    {
-      title: t("footer.product"),
-      links: [
-        { href: "/#features", label: t("footer.links.features") },
-        { href: "/#pricing", label: t("footer.links.pricing") },
-        { href: "/#demo", label: t("footer.links.demo") },
-      ],
-    },
-    {
-      title: t("footer.company"),
-      links: [
-        { href: "#", label: t("footer.links.about") },
-        { href: "#", label: t("footer.links.careers") },
-        { href: "#", label: t("footer.links.contact") },
-      ],
-    },
-    {
-      title: t("footer.resources"),
-      links: [
-        { href: "#", label: t("footer.links.support") },
-        { href: "#", label: t("footer.links.guides") },
-        { href: "#", label: t("footer.links.privacy") },
-      ],
-    },
+    { to: "/home", label: t("nav.home") },
+    { to: "/profile", label: t("nav.profile") },
   ];
 
   const handleLanguageChange = (event) => {
@@ -79,9 +50,9 @@ const SiteLayout = () => {
           </Link>
           <nav className="nav-links" aria-label="Primary">
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href}>
+              <Link key={link.to} to={link.to}>
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
           <div className="nav-actions">
@@ -95,57 +66,16 @@ const SiteLayout = () => {
                 ))}
               </select>
             </label>
-            {user ? (
-              <>
-                <Link className="text-link" to="/profile">
-                  {t("nav.profile")}
-                </Link>
-                <button className="text-link" type="button" onClick={handleLogout}>
-                  {t("actions.logout")}
-                </button>
-              </>
-            ) : (
-              <>
-                <Link className="text-link" to="/login">
-                  {t("actions.login")}
-                </Link>
-                <Link className="btn small" to="/register">
-                  {t("actions.startPlanning")}
-                </Link>
-              </>
+            {user && (
+              <button className="text-link" type="button" onClick={handleLogout}>
+                {t("actions.logout")}
+              </button>
             )}
           </div>
         </div>
       </header>
 
       <Outlet />
-
-      <footer className="site-footer">
-        <div className="container footer-grid">
-          <div>
-            <div className="logo">{t("appName")}</div>
-            <p>{t("footer.blurb")}</p>
-          </div>
-          {footerColumns.map((column) => (
-            <div key={column.title}>
-              <h4>{column.title}</h4>
-              {column.links.map((link) => (
-                <a key={link.label} href={link.href}>
-                  {link.label}
-                </a>
-              ))}
-            </div>
-          ))}
-        </div>
-        <div className="container footer-bottom">
-          <p>{t("footer.bottom.copyright")}</p>
-          <div className="footer-links">
-            <a href="#">{t("footer.bottom.terms")}</a>
-            <a href="#">{t("footer.bottom.privacy")}</a>
-            <a href="#">{t("footer.bottom.security")}</a>
-          </div>
-        </div>
-      </footer>
     </div>
   );
 };

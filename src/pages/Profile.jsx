@@ -205,19 +205,19 @@ const Profile = () => {
             </div>
             <div className="field">
               <label htmlFor="profile-country">{t("profile.form.country")}</label>
-              <input
+              <select
                 id="profile-country"
                 name="country"
-                list="country-options"
                 value={formState.country}
-                placeholder={t("profile.placeholders.country")}
                 onChange={handleChange}
-              />
-              <datalist id="country-options">
+              >
+                <option value="">{t("profile.placeholders.country")}</option>
                 {countryOptions.map((country) => (
-                  <option key={country} value={country} />
+                  <option key={country} value={country}>
+                    {country}
+                  </option>
                 ))}
-              </datalist>
+              </select>
             </div>
             <div className="field">
               <label htmlFor="profile-language">{t("profile.form.language")}</label>

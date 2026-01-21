@@ -1,20 +1,47 @@
 import { Navigate, Route, Routes } from "react-router-dom";
+import AuthLayout from "./layouts/AuthLayout";
 import SiteLayout from "./layouts/SiteLayout";
-import Landing from "./pages/Landing";
+import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
+import { getStoredUser } from "./services/auth";
+
+const RequireAuth = ({ children }) => {
+  const user = getStoredUser();
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  return children;
+};
 
 const App = () => {
   return (
     <Routes>
-      <Route element={<SiteLayout />}>
-        <Route index element={<Landing />} />
+      <Route element={<AuthLayout />}>
+        <Route index element={<Login />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
-        <Route path="profile" element={<Profile />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
+      <Route element={<SiteLayout />}>
+        <Route
+          path="home"
+          element={
+            <RequireAuth>
+              <Home />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="profile"
+          element={
+            <RequireAuth>
+              <Profile />
+            </RequireAuth>
+          }
+        />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 };
