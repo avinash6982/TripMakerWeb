@@ -1,236 +1,378 @@
-# TripMaker Monorepo - Cursor AI Rules
+# 🎯 TripMaker (Waypoint) - Cursor AI Master Rules
+
+> **Last Updated:** January 30, 2026  
+> **Version:** 2.0.0  
+> **Status:** Production-Ready ✅
+
+---
+
+## 📖 QUICK REFERENCE
+
+### Essential Documentation
+- **`APP_ARCHITECTURE.md`** - Complete system architecture, data flow, security
+- **`API_REFERENCE.md`** - All API endpoints, request/response formats
+- **`PROFILE_TESTING_RESULTS.md`** - Testing results and workflows
+- **`README.md`** - Project overview and quick start
+
+### Production URLs
+- **Frontend**: https://trip-maker-pink.vercel.app
+- **API**: https://trip-maker-pink.vercel.app/api
+- **Repository**: https://github.com/avinash6982/TripMakerWeb
+
+---
+
+## 🎯 CRITICAL: Development Test User
+
+**FOR ALL DEVELOPMENT, TESTING, AND CURSOR AGENT WORK:**
+
+```
+Email:    dev@tripmaker.com
+Password: DevUser123!
+ID:       dev-user-00000000-0000-0000-0000-000000000001
+```
+
+**Why This User?**
+- ✅ Auto-seeded on every API call
+- ✅ Available in local AND deployed environments
+- ✅ Consistent ID for predictable testing
+- ✅ Never gets deleted (ephemeral storage workaround)
+
+**ALWAYS use this user. NEVER create new test users unless explicitly asked.**
+
+---
 
 ## 🏗️ PROJECT OVERVIEW
 
-This is a **production-ready monorepo** for TripMaker, a travel planning platform.
-- **Repository**: https://github.com/avinash6982/TripMakerWeb
-- **Structure**: npm workspaces monorepo
-- **Deployment**: Vercel (automatic on push to main)
-- **Status**: Fully operational, all systems configured
+**TripMaker** (branded as "Waypoint") is a production-ready trip planning platform.
 
-### 🎯 Development Test User (ALWAYS USE THIS)
+### Technology Stack
+| Layer | Technology |
+|-------|------------|
+| **Frontend** | React 19.2.3 + Vite 7.3.1 + React Router 7.12.0 |
+| **Backend** | Express.js 5.2.1 + JWT + Swagger |
+| **i18n** | i18next (6 languages: en, hi, ml, ar, es, de) |
+| **Deployment** | Vercel (serverless functions + static hosting) |
+| **Monorepo** | npm workspaces |
 
-**For ALL development, testing, and Cursor agent work, use:**
-- **Email**: `dev@tripmaker.com`
-- **Password**: `DevUser123!`
-- **ID**: `dev-user-00000000-0000-0000-0000-000000000001`
-
-This user is **auto-seeded** on every API call and available in both local and deployed environments.
+### Architecture Pattern
+```
+Monorepo (npm workspaces)
+├── apps/frontend/     → React/Vite SPA
+├── apps/backend/      → Express.js API (local dev)
+└── api/               → Vercel serverless functions (production)
+```
 
 ## 📁 MONOREPO STRUCTURE
 
 ```
-TripMaker/                              # Root (monorepo workspace)
+TripMaker/                                   # Root (monorepo workspace)
 ├── apps/
-│   ├── frontend/                       # @tripmaker/frontend - React/Vite
+│   ├── frontend/                            # @tripmaker/frontend - React/Vite
 │   │   ├── src/
-│   │   │   ├── pages/                 # React pages (Home, Login, Register, Profile)
-│   │   │   ├── layouts/               # Layout components (AuthLayout, SiteLayout)
-│   │   │   ├── services/              # API layer (auth.js, profile.js)
-│   │   │   ├── App.jsx                # Main app component
-│   │   │   ├── main.jsx               # Entry point
-│   │   │   ├── i18n.js                # Internationalization (6 languages)
-│   │   │   └── index.css              # Global styles
-│   │   ├── .env.development           # Dev config (tracked in git)
-│   │   ├── .env.example               # Template
-│   │   ├── vite.config.js             # Vite configuration
-│   │   └── package.json               # Frontend deps
+│   │   │   ├── pages/                      # Page components
+│   │   │   │   ├── Home.jsx                # Authenticated home page
+│   │   │   │   ├── Login.jsx               # Login page
+│   │   │   │   ├── Register.jsx            # Registration page
+│   │   │   │   └── Profile.jsx             # User profile management
+│   │   │   ├── layouts/                    # Layout wrappers
+│   │   │   │   ├── AuthLayout.jsx          # For login/register
+│   │   │   │   └── SiteLayout.jsx          # For authenticated pages
+│   │   │   ├── services/                   # API communication layer
+│   │   │   │   ├── auth.js                 # Auth API (register, login)
+│   │   │   │   └── profile.js              # Profile API (get, update)
+│   │   │   ├── App.jsx                     # Main app + routing
+│   │   │   ├── main.jsx                    # React entry point
+│   │   │   ├── i18n.js                     # i18n config (6 languages)
+│   │   │   └── index.css                   # Global styles
+│   │   ├── .env.development                # Local dev config (VITE_API_URL)
+│   │   ├── vite.config.js                  # Vite config
+│   │   └── package.json                    # Frontend dependencies
 │   │
-│   └── backend/                        # @tripmaker/backend - Express.js
-│       ├── server.js                   # Main server (34KB, all routes & logic)
-│       ├── .env.development            # Dev config (tracked in git)
-│       ├── .env.example                # Template
-│       ├── FEATURES.md                 # Backend features list
-│       └── package.json                # Backend deps
+│   └── backend/                             # @tripmaker/backend - Express.js
+│       ├── server.js                        # Monolithic Express app (local dev)
+│       │                                    # Contains: all routes, middleware, logic
+│       ├── data/users.json                  # Local user storage (persistent)
+│       ├── .env.development                 # Local dev config (PORT, JWT_SECRET)
+│       └── package.json                     # Backend dependencies
 │
-├── .cursorrules                        # THIS FILE
-├── .gitignore                          # Git ignore patterns
-├── .env.example                        # Root environment template
-├── package.json                        # Workspace config (npm workspaces)
-├── vercel.json                         # Vercel deployment config
+├── api/                                     # Vercel serverless functions (production)
+│   ├── index.js                            # API root
+│   ├── health.js                           # Health check endpoint
+│   ├── auth/
+│   │   ├── register.js                     # User registration
+│   │   └── login.js                        # User authentication
+│   ├── user/
+│   │   └── profile.js                      # Profile GET/PUT
+│   └── lib/                                # Shared utilities
+│       ├── db.js                           # Database functions
+│       └── seedUser.js                     # Auto-seed dev user
 │
-└── Documentation/
-    ├── README.md                       # Main overview
-    ├── QUICK_START.md                  # Quick local setup (2 min)
-    ├── VERCEL_DEPLOYMENT_GUIDE.md      # Deployment guide
-    ├── CONTRIBUTING.md                 # Development guidelines
-    └── PROJECT_ANALYSIS.md             # Complete project analysis
+├── Documentation/
+│   ├── APP_ARCHITECTURE.md                 # ⭐ Complete architecture guide
+│   ├── API_REFERENCE.md                    # ⭐ All API endpoints
+│   ├── PROFILE_TESTING_RESULTS.md          # Testing results
+│   ├── README.md                           # Project overview
+│   ├── QUICK_START.md                      # 2-minute local setup
+│   ├── SETUP_COMPLETE.md                   # Setup completion guide
+│   ├── DEV_USER_GUIDE.md                   # Dev user documentation
+│   └── TEST_USER.md                        # Test user credentials
+│
+├── .cursorrules                             # ⭐ THIS FILE (Cursor AI guide)
+├── .gitignore                              # Git ignore patterns
+├── package.json                            # Root workspace config
+└── vercel.json                             # Vercel deployment config
 ```
 
-## 🎯 CRITICAL RULES - READ FIRST
+## ⚡ CRITICAL RULES (READ ON EVERY PROMPT)
 
-### 1. Workspace Awareness
-- **ALWAYS** identify which workspace you're working in: root, frontend, or backend
-- **NEVER** mix frontend and backend code
-- **ROOT changes** affect the entire monorepo (package.json, vercel.json, docs)
-- **Frontend changes** go in `apps/frontend/`
-- **Backend changes** go in `apps/backend/`
+### 1. Workspace Context Awareness
 
-### 2. API Integration Pattern
-```javascript
-// Frontend API calls ALWAYS use environment-aware configuration
-// Production: /api (relative path)
-// Development: http://localhost:3000 (full URL)
+**BEFORE making ANY change, identify the workspace:**
 
-// Example in apps/frontend/src/services/auth.js:
-const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+```
+Frontend change? → apps/frontend/
+Backend change?  → apps/backend/
+API function?    → api/
+Root config?     → root directory
+Documentation?   → top-level .md files
 ```
 
-### 3. Backend Routes Pattern
+**NEVER:**
+- Mix frontend and backend code
+- Install backend deps in frontend (or vice versa)
+- Hardcode URLs or secrets
+- Modify `vercel.json` without consulting this file
+
+### 2. Development User (Auto-Seeded)
+
 ```javascript
-// ALL backend routes are in server.js
-// In production, routes are accessible at /api/* due to vercel.json routing
-// Examples:
-//   /register       (dev) → /api/register      (prod)
-//   /login          (dev) → /api/login         (prod)
-//   /health         (dev) → /api/health        (prod)
+// ALWAYS available (no need to create):
+const DEV_USER = {
+  email: 'dev@tripmaker.com',
+  password: 'DevUser123!',
+  id: 'dev-user-00000000-0000-0000-0000-000000000001'
+};
+
+// Backend: Auto-seeded in readUsers()
+// Frontend: Use for all testing
+// Vercel: Recreated on every function invocation
+```
+
+### 3. API Integration Pattern
+
+```javascript
+// Frontend (apps/frontend/src/services/auth.js)
+const API_BASE_URL = (import.meta.env.VITE_API_URL || '/api').replace(/\/$/, '');
+
+// Always use this pattern:
+fetch(`${API_BASE_URL}/login`, { ... })
+
+// ❌ NEVER hardcode:
+fetch('http://localhost:3000/login', { ... })
 ```
 
 ### 4. Environment Variables
-```bash
-# Frontend vars MUST be prefixed with VITE_
-VITE_API_URL=http://localhost:3000  # Dev
-VITE_API_URL=/api                    # Prod
 
-# Backend vars are standard
+```bash
+# Frontend (.env.development)
+VITE_API_URL=http://localhost:3000  # Local dev
+VITE_API_URL=/api                    # Production (Vercel)
+
+# Backend (.env.development)
 PORT=3000
-JWT_SECRET=<auto-generated-in-dev>
-CORS_ORIGINS=http://localhost:5173
+JWT_SECRET=<auto-generated>          # Auto in dev, required in prod
+CORS_ORIGINS=http://localhost:5173   # Comma-separated
 ```
 
-### 5. Development Commands
+### 5. Common Commands
+
 ```bash
-npm run dev              # Start BOTH apps in parallel (use this!)
+# Development
+npm run dev              # ⭐ Start both frontend & backend
 npm run dev:frontend     # Frontend only (port 5173)
 npm run dev:backend      # Backend only (port 3000)
-npm run build            # Build both apps
-npm install              # Install all workspace dependencies
+
+# Testing
+curl http://localhost:3000/health
+open http://localhost:5173
+open http://localhost:3000/api-docs
+
+# Build & Deploy
+npm run build            # Build frontend
+git push origin main     # Auto-deploy to Vercel
 ```
 
-## 🎨 FRONTEND GUIDELINES (apps/frontend/)
+## 🎨 FRONTEND PATTERNS (apps/frontend/)
 
-### Technology Stack
-- **Framework**: React 19.2.3 (functional components, hooks only)
-- **Build Tool**: Vite 7.3.1 (fast, modern)
-- **Router**: React Router DOM 7.12.0
-- **i18n**: react-i18next (6 languages: en, hi, ml, ar, es, de)
+### Core Stack
+```
+React 19.2.3 (functional components only)
+Vite 7.3.1 (dev server + build)
+React Router DOM 7.12.0 (client-side routing)
+i18next 25.8.0 (6 languages supported)
+```
 
-### Code Patterns
+### Coding Patterns
 
-#### Components
+#### ✅ DO: Functional Components with Hooks
+
 ```jsx
-// ✅ CORRECT: Functional component with hooks
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
-export const MyComponent = () => {
+const Profile = () => {
   const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { t } = useTranslation();
   
   useEffect(() => {
-    // Side effects here
+    // Fetch data on mount
+    fetchData();
   }, []);
   
-  return <div>{data}</div>;
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    // Handle form submission
+  };
+  
+  return (
+    <div>
+      <h1>{t('profile.title')}</h1>
+      {loading ? <p>{t('labels.loading')}</p> : <div>{data}</div>}
+    </div>
+  );
 };
 
-// ❌ WRONG: Class components
-class MyComponent extends React.Component { }
+export default Profile;
 ```
 
-#### API Calls
-```javascript
-// ✅ CORRECT: Use service layer from src/services/
-import { registerUser, loginUser } from '../services/auth';
+#### ✅ DO: API Calls via Service Layer
 
-const handleRegister = async (email, password) => {
+```javascript
+// In components:
+import { loginUser } from '../services/auth';
+
+const handleLogin = async (email, password) => {
   try {
-    const data = await registerUser({ email, password });
-    // Handle success
+    const result = await loginUser({ email, password });
+    setStoredUser(result);
+    navigate('/home');
   } catch (error) {
-    // Handle error - error.message contains user-friendly message
+    setError(error.message);  // User-friendly message
   }
 };
 
-// ❌ WRONG: Direct fetch calls
-fetch('http://localhost:3000/register', { ... })  // Hardcoded URL!
+// ❌ DON'T: Direct fetch
+fetch('http://localhost:3000/login', { ... })  // WRONG!
 ```
 
-#### Routing
+#### ✅ DO: i18n for All Text
+
 ```jsx
-// ✅ CORRECT: Use React Router
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+// Translation key
+<h1>{t('auth.login.title')}</h1>
 
-<Routes>
-  <Route path="/" element={<Home />} />
-  <Route path="/login" element={<Login />} />
-</Routes>
+// With interpolation
+<p>{t('auth.login.signedInAs', { email: user.email })}</p>
 
-// ❌ WRONG: Manual URL manipulation
-window.location.href = '/login';
+// ❌ DON'T: Hardcode text
+<h1>Log in</h1>  // Won't translate!
 ```
 
-#### Internationalization
-```jsx
-// ✅ CORRECT: Use useTranslation hook
-import { useTranslation } from 'react-i18next';
+#### ✅ DO: Protected Routes
 
-const MyComponent = () => {
-  const { t } = useTranslation();
-  return <h1>{t('welcome')}</h1>;
+```jsx
+// App.jsx pattern
+const RequireAuth = ({ children }) => {
+  const user = getStoredUser();
+  return user ? children : <Navigate to="/login" replace />;
 };
 
-// ❌ WRONG: Hardcoded text
-<h1>Welcome</h1>  // Won't translate!
+<Route path="/profile" element={
+  <RequireAuth>
+    <Profile />
+  </RequireAuth>
+} />
 ```
 
-### File Locations
-- **Pages**: `src/pages/` (Home.jsx, Login.jsx, Register.jsx, Profile.jsx)
-- **Layouts**: `src/layouts/` (AuthLayout.jsx, SiteLayout.jsx)
-- **Services**: `src/services/` (auth.js, profile.js)
-- **Main App**: `src/App.jsx`
-- **Entry**: `src/main.jsx`
-- **i18n Config**: `src/i18n.js`
-- **Styles**: `src/index.css`
+### File Structure
 
-### Build Configuration
-- **Config File**: `vite.config.js` (minimal, just React plugin)
-- **Output**: `dist/` directory
-- **Build**: Automatic via Vercel using `@vercel/static-build`
-- **Dev Server**: Port 5173 (or next available)
+```
+src/
+├── pages/           # One file per route
+│   ├── Home.jsx     # /home route
+│   ├── Login.jsx    # / and /login routes
+│   ├── Register.jsx # /register route
+│   └── Profile.jsx  # /profile route
+├── layouts/         # Wrapper components
+│   ├── AuthLayout.jsx   # For unauthenticated pages
+│   └── SiteLayout.jsx   # For authenticated pages (nav, header)
+├── services/        # API communication layer
+│   ├── auth.js      # registerUser(), loginUser(), getStoredUser(), etc.
+│   └── profile.js   # fetchProfile(), updateProfile(), saveProfile()
+├── App.jsx          # Routes definition
+├── main.jsx         # React mount point
+├── i18n.js          # Translation setup (6 languages)
+└── index.css        # Global styles
+```
 
-## 🔧 BACKEND GUIDELINES (apps/backend/)
+### State Management
 
-### Technology Stack
-- **Framework**: Express.js 5.2.1
-- **Authentication**: JWT (jsonwebtoken 9.0.3)
-- **Security**: Helmet 7.2.0, CORS 2.8.6, Rate Limiting
-- **Validation**: express-validator 7.3.1
-- **API Docs**: Swagger (swagger-ui-express, swagger-jsdoc)
-
-### Architecture
 ```javascript
-// ALL backend logic is in server.js
-// Structure:
-//   1. Configuration & Constants
-//   2. Swagger Documentation
-//   3. Middleware (helmet, CORS, rate limiting)
-//   4. Utility Functions (password hashing, user storage)
-//   5. Auth Middleware (requireAuth, optionalAuth)
-//   6. API Endpoints (register, login, profile)
-//   7. Error Handlers
-//   8. Server Start
+// Local Storage Keys
+'waypoint.user'      // { id, email, token }
+'waypoint.profile'   // { phone, country, language, currencyType }
+'waypoint.language'  // Current UI language (en, hi, ml, ar, es, de)
+
+// Component State (useState)
+const [user, setUser] = useState(getStoredUser());
+const [error, setError] = useState('');
+const [loading, setLoading] = useState(false);
+
+// Auth State Sync (custom event)
+window.addEventListener('authchange', handleAuthChange);
+window.dispatchEvent(new Event('authchange'));
+```
+
+## 🔧 BACKEND PATTERNS (apps/backend/)
+
+### Core Stack
+```
+Express.js 5.2.1 (web framework)
+jsonwebtoken 9.0.2 (JWT auth)
+Helmet 7.1.0 (security headers)
+CORS 2.8.5 (cross-origin)
+express-validator 7.0.1 (input validation)
+swagger-ui-express 5.0.0 (API docs)
+```
+
+### Architecture Overview
+
+```javascript
+// apps/backend/server.js (SINGLE FILE, ~1200 lines)
+//
+// 1. Configuration (PORT, JWT_SECRET, CORS, etc.)
+// 2. Swagger Setup (OpenAPI 3.0 spec)
+// 3. Middleware (helmet, CORS, rate limiting, morgan)
+// 4. Utility Functions (password hashing, JWT, user storage)
+// 5. Auth Middleware (requireAuth, optionalAuth)
+// 6. API Routes (/, /health, /register, /login, /profile/:id)
+// 7. Error Handlers (404, global error handler)
+// 8. Server Start (local only, Vercel doesn't need it)
 ```
 
 ### Adding New Endpoints
 
-#### 1. Add Swagger Documentation
 ```javascript
+// 1. Add Swagger docs ABOVE the route
 /**
  * @swagger
- * /api/new-endpoint:
+ * /api/trips:
  *   post:
- *     tags: [TagName]
- *     summary: Brief description
- *     description: Detailed description
+ *     tags: [Trips]
+ *     summary: Create a new trip
  *     requestBody:
  *       required: true
  *       content:
@@ -238,32 +380,29 @@ const MyComponent = () => {
  *           schema:
  *             type: object
  *             properties:
- *               field:
+ *               name:
  *                 type: string
  *     responses:
- *       200:
- *         description: Success
- *       400:
- *         description: Validation error
+ *       201:
+ *         description: Trip created
  */
-```
-
-#### 2. Add Route Handler
-```javascript
+// 2. Add route with validation
 app.post(
-  "/new-endpoint",
-  optionalAuth,  // or requireAuth if auth needed
+  '/trips',
+  requireAuth,  // JWT required
   [
-    // Validation
-    body("field")
-      .notEmpty()
-      .withMessage("Field is required."),
+    body('name').notEmpty().withMessage('Trip name is required.')
   ],
   handleValidationErrors,
   async (req, res, next) => {
     try {
-      // Logic here
-      res.status(200).json({ success: true });
+      const userId = req.user.id;  // From JWT
+      const { name } = req.body;
+      
+      // Business logic here
+      const trip = { id: crypto.randomUUID(), name, userId };
+      
+      res.status(201).json(trip);
     } catch (error) {
       next(error);  // Pass to error handler
     }
@@ -271,110 +410,200 @@ app.post(
 );
 ```
 
-### Authentication Pattern
+### Authentication Middleware
+
 ```javascript
-// For protected routes, use requireAuth
-app.get("/protected", requireAuth, async (req, res) => {
-  // req.user contains decoded JWT: { id, email }
+// Protected route (JWT required)
+app.get('/protected', requireAuth, async (req, res) => {
+  // req.user = { id, email } (from decoded JWT)
   const userId = req.user.id;
+  res.json({ message: `Hello ${req.user.email}` });
 });
 
-// For optional auth, use optionalAuth
-app.get("/public", optionalAuth, async (req, res) => {
-  // req.user exists if token provided, undefined otherwise
+// Public route with optional auth
+app.get('/public', optionalAuth, async (req, res) => {
+  // req.user exists if JWT provided, undefined otherwise
+  if (req.user) {
+    res.json({ message: `Hello ${req.user.email}` });
+  } else {
+    res.json({ message: 'Hello guest' });
+  }
 });
 ```
 
-### Rate Limiting
+### Database Utilities (File-based)
+
 ```javascript
-// Current limits:
-// - Registration: 5 requests per 15 minutes
-// - Login: 10 requests per 15 minutes
-// - General: 100 requests per 15 minutes
-
-// To add custom limiter:
-const customLimiter = createLimiter(
-  15 * 60 * 1000,  // Window: 15 minutes
-  50,               // Max requests
-  "Custom error message"
-);
-
-app.post("/endpoint", customLimiter, handler);
-```
-
-### User Storage
-```javascript
-// Read users
-const users = await readUsers();
+// Read all users
+const users = await readUsers();  // Auto-seeds dev user
 
 // Write users (uses queue to prevent race conditions)
 await writeUsers(users);
 
-// Hash password
-const hash = hashPassword(password);
+// Hash password (scrypt + random salt)
+const hash = hashPassword('MyPassword123!');
+// Returns: "a1b2c3d4:e5f6g7h8..."
 
 // Verify password
-const isValid = verifyPassword(password, storedHash);
+const isValid = verifyPassword('MyPassword123!', storedHash);
 
-// Generate JWT token
-const token = generateToken(user);
+// Generate JWT token (7-day expiry)
+const token = generateToken({ id: user.id, email: user.email });
+
+// Normalize email (lowercase, trim)
+const normalized = normalizeEmail('User@Example.com');
+// Returns: "user@example.com"
 ```
 
-### Environment Variables
+### Rate Limiting Configuration
+
 ```javascript
-// Access via process.env
-const port = Number(process.env.PORT) || 3000;
-const jwtSecret = process.env.JWT_SECRET;  // Auto-generated in dev
-const corsOrigins = process.env.CORS_ORIGINS;  // Comma-separated
+// Existing limits:
+const registerLimiter = createLimiter(
+  15 * 60 * 1000,  // 15 minutes
+  5,                // 5 requests max
+  'Too many registration attempts.'
+);
+
+const loginLimiter = createLimiter(
+  15 * 60 * 1000,  // 15 minutes
+  10,               // 10 requests max
+  'Too many login attempts.'
+);
+
+const generalLimiter = createLimiter(
+  15 * 60 * 1000,  // 15 minutes
+  100,              // 100 requests max
+  'Too many requests.'
+);
+
+// Apply to routes:
+app.post('/register', registerLimiter, ...);
+app.post('/login', loginLimiter, ...);
+app.use(generalLimiter);  // Apply to all
+```
+
+### Vercel Serverless Functions (api/)
+
+```javascript
+// api/user/profile.js example
+const { readUsers, writeUsers, normalizeEmail } = require('../lib/db');
+
+module.exports = async (req, res) => {
+  // CORS (required for serverless)
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, PUT, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  
+  try {
+    const userId = req.query.id;
+    const users = await readUsers();  // Auto-seeds dev user
+    const user = users.find(u => u.id === userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+    
+    if (req.method === 'GET') {
+      return res.status(200).json(buildProfileResponse(user));
+    }
+    
+    if (req.method === 'PUT') {
+      // Update logic
+      user.profile = { ...user.profile, ...req.body };
+      await writeUsers(users);
+      return res.status(200).json(buildProfileResponse(user));
+    }
+    
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (error) {
+    return res.status(500).json({ error: 'Operation failed' });
+  }
+};
 ```
 
 ## 🚀 DEPLOYMENT (Vercel)
 
-### vercel.json Configuration
+### Current vercel.json
+
 ```json
 {
-  "version": 2,
-  "builds": [
+  "buildCommand": "cd apps/frontend && npm run build",
+  "outputDirectory": "apps/frontend/dist",
+  "rewrites": [
     {
-      "src": "apps/frontend/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "dist" }
+      "source": "/profile/:id",
+      "destination": "/api/user/profile?id=:id"
     },
     {
-      "src": "apps/backend/server.js",
-      "use": "@vercel/node"
+      "source": "/api/:path*",
+      "destination": "/api/index"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
-  ],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "apps/backend/server.js" },
-    { "src": "/(.*)", "dest": "apps/frontend/dist/$1" }
   ]
 }
 ```
 
-### How Deployment Works
-1. **Push to main** → Vercel detects changes
-2. **Frontend**: Built with Vite → static files in `dist/`
-3. **Backend**: Deployed as serverless functions
-4. **Routing**: `/api/*` → backend, everything else → frontend
-5. **Environment**: Variables from Vercel dashboard
+### Deployment Flow
 
-### Required Vercel Environment Variables
-```bash
-JWT_SECRET=<64-char-random-string>      # Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-NODE_ENV=production
-VITE_API_URL=/api
-CORS_ORIGINS=https://your-app.vercel.app
+```
+1. git push origin main
+   ↓
+2. Vercel detects push
+   ↓
+3. Build Phase
+   ├─ npm install (all workspaces)
+   ├─ cd apps/frontend && npm run build
+   │  └─ Output: apps/frontend/dist/
+   └─ Bundle api/ directory for serverless
+   ↓
+4. Deploy Phase
+   ├─ Static files → CDN (from apps/frontend/dist/)
+   ├─ Serverless functions → api/*.js
+   └─ Configure rewrites (vercel.json)
+   ↓
+5. Live URLs
+   ├─ Frontend: https://trip-maker-pink.vercel.app
+   ├─ API: https://trip-maker-pink.vercel.app/api
+   └─ Preview: https://trip-maker-<hash>.vercel.app
 ```
 
-### Deployment Checklist
-- [ ] Environment variables set in Vercel dashboard
-- [ ] Push to main branch
-- [ ] Wait for build to complete
-- [ ] Test /api/health endpoint
-- [ ] Test frontend loads
-- [ ] Update CORS_ORIGINS to actual Vercel URL
-- [ ] Redeploy after CORS update
+### Required Environment Variables (Vercel Dashboard)
+
+```bash
+JWT_SECRET=<64-char-hex>  # Generate: node -e "console.log(crypto.randomBytes(32).toString('hex'))"
+NODE_ENV=production
+VITE_API_URL=/api
+CORS_ORIGINS=https://trip-maker-pink.vercel.app
+```
+
+### Post-Deployment Checklist
+
+```bash
+# 1. Health check
+curl https://trip-maker-pink.vercel.app/api/health
+# Expected: {"status":"ok"}
+
+# 2. Frontend loads
+open https://trip-maker-pink.vercel.app
+# Expected: Login page
+
+# 3. Test login
+curl -X POST https://trip-maker-pink.vercel.app/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"dev@tripmaker.com","password":"DevUser123!"}'
+# Expected: JWT token + user data
+
+# 4. Check Vercel function logs
+# Dashboard → Deployments → [Latest] → Functions tab
+```
 
 ## 🔒 SECURITY BEST PRACTICES
 
@@ -466,93 +695,298 @@ chore: update dependencies
 
 ## 🎯 COMMON TASKS
 
-### Adding a New Page (Frontend)
-1. Create component in `apps/frontend/src/pages/NewPage.jsx`
-2. Add route in `apps/frontend/src/App.jsx`
-3. Add navigation link if needed
-4. Add translations to `apps/frontend/src/i18n.js`
-5. Test navigation and rendering
+### 1. Adding a New React Page
 
-### Adding a New API Endpoint (Backend)
-1. Add Swagger docs above endpoint
-2. Add route handler in `apps/backend/server.js`
-3. Add validation with express-validator
-4. Implement logic with error handling
-5. Test with Swagger UI or curl
-6. Document in FEATURES.md if significant
-
-### Updating Dependencies
 ```bash
-# Update all workspaces
+# 1. Create page component
+touch apps/frontend/src/pages/Trips.jsx
+
+# 2. Write component (use existing pages as template)
+# apps/frontend/src/pages/Trips.jsx
+import { useTranslation } from 'react-i18next';
+
+const Trips = () => {
+  const { t } = useTranslation();
+  return (
+    <main className="trips-page">
+      <h1>{t('trips.title')}</h1>
+    </main>
+  );
+};
+
+export default Trips;
+
+# 3. Add route in App.jsx
+import Trips from './pages/Trips';
+
+<Route path="/trips" element={
+  <RequireAuth><Trips /></RequireAuth>
+} />
+
+# 4. Add navigation link in SiteLayout.jsx
+const navLinks = [
+  { to: '/home', label: t('nav.home') },
+  { to: '/trips', label: t('nav.trips') },
+  { to: '/profile', label: t('nav.profile') }
+];
+
+# 5. Add translations to i18n.js
+nav: {
+  trips: "Trips"
+},
+trips: {
+  title: "My Trips"
+}
+
+# 6. Test
+npm run dev
+open http://localhost:5173/trips
+```
+
+### 2. Adding a New API Endpoint
+
+```javascript
+// In apps/backend/server.js
+
+// 1. Add Swagger documentation
+/**
+ * @swagger
+ * /trips:
+ *   get:
+ *     tags: [Trips]
+ *     summary: Get user's trips
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of trips
+ */
+
+// 2. Add route with validation
+app.get(
+  '/trips',
+  requireAuth,  // JWT required
+  async (req, res, next) => {
+    try {
+      const userId = req.user.id;
+      
+      // Get trips for user
+      const trips = []; // TODO: Implement trip storage
+      
+      res.status(200).json({ trips });
+    } catch (error) {
+      next(error);
+    }
+  }
+);
+
+// 3. Test locally
+curl http://localhost:3000/trips \
+  -H "Authorization: Bearer <token>"
+
+// 4. Create serverless function (for Vercel)
+// api/trips.js
+module.exports = async (req, res) => {
+  // Same logic as above
+};
+
+// 5. Update vercel.json if needed
+// (No change needed, /api/:path* catches it)
+```
+
+### 3. Testing Authentication Flow
+
+```bash
+# Full flow test script
+#!/bin/bash
+
+# 1. Register (or use dev user)
+echo "Logging in..."
+RESPONSE=$(curl -s -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"dev@tripmaker.com","password":"DevUser123!"}')
+
+echo "$RESPONSE" | jq .
+
+# 2. Extract token
+TOKEN=$(echo "$RESPONSE" | jq -r '.token')
+USER_ID=$(echo "$RESPONSE" | jq -r '.id')
+
+echo "Token: $TOKEN"
+echo "User ID: $USER_ID"
+
+# 3. Get profile
+echo "Fetching profile..."
+curl -s "http://localhost:3000/profile/$USER_ID" \
+  -H "Authorization: Bearer $TOKEN" | jq .
+
+# 4. Update profile
+echo "Updating profile..."
+curl -s -X PUT "http://localhost:3000/profile/$USER_ID" \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "phone": "+1 555 777 9999",
+    "country": "Canada",
+    "currencyType": "CAD"
+  }' | jq .
+```
+
+### 4. Updating Dependencies
+
+```bash
+# Check for outdated packages
+npm outdated
+
+# Update all (root + workspaces)
 npm update
 
 # Update specific workspace
 npm update --workspace=apps/frontend
 
-# Check for outdated packages
-npm outdated
+# Update specific package
+npm install react@latest --workspace=apps/frontend
+
+# After updates, test
+npm run dev
+npm run build
 ```
 
-### Debugging Issues
+### 5. Adding Translations
+
+```javascript
+// In apps/frontend/src/i18n.js
+
+// Find the language you want to update (e.g., "en:")
+const resources = {
+  en: {
+    translation: {
+      // Add your keys here
+      trips: {
+        title: "My Trips",
+        create: "Create Trip",
+        empty: "No trips yet"
+      }
+    }
+  },
+  // Repeat for other languages (hi, ml, ar, es, de)
+};
+
+// Usage in components
+const { t } = useTranslation();
+<h1>{t('trips.title')}</h1>
+<button>{t('trips.create')}</button>
+```
+
+## ⚠️ COMMON MISTAKES & TROUBLESHOOTING
+
+### ❌ DON'T DO THIS
+
+```javascript
+// 1. DON'T hardcode URLs
+fetch('http://localhost:3000/api/users')
+// ✅ DO use environment variables
+fetch(`${import.meta.env.VITE_API_URL}/users`)
+
+// 2. DON'T mix workspace dependencies
+cd apps/frontend && npm install express
+// ✅ DO install in correct workspace
+npm install express --workspace=apps/backend
+
+// 3. DON'T commit sensitive data
+git add .env
+// ✅ DO commit only .env.example
+
+// 4. DON'T create class components
+class MyComponent extends React.Component { }
+// ✅ DO use functional components
+const MyComponent = () => { }
+
+// 5. DON'T skip error handling
+const data = await fetch(url);
+// ✅ DO wrap in try/catch
+try {
+  const data = await fetch(url);
+} catch (error) {
+  console.error(error);
+}
+
+// 6. DON'T hardcode text
+<h1>Welcome</h1>
+// ✅ DO use i18n
+<h1>{t('welcome')}</h1>
+```
+
+### 🐛 Troubleshooting Guide
+
+#### Frontend Issues
+
+**"Failed to fetch" error:**
 ```bash
-# Backend logs
-# Check terminal output where npm run dev:backend is running
+# Check backend is running
+curl http://localhost:3000/health
 
-# Frontend logs
-# Check browser console (F12)
-
-# Vercel logs
-# Dashboard → Deployments → [deployment] → Functions tab
-
-# Check environment variables
-# Verify .env.development files exist and are correct
+# Check CORS settings in backend
+# Check VITE_API_URL in apps/frontend/.env.development
 ```
 
-## ⚠️ COMMON MISTAKES TO AVOID
+**"Module not found" error:**
+```bash
+# Reinstall dependencies
+cd apps/frontend
+rm -rf node_modules package-lock.json
+npm install
+```
 
-### ❌ DON'T DO THIS:
+**i18n keys not showing:**
+```bash
+# Check translation key exists in apps/frontend/src/i18n.js
+# Verify no typos in key name
+# Check correct language is active
+```
 
-1. **Hardcode URLs**
-   ```javascript
-   fetch('http://localhost:3000/api/users')  // ❌ WRONG
-   // Use: const API_BASE_URL = import.meta.env.VITE_API_URL
-   ```
+#### Backend Issues
 
-2. **Mix workspace dependencies**
-   ```bash
-   cd apps/frontend && npm install express  # ❌ WRONG
-   # Express belongs in backend only
-   ```
+**"JWT_SECRET required" error:**
+```bash
+# Development: Auto-generated (ignore warning)
+# Production: Set in Vercel environment variables
+```
 
-3. **Commit sensitive data**
-   ```bash
-   git add .env  # ❌ WRONG
-   # .env is gitignored, only commit .env.example
-   ```
+**"User not found" after Vercel deployment:**
+```bash
+# Use dev user (auto-seeded):
+# dev@tripmaker.com / DevUser123!
+```
 
-4. **Modify vercel.json without understanding**
-   ```json
-   // ❌ WRONG: Changing routes breaks API routing
-   { "src": "/api/(.*)", "dest": "apps/frontend/dist/$1" }
-   ```
+**Rate limit exceeded:**
+```bash
+# Wait 15 minutes
+# Or restart local server to reset
+```
 
-5. **Run workspaces sequentially**
-   ```bash
-   npm run dev:backend && npm run dev:frontend  # ❌ WRONG
-   # Use: npm run dev (runs in parallel with &)
-   ```
+#### Deployment Issues
 
-6. **Create class components**
-   ```jsx
-   class MyComponent extends React.Component { }  // ❌ WRONG
-   // Use: const MyComponent = () => { }
-   ```
+**Vercel build fails:**
+```bash
+# Check vercel.json is correct
+# Test build locally: npm run build
+# Check all dependencies are in package.json
+```
 
-7. **Skip error handling**
-   ```javascript
-   const data = await fetch(url);  // ❌ WRONG (no try/catch)
-   // Always wrap async calls in try/catch
-   ```
+**API endpoints return 404:**
+```bash
+# Check rewrites in vercel.json
+# Verify serverless functions deployed
+# Check Vercel function logs
+```
+
+**Frontend loads but API fails:**
+```bash
+# Check CORS_ORIGINS environment variable
+# Verify VITE_API_URL is set to /api
+# Check JWT_SECRET is set
+```
 
 ## 🚦 DECISION FLOWCHART
 
@@ -611,50 +1045,154 @@ Deployment?
 - See `CONTRIBUTING.md` for workflow
 - See `PROJECT_ANALYSIS.md` for complete analysis
 
-## 🎯 CURSOR AI REMINDERS
+## 🎯 CURSOR AI BEST PRACTICES
 
-When working on this project:
+### On Every Prompt:
 
-1. **ALWAYS** check which workspace (root/frontend/backend) before making changes
-2. **NEVER** hardcode URLs, use environment variables
-3. **ALWAYS** follow existing patterns (see examples in this file)
-4. **NEVER** commit sensitive data (.env with real secrets)
-5. **ALWAYS** test locally before committing
-6. **ALWAYS** update documentation when changing behavior
-7. **NEVER** skip error handling
-8. **ALWAYS** use conventional commit messages
-9. **NEVER** modify vercel.json without consulting this file
-10. **ALWAYS** verify Vercel deployment after changes to config
+1. **Workspace Context**
+   - Identify workspace: root, frontend, backend, or api
+   - Never mix frontend and backend code
+
+2. **Development User**
+   - Always use `dev@tripmaker.com` for testing
+   - Never create new test users unless explicitly asked
+
+3. **Environment Variables**
+   - Never hardcode URLs, tokens, or secrets
+   - Always use `import.meta.env.VITE_*` (frontend)
+   - Always use `process.env.*` (backend)
+
+4. **Code Patterns**
+   - Follow existing patterns in the codebase
+   - Use functional components (React)
+   - Use service layer for API calls (frontend)
+   - Add Swagger docs for new endpoints (backend)
+   - Use i18n for all user-facing text
+
+5. **Error Handling**
+   - Always wrap async operations in try/catch
+   - Provide user-friendly error messages
+   - Log errors for debugging
+
+6. **Documentation**
+   - Update relevant .md files when behavior changes
+   - Keep this .cursorrules file current
+   - Add comments for complex logic
+
+7. **Testing**
+   - Test locally before committing
+   - Verify both frontend and backend work
+   - Check deployed version after push
+
+8. **Git Workflow**
+   - Use conventional commit messages (feat, fix, docs, etc.)
+   - Never commit .env files with secrets
+   - Always test build before pushing
+
+### Quick Decision Guide
+
+```
+Question: Where does this code go?
+├─ User interface/React? → apps/frontend/src/
+├─ API logic? → apps/backend/server.js (local)
+│             → api/*.js (Vercel production)
+├─ Configuration? → Root (package.json, vercel.json)
+└─ Documentation? → Root .md files
+
+Question: How do I test this?
+├─ Backend API? → curl or Swagger UI
+├─ Frontend UI? → Browser + React DevTools
+├─ Full flow? → Browser end-to-end
+└─ Deployment? → Vercel preview URL
+
+Question: Where is this documented?
+├─ Architecture? → APP_ARCHITECTURE.md
+├─ API specs? → API_REFERENCE.md
+├─ Testing? → PROFILE_TESTING_RESULTS.md
+└─ Setup? → QUICK_START.md
+```
 
 ## 📍 QUICK REFERENCE
 
 ```bash
-# Start development
-npm run dev
+# === DEVELOPMENT ===
+npm run dev              # Start both frontend & backend
+npm run dev:frontend     # Frontend only (port 5173)
+npm run dev:backend      # Backend only (port 3000)
 
-# Test backend API
+# === TESTING ===
+# Backend health
 curl http://localhost:3000/health
 
-# Test frontend
+# Dev user login
+curl -X POST http://localhost:3000/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"dev@tripmaker.com","password":"DevUser123!"}'
+
+# Frontend
 open http://localhost:5173
 
-# API documentation
+# API docs (local only)
 open http://localhost:3000/api-docs
 
-# Build for production
-npm run build
+# === BUILDING ===
+npm run build            # Build frontend
 
-# Check git status
-git status
-
-# Commit changes
+# === DEPLOYMENT ===
 git add .
-git commit -m "feat: description"
-git push origin main
+git commit -m "feat: add feature"
+git push origin main     # Auto-deploy to Vercel
+
+# === VERCEL URLS ===
+# Frontend: https://trip-maker-pink.vercel.app
+# API: https://trip-maker-pink.vercel.app/api
 ```
+
+## 📚 Documentation Index
+
+| File | Purpose | When to Read |
+|------|---------|--------------|
+| **`APP_ARCHITECTURE.md`** | Complete system design, data flow | Understanding architecture |
+| **`API_REFERENCE.md`** | All API endpoints, formats | Building API features |
+| **`PROFILE_TESTING_RESULTS.md`** | Testing workflows, results | Testing features |
+| **`README.md`** | Project overview | First-time setup |
+| **`QUICK_START.md`** | 2-minute local setup | Getting started |
+| **`DEV_USER_GUIDE.md`** | Dev user documentation | Understanding test user |
+| **`TEST_USER.md`** | Quick credentials reference | Testing auth |
+| **`.cursorrules`** | This file - Cursor AI guide | On every prompt |
 
 ---
 
-**Last Updated**: January 30, 2026
-**Status**: Production Ready ✅
-**Repository**: https://github.com/avinash6982/TripMakerWeb
+## 🎓 FINAL CHECKLIST FOR CURSOR AI
+
+Before making changes:
+- [ ] Read relevant documentation (see index above)
+- [ ] Identify workspace (frontend/backend/api/root)
+- [ ] Check existing patterns in similar files
+- [ ] Understand current feature completely
+
+While making changes:
+- [ ] Follow existing code patterns
+- [ ] Use environment variables (no hardcoding)
+- [ ] Add error handling
+- [ ] Use i18n for user-facing text
+- [ ] Add comments for complex logic
+
+After making changes:
+- [ ] Test locally (`npm run dev`)
+- [ ] Verify no console errors
+- [ ] Update documentation if behavior changed
+- [ ] Use conventional commit message
+- [ ] Confirm deployment works (if pushing to main)
+
+---
+
+**Last Updated:** January 30, 2026  
+**Version:** 2.0.0  
+**Status:** Production-Ready ✅  
+**Maintained By:** Cursor AI + Development Team  
+**Repository:** https://github.com/avinash6982/TripMakerWeb
+
+---
+
+> **Note for Cursor AI:** This file is your primary reference. Read the relevant sections on every prompt. When in doubt, consult `APP_ARCHITECTURE.md` for deep dives or `API_REFERENCE.md` for API specifics. Always keep this file and related documentation up to date.
