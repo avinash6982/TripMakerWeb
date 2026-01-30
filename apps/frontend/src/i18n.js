@@ -67,6 +67,15 @@ const resources = {
           fallback:
             "Showing a general plan because this destination is not in our starter dataset yet.",
         },
+        map: {
+          title: "Map preview",
+          source: "OpenStreetMap",
+          loading: "Loading map preview...",
+          error: "We couldn't load the map preview.",
+          noResults: "No map match found for this destination.",
+          open: "Open in map",
+          alt: "Map of {{destination}}",
+        },
         slots: {
           morning: "Morning",
           afternoon: "Afternoon",
@@ -463,6 +472,15 @@ const resources = {
           fallback:
             "यह गंतव्य हमारे शुरुआती डेटा में नहीं है, इसलिए सामान्य योजना दिखाई गई है।",
         },
+        map: {
+          title: "मैप प्रीव्यू",
+          source: "OpenStreetMap",
+          loading: "मैप लोड हो रहा है...",
+          error: "मैप लोड नहीं हो सका।",
+          noResults: "इस गंतव्य के लिए मैप नहीं मिला।",
+          open: "मैप खोलें",
+          alt: "{{destination}} का मैप",
+        },
         slots: {
           morning: "सुबह",
           afternoon: "दोपहर",
@@ -855,6 +873,15 @@ const resources = {
           fallback:
             "ഈ ലക്ഷ്യസ്ഥാനം ഡാറ്റാസെറ്റിൽ ഇല്ലാത്തതിനാൽ പൊതുവായ പ്ലാൻ ആണ്.",
         },
+        map: {
+          title: "മാപ്പ് പ്രിവ്യൂ",
+          source: "OpenStreetMap",
+          loading: "മാപ്പ് ലോഡ് ചെയ്യുന്നു...",
+          error: "മാപ്പ് ലോഡ് ചെയ്യാനായില്ല.",
+          noResults: "ഈ ലക്ഷ്യസ്ഥാനത്തിന് മാപ്പ് ലഭ്യമല്ല.",
+          open: "മാപ്പ് തുറക്കുക",
+          alt: "{{destination}} മാപ്പ്",
+        },
         slots: {
           morning: "പ്രഭാതം",
           afternoon: "ഉച്ച",
@@ -1244,6 +1271,15 @@ const resources = {
           generated: "تم إنشاؤها من اقتراحات غير متصلة.",
           fallback: "نعرض خطة عامة لأن الوجهة غير موجودة في بياناتنا الأولية.",
         },
+        map: {
+          title: "معاينة الخريطة",
+          source: "OpenStreetMap",
+          loading: "جارٍ تحميل الخريطة...",
+          error: "تعذر تحميل الخريطة.",
+          noResults: "لم يتم العثور على خريطة لهذه الوجهة.",
+          open: "افتح الخريطة",
+          alt: "خريطة {{destination}}",
+        },
         slots: {
           morning: "صباحًا",
           afternoon: "بعد الظهر",
@@ -1632,6 +1668,15 @@ const resources = {
           generated: "Generado a partir de sugerencias sin conexión.",
           fallback:
             "Mostramos un plan general porque este destino aún no está en nuestro conjunto inicial.",
+        },
+        map: {
+          title: "Vista previa del mapa",
+          source: "OpenStreetMap",
+          loading: "Cargando mapa...",
+          error: "No pudimos cargar el mapa.",
+          noResults: "No se encontró un mapa para este destino.",
+          open: "Abrir mapa",
+          alt: "Mapa de {{destination}}",
         },
         slots: {
           morning: "Mañana",
@@ -2032,6 +2077,15 @@ const resources = {
           generated: "Aus Offline-Vorschlägen erstellt.",
           fallback:
             "Wir zeigen einen allgemeinen Plan, da dieses Ziel noch nicht im Datensatz ist.",
+        },
+        map: {
+          title: "Kartenvorschau",
+          source: "OpenStreetMap",
+          loading: "Karte wird geladen...",
+          error: "Karte konnte nicht geladen werden.",
+          noResults: "Für dieses Ziel wurde keine Karte gefunden.",
+          open: "Karte öffnen",
+          alt: "Karte von {{destination}}",
         },
         slots: {
           morning: "Morgen",

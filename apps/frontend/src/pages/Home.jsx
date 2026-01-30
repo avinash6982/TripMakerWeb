@@ -1,5 +1,11 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import {
+  buildOpenStreetMapLink,
+  buildStaticMapUrl,
+  DESTINATION_SUGGESTIONS,
+  getDestinationCoordinates,
+} from "../services/geocode";
 import { generateTripPlan } from "../services/tripPlanner";
 
 const paceOptions = [
@@ -18,6 +24,11 @@ const Home = () => {
   const [plan, setPlan] = useState(null);
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [mapState, setMapState] = useState({
+    status: "idle",
+    data: null,
+    message: "",
+  });
   const [editingDay, setEditingDay] = useState(null);
   const [regeneratingDay, setRegeneratingDay] = useState(null);
 
@@ -55,9 +66,40 @@ const Home = () => {
       setPlan(result);
       setEditingDay(null);
       setStatus("ready");
+      loadMapForDestination(result.destination || trimmedDestination);
     } catch (error) {
       setStatus("error");
       setMessage(error.message || t("tripPlanner.status.error"));
+    }
+  };
+
+  const loadMapForDestination = async (destination) => {
+    setMapState({ status: "loading", data: null, message: "" });
+    try {
+      const coordinates = await getDestinationCoordinates(destination);
+      if (!coordinates) {
+        setMapState({
+          status: "empty",
+          data: null,
+          message: t("tripPlanner.map.noResults"),
+        });
+        return;
+      }
+      setMapState({
+        status: "ready",
+        data: {
+          ...coordinates,
+          url: buildStaticMapUrl(coordinates),
+          link: buildOpenStreetMapLink(coordinates),
+        },
+        message: "",
+      });
+    } catch (error) {
+      setMapState({
+        status: "error",
+        data: null,
+        message: t("tripPlanner.map.error"),
+      });
     }
   };
 
@@ -156,8 +198,14 @@ const Home = () => {
                 value={formState.destination}
                 placeholder={t("tripPlanner.form.destinationPlaceholder")}
                 onChange={handleChange}
+                list="trip-destination-suggestions"
                 required
               />
+              <datalist id="trip-destination-suggestions">
+                {DESTINATION_SUGGESTIONS.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
             </div>
             <div className="planner-row">
               <div className="field">
@@ -227,6 +275,45 @@ const Home = () => {
               {plan.isFallback && (
                 <p className="planner-note">{t("tripPlanner.results.fallback")}</p>
               )}
+              <div className="planner-map-card">
+                <div className="planner-map-header">
+                  <h3>{t("tripPlanner.map.title")}</h3>
+                  <span className="planner-map-source">{t("tripPlanner.map.source")}</span>
+                </div>
+                {mapState.status === "loading" && (
+                  <p className="planner-note">{t("tripPlanner.map.loading")}</p>
+                )}
+                {mapState.status === "error" && (
+                  <p className="message error" role="alert">
+                    {mapState.message}
+                  </p>
+                )}
+                {mapState.status === "empty" && (
+                  <p className="planner-note">{mapState.message}</p>
+                )}
+                {mapState.status === "ready" && mapState.data && (
+                  <>
+                    <img
+                      className="planner-map-image"
+                      src={mapState.data.url}
+                      alt={t("tripPlanner.map.alt", {
+                        destination: mapState.data.label || plan.destination,
+                      })}
+                    />
+                    <div className="planner-map-footer">
+                      <span className="muted">{mapState.data.label}</span>
+                      <a
+                        href={mapState.data.link}
+                        className="planner-map-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {t("tripPlanner.map.open")}
+                      </a>
+                    </div>
+                  </>
+                )}
+              </div>
               <div className="planner-days">
                 {plan.itinerary.map((day, dayIndex) => (
                   <article className="planner-day" key={`day-${day.day}`}>
