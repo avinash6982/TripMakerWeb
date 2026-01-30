@@ -1,19 +1,24 @@
 # Test User Credentials
 
-## Primary Test User (UI Created)
+## 🎯 Primary Development User (Auto-Seeded)
 
-**Email:** `demo@tripmaker.com`  
-**Password:** `Demo123456!`  
-**Created:** 2026-01-30 via browser UI  
-**Status:** ✅ Active
+**Email:** `dev@tripmaker.com`  
+**Password:** `DevUser123!`  
+**ID:** `dev-user-00000000-0000-0000-0000-000000000001`  
+**Status:** ✅ Always Available (Auto-created on first API call)
 
-## Secondary Test User (API Created)
+**Use this user for:**
+- All development work
+- Cursor agent testing
+- Local development
+- Deployed environment testing
+- Integration tests
 
-**Email:** `testuser@tripmaker.com`  
-**Password:** `Test123456`  
-**ID:** `659475c4-d510-4625-9559-8bb65ffb8ce2`  
-**Created:** 2026-01-30 via API  
-**Status:** ✅ Active
+**Benefits:**
+- ✅ Consistent across all environments
+- ✅ Auto-created on startup
+- ✅ Never expires
+- ✅ Same credentials everywhere
 
 ---
 

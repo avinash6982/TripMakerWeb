@@ -8,6 +8,15 @@ This is a **production-ready monorepo** for TripMaker, a travel planning platfor
 - **Deployment**: Vercel (automatic on push to main)
 - **Status**: Fully operational, all systems configured
 
+### 🎯 Development Test User (ALWAYS USE THIS)
+
+**For ALL development, testing, and Cursor agent work, use:**
+- **Email**: `dev@tripmaker.com`
+- **Password**: `DevUser123!`
+- **ID**: `dev-user-00000000-0000-0000-0000-000000000001`
+
+This user is **auto-seeded** on every API call and available in both local and deployed environments.
+
 ## 📁 MONOREPO STRUCTURE
 
 ```
