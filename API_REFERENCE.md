@@ -219,6 +219,91 @@ curl -X POST http://localhost:3000/login \
 
 ---
 
+### 🧭 Generate Trip Plan
+
+**Endpoint:** `POST /trips/plan` or `POST /api/trips/plan`  
+**Authentication:** None  
+**Rate Limit:** 100 req/15min
+
+#### Request
+
+```bash
+curl -X POST http://localhost:3000/trips/plan \
+  -H "Content-Type: application/json" \
+  -d '{
+    "destination": "Paris",
+    "days": 3,
+    "pace": "balanced"
+  }'
+```
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `destination` | string | Yes | City or destination name |
+| `days` | integer | No | 1-10 days (default: 3) |
+| `pace` | string | No | `relaxed`, `balanced`, or `fast` |
+| `seed` | number | No | Optional seed for regeneration |
+
+#### Response (200 OK)
+
+```json
+{
+  "destination": "Paris",
+  "pace": "balanced",
+  "days": 3,
+  "generatedAt": "2026-01-30T18:45:00.000Z",
+  "isFallback": false,
+  "meta": {
+    "totalStops": 12,
+    "avgStopsPerDay": 4,
+    "avgHoursPerDay": 5.5,
+    "maxHoursPerDay": 6,
+    "maxStopsPerDay": 4
+  },
+  "itinerary": [
+    {
+      "day": 1,
+      "area": "Montmartre",
+      "totalHours": 5.5,
+      "slots": [
+        {
+          "timeOfDay": "morning",
+          "totalHours": 2.5,
+          "items": [
+            {
+              "name": "Sacre-Coeur Basilica",
+              "category": "viewpoint",
+              "durationHours": 1.5
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### Error Responses
+
+**400 Bad Request** - Missing destination or invalid days
+```json
+{
+  "error": "Destination is required."
+}
+```
+
+**500 Internal Server Error**
+```json
+{
+  "error": "Trip plan generation failed",
+  "message": "Detailed error message"
+}
+```
+
+---
+
 ### 👤 Get User Profile
 
 **Endpoint:** `GET /profile/:id` or `GET /api/profile/:id`  

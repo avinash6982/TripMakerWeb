@@ -26,11 +26,7 @@ const App = () => {
       <Route element={<SiteLayout />}>
         <Route
           path="home"
-          element={
-            <RequireAuth>
-              <Home />
-            </RequireAuth>
-          }
+          element={<Home />}
         />
         <Route
           path="profile"

@@ -569,6 +569,179 @@ button.text-link {
   box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
 }
 
+.planner-hero {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.planner-grid {
+  margin-top: 2rem;
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 2rem;
+  align-items: start;
+}
+
+.planner-form-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 2rem;
+  border: 1px solid var(--border);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+}
+
+.planner-form {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.planner-form input,
+.planner-form select {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
+}
+
+.planner-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+}
+
+.planner-output {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.planner-summary {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.planner-summary-meta {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.planner-note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.planner-days {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.planner-day {
+  background: #fff;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 1.5rem;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
+  display: grid;
+  gap: 1rem;
+}
+
+.planner-day-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.planner-day-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.planner-day-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.planner-slots {
+  display: grid;
+  gap: 1rem;
+}
+
+.planner-slot {
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.planner-slot:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.planner-slot-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.planner-slot-hours {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.planner-items {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+
+.planner-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.planner-item input {
+  width: 100%;
+  padding: 0.45rem 0.75rem;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  font-size: 0.95rem;
+}
+
+.planner-item-name {
+  font-weight: 600;
+}
+
+.planner-item-meta {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.planner-empty {
+  background: #fff;
+  border: 1px dashed var(--border);
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+}
+
 .profile-page {
   background: var(--bg);
   padding: 4rem 0 5rem;
@@ -692,6 +865,14 @@ button.text-link {
 @media (max-width: 900px) {
   .nav {
     flex-wrap: wrap;
+  }
+
+  .planner-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .planner-item {
+    grid-template-columns: 1fr;
   }
 
   .nav-links {
