@@ -3,6 +3,10 @@
   "outputDirectory": "apps/frontend/dist",
   "rewrites": [
     {
+      "source": "/profile/:id",
+      "destination": "/api/user/profile?id=:id"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/index"
     },
