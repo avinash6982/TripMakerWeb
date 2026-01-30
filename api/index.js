@@ -11,6 +11,9 @@ module.exports = (req, res) => {
         login: 'POST /api/auth/login',
         logout: 'POST /api/auth/logout'
       },
+      trips: {
+        plan: 'POST /api/trips/plan'
+      },
       user: {
         profile: 'GET /api/user/profile',
         updateProfile: 'PUT /api/user/profile'
