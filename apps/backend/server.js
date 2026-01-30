@@ -1187,8 +1187,14 @@ app.use((err, _req, res, _next) => {
 // START SERVER
 // ============================================================================
 
-app.listen(PORT, () => {
-  console.log(`🚀 Auth server listening on port ${PORT}`);
-  console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
-  console.log(`🏥 Health check: http://localhost:${PORT}/health`);
-});
+// Only start server if not running in Vercel
+if (process.env.VERCEL !== '1') {
+  app.listen(PORT, () => {
+    console.log(`🚀 Auth server listening on port ${PORT}`);
+    console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
+    console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+  });
+}
+
+// Export for Vercel serverless function
+module.exports = app;
