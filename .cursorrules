@@ -1,0 +1,52 @@
+# TripMaker Monorepo Rules
+
+## Project Structure
+This is a monorepo containing:
+- Frontend: React/Vite app in `apps/frontend/`
+- Backend: Express.js API in `apps/backend/`
+
+## Development Guidelines
+
+### General
+- Use npm workspaces for dependency management
+- Follow consistent code style across frontend and backend
+- Write clear, descriptive commit messages
+- Test changes locally before pushing
+
+### Frontend (apps/frontend/)
+- React with Vite
+- Use functional components and hooks
+- Implement proper error handling
+- Follow React best practices
+- Use i18next for internationalization
+
+### Backend (apps/backend/)
+- Express.js with modern ES6+ syntax
+- Use proper middleware (helmet, cors, rate-limiting)
+- Implement JWT authentication
+- Follow RESTful API conventions
+- Add proper error handling and validation
+- Document APIs with Swagger
+
+### File Changes
+- When modifying frontend, work in `apps/frontend/`
+- When modifying backend, work in `apps/backend/`
+- Root-level changes affect the entire monorepo
+
+### Deployment
+- Push to main branch triggers Vercel deployment
+- Frontend deploys to root path
+- Backend deploys to `/api/*` routes
+- Use environment variables for configuration
+
+### Commands
+- `npm run dev` - Run both apps in development
+- `npm run dev:frontend` - Run only frontend
+- `npm run dev:backend` - Run only backend
+- `npm run build` - Build both apps
+- `npm install` - Install all dependencies
+
+## API Integration
+- Backend API should be accessed at `/api/*` in production
+- Use proper CORS configuration
+- Implement rate limiting for API endpoints

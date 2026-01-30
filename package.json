@@ -1,0 +1,31 @@
+{
+  "name": "tripmaker-monorepo",
+  "version": "1.0.0",
+  "description": "TripMaker monorepo - Frontend and Backend applications",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "dev:frontend": "npm run dev --workspace=apps/frontend",
+    "dev:backend": "npm run dev --workspace=apps/backend",
+    "build": "npm run build --workspaces --if-present",
+    "build:frontend": "npm run build --workspace=apps/frontend",
+    "build:backend": "npm run build --workspace=apps/backend --if-present",
+    "start": "npm run start --workspaces --if-present",
+    "start:backend": "npm run start --workspace=apps/backend",
+    "test": "npm run test --workspaces --if-present"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avinash6982/TripMakerWeb.git"
+  },
+  "keywords": ["monorepo", "tripmaker", "react", "node", "express"],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/avinash6982/TripMakerWeb/issues"
+  },
+  "homepage": "https://github.com/avinash6982/TripMakerWeb#readme"
+}

@@ -1,0 +1,394 @@
+# Cursor Rules for TripMaker Backend Development
+
+## Project Context
+This is the backend API for TripMaker (Waypoint) - a travel planning application.
+
+**Frontend:** https://trip-maker-web.vercel.app  
+**Backend:** https://trip-maker-web-be.vercel.app  
+**API Docs:** https://trip-maker-web-be.vercel.app/api-docs
+
+---
+
+## Architecture
+
+### Tech Stack
+- **Runtime:** Node.js with Express.js 5.2.1
+- **Authentication:** JWT (jsonwebtoken)
+- **Security:** helmet, cors, express-rate-limit, express-validator
+- **Documentation:** Swagger/OpenAPI 3.0 (swagger-jsdoc, swagger-ui-express)
+- **Storage:** File-based JSON (data/users.json)
+- **Deployment:** Vercel (serverless)
+
+### Key Files
+- `server.js` - Main application (1195 lines)
+- `package.json` - Dependencies and scripts
+- `vercel.json` - Vercel deployment configuration
+- `.env` - Local environment variables (gitignored)
+- `.env.example` - Environment variable template
+
+---
+
+## Development Guidelines
+
+### Code Style
+- Use async/await for asynchronous operations
+- Use descriptive variable names
+- Add JSDoc comments for complex functions
+- Include Swagger annotations for all API endpoints
+- Follow existing code patterns and structure
+
+### Security
+- Always validate user input server-side
+- Use parameterized queries/operations (prevent injection)
+- Never log sensitive data (passwords, tokens)
+- Always use HTTPS in production
+- Validate JWTs on protected routes
+- Use rate limiting on authentication endpoints
+
+### API Endpoints
+- Follow RESTful conventions
+- Use appropriate HTTP methods (GET, POST, PUT, DELETE)
+- Return consistent JSON responses
+- Use proper HTTP status codes
+- Include error messages in responses
+
+### Error Handling
+- Always use try-catch blocks for async operations
+- Return appropriate HTTP status codes
+- Provide clear error messages
+- Log errors to console in development
+- Return generic messages in production (500 errors)
+
+---
+
+## When Making Changes
+
+### Adding New Endpoints
+1. Add route handler in appropriate section of server.js
+2. Add input validation with express-validator
+3. Add rate limiting if needed
+4. Add Swagger/OpenAPI documentation
+5. Update INTEGRATION.md with new endpoint details
+6. Update FEATURES.md if adding new functionality
+7. Test with Swagger UI
+8. Update FRONTEND_MIGRATION_GUIDE.md if frontend changes needed
+
+### Modifying Existing Endpoints
+1. Check for breaking changes
+2. Update Swagger documentation
+3. Update relevant markdown documentation
+4. Test with Swagger UI
+5. Consider backward compatibility
+6. Update frontend guide if needed
+
+### Adding Dependencies
+1. Use `npm install <package>` for production dependencies
+2. Use `npm install -D <package>` for dev dependencies
+3. Document purpose in package.json or comments
+4. Update README.md if significant dependency
+
+### Environment Variables
+1. Add to `.env.example` with description
+2. Document in README.md and INTEGRATION.md
+3. Add to Vercel environment variables if needed
+4. Provide sensible defaults where possible
+
+---
+
+## Documentation Requirements
+
+### Always Update
+- **Swagger annotations** - For API changes
+- **INTEGRATION.md** - For API endpoint changes
+- **README.md** - For setup/configuration changes
+- **FEATURES.md** - For new features
+- **FRONTEND_MIGRATION_GUIDE.md** - For frontend-impacting changes
+
+### Documentation Format
+- Use markdown format
+- Include code examples
+- Provide curl examples for API endpoints
+- Document all error responses
+- Include request/response schemas
+
+---
+
+## Testing Workflow
+
+### Local Testing
+1. Start server: `npm run dev`
+2. Open Swagger UI: http://localhost:3000/api-docs
+3. Test endpoints interactively
+4. Check console for errors
+5. Verify response formats
+
+### Production Testing
+1. Deploy to Vercel (automatic on push to main)
+2. Test with production Swagger: https://trip-maker-web-be.vercel.app/api-docs
+3. Test CORS with frontend origin
+4. Check Vercel logs for errors
+
+---
+
+## Swagger Documentation
+
+### Required Annotations
+- `@swagger` tag at start of documentation block
+- Endpoint path and method
+- Summary and description
+- Request body schema (if applicable)
+- Response schemas for all status codes
+- Error response examples
+- Authentication requirements
+
+### Example Format
+```javascript
+/**
+ * @swagger
+ * /endpoint:
+ *   post:
+ *     tags: [Category]
+ *     summary: Brief description
+ *     description: Detailed description
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               field: { type: string }
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Error
+ */
+```
+
+---
+
+## Common Patterns
+
+### Request Validation
+```javascript
+[
+  body('email').isEmail().normalizeEmail(),
+  body('password').isLength({ min: 6 }),
+],
+handleValidationErrors,
+```
+
+### Error Response
+```javascript
+return res.status(400).json({
+  error: "Clear error message"
+});
+```
+
+### JWT Generation
+```javascript
+const token = jwt.sign(
+  { id: user.id, email: user.email },
+  JWT_SECRET,
+  { expiresIn: JWT_EXPIRES_IN }
+);
+```
+
+### Rate Limiting
+```javascript
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: "Too many requests" }
+});
+```
+
+---
+
+## CORS Configuration
+
+### Allowed Origins
+- `http://localhost:5173` - Local frontend development
+- `https://trip-maker-web.vercel.app` - Production frontend
+
+### Configure in .env
+```bash
+CORS_ORIGINS=http://localhost:5173,https://trip-maker-web.vercel.app
+```
+
+---
+
+## Deployment
+
+### Automatic Deployment
+- Push to `main` branch triggers Vercel deployment
+- Deployment takes ~30 seconds
+- Check Vercel dashboard for status
+
+### Environment Variables (Set in Vercel)
+- `JWT_SECRET` - Required (generate with crypto.randomBytes)
+- `NODE_ENV` - Set to "production"
+- `CORS_ORIGINS` - Frontend URL
+- `JWT_EXPIRES_IN` - Optional (default: 7d)
+
+### Pre-Deployment Checklist
+- [ ] All tests pass locally
+- [ ] Swagger UI works locally
+- [ ] Documentation updated
+- [ ] Environment variables set in Vercel
+- [ ] CORS origins include frontend URL
+- [ ] No sensitive data in code
+
+---
+
+## Frontend Integration
+
+### Frontend Repository
+**URL:** https://github.com/avinash6982/TripMakerWeb  
+**Deployment:** https://trip-maker-web.vercel.app
+
+### Frontend Needs
+- `FRONTEND_MIGRATION_GUIDE.md` - Complete integration guide
+- `https://trip-maker-web-be.vercel.app/api-docs` - API reference
+- `INTEGRATION.md` - Quick reference
+
+### Breaking Changes
+If making breaking changes:
+1. Update FRONTEND_MIGRATION_GUIDE.md first
+2. Coordinate with frontend team
+3. Consider backward compatibility
+4. Version the API if needed
+
+---
+
+## Zero-Config Development
+
+### Auto-Generated Secrets
+- JWT_SECRET auto-generates in development
+- No manual configuration needed
+- Different secret on each restart (more secure for dev)
+- Production requires explicit JWT_SECRET
+
+### File Storage
+- Automatically creates data directory
+- Falls back to /tmp on read-only systems
+- No database setup required
+
+---
+
+## Troubleshooting
+
+### Common Issues
+1. **CORS errors** - Check CORS_ORIGINS includes frontend URL
+2. **401 errors** - Check JWT_SECRET is set in Vercel
+3. **Rate limiting** - Wait 15 minutes or adjust limits
+4. **Swagger not loading** - Check CSP headers in Helmet config
+
+### Debug Commands
+```bash
+# Check git status
+git status
+
+# View recent commits
+git log --oneline -5
+
+# Test health endpoint
+curl https://trip-maker-web-be.vercel.app/health
+
+# Test CORS
+curl -H "Origin: https://trip-maker-web.vercel.app" \
+  https://trip-maker-web-be.vercel.app/health -v
+
+# View Vercel logs
+vercel logs
+```
+
+---
+
+## Best Practices
+
+### DO
+- ✅ Always validate input server-side
+- ✅ Use rate limiting on auth endpoints
+- ✅ Return consistent error formats
+- ✅ Document all endpoints in Swagger
+- ✅ Test with Swagger UI before committing
+- ✅ Update documentation with code changes
+- ✅ Use environment variables for secrets
+- ✅ Log errors to console
+- ✅ Use try-catch for async operations
+- ✅ Maintain backward compatibility
+
+### DON'T
+- ❌ Store passwords in plaintext
+- ❌ Log sensitive data (tokens, passwords)
+- ❌ Commit .env file
+- ❌ Use * for CORS in production
+- ❌ Skip input validation
+- ❌ Ignore error handling
+- ❌ Make breaking changes without notice
+- ❌ Hardcode secrets
+- ❌ Skip Swagger documentation
+- ❌ Push untested code
+
+---
+
+## Quick Commands
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server (auto-reload)
+npm run dev
+
+# Start production server
+npm start
+
+# Generate JWT secret
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+
+# Deploy to Vercel
+git push origin main  # Auto-deploys
+
+# View local Swagger
+open http://localhost:3000/api-docs
+
+# View production Swagger
+open https://trip-maker-web-be.vercel.app/api-docs
+```
+
+---
+
+## Project Status
+
+**Version:** 2.0.0  
+**Status:** ✅ Production Ready  
+**Features:** Complete (JWT auth, Swagger, security, validation)  
+**Documentation:** Complete (7 markdown files)  
+**Deployment:** Automated (Vercel)
+
+---
+
+## For AI Assistants
+
+When asked to make changes:
+1. Read relevant documentation first (FEATURES.md, INTEGRATION.md)
+2. Understand the existing patterns in server.js
+3. Follow the guidelines in this file
+4. Update documentation along with code changes
+5. Test changes thoroughly
+6. Consider frontend integration impact
+
+When creating documentation:
+1. Use markdown format
+2. Include code examples
+3. Be specific and actionable
+4. Update existing docs, don't create redundant ones
+5. Reference Swagger as single source of truth for API
+
+---
+
+**Last Updated:** January 30, 2026  
+**Maintained By:** TripMaker Team
