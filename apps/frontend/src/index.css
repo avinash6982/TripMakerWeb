@@ -1,9 +1,9 @@
 :root {
   color-scheme: light;
-  --primary: #1d4ed8;
-  --primary-dark: #1e3a8a;
-  --accent: #0ea5e9;
-  --bg: #f8fafc;
+  --primary: #0f766e;
+  --primary-dark: #115e59;
+  --accent: #0284c7;
+  --bg: #f0fdfa;
   --text: #0f172a;
   --muted: #64748b;
   --border: #e2e8f0;
@@ -19,7 +19,7 @@ body {
   margin: 0;
   font-family: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
   color: var(--text);
-  background: #fff;
+  background: var(--bg);
   line-height: 1.6;
 }
 
@@ -162,7 +162,7 @@ button.text-link {
 .btn.ghost {
   background: transparent;
   color: var(--primary);
-  border-color: rgba(29, 78, 216, 0.3);
+  border-color: rgba(15, 118, 110, 0.3);
 }
 
 .btn.small {
@@ -175,7 +175,7 @@ button.text-link {
 }
 
 .hero {
-  background: linear-gradient(135deg, #eff6ff 0%, #f8fafc 100%);
+  background: linear-gradient(135deg, #ecfeff 0%, #f0fdfa 100%);
   padding: 4.5rem 0;
 }
 
@@ -244,8 +244,8 @@ button.text-link {
 }
 
 .pill {
-  background: rgba(14, 165, 233, 0.15);
-  color: #0369a1;
+  background: rgba(2, 132, 199, 0.15);
+  color: #075985;
   padding: 0.2rem 0.7rem;
   border-radius: 999px;
   font-size: 0.75rem;
@@ -405,8 +405,8 @@ button.text-link {
 }
 
 .price-card.featured {
-  border-color: rgba(29, 78, 216, 0.6);
-  box-shadow: 0 16px 35px rgba(29, 78, 216, 0.15);
+  border-color: rgba(15, 118, 110, 0.6);
+  box-shadow: 0 16px 35px rgba(15, 118, 110, 0.15);
 }
 
 .price {
@@ -416,7 +416,7 @@ button.text-link {
 }
 
 .cta {
-  background: linear-gradient(135deg, #1d4ed8 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #0f766e 0%, #0284c7 100%);
   color: #fff;
 }
 
@@ -649,8 +649,8 @@ button.text-link {
 }
 
 .site-footer {
-  background: #0f172a;
-  color: #cbd5f5;
+  background: #0b2f2a;
+  color: #d1fae5;
 }
 
 .site-footer .logo {
@@ -665,13 +665,13 @@ button.text-link {
 }
 
 .site-footer a {
-  color: #e2e8f0;
+  color: #ccfbf1;
   display: block;
   margin-top: 0.5rem;
 }
 
 .footer-bottom {
-  border-top: 1px solid #1e293b;
+  border-top: 1px solid #134e4a;
   padding: 1.5rem 0 2.5rem;
   display: flex;
   flex-wrap: wrap;
