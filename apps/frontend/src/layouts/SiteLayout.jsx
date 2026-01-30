@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { clearStoredUser, getStoredUser } from "../services/auth";
 import { clearStoredProfile } from "../services/profile";
@@ -50,9 +50,13 @@ const SiteLayout = () => {
           </Link>
           <nav className="nav-links" aria-label="Primary">
             {navLinks.map((link) => (
-              <Link key={link.to} to={link.to}>
+              <NavLink
+                key={link.to}
+                to={link.to}
+                className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+              >
                 {link.label}
-              </Link>
+              </NavLink>
             ))}
           </nav>
           <div className="nav-actions">
@@ -75,7 +79,22 @@ const SiteLayout = () => {
         </div>
       </header>
 
-      <Outlet />
+      <div className="app-content">
+        <Outlet />
+      </div>
+      <nav className="mobile-nav" aria-label="Mobile">
+        {navLinks.map((link) => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            className={({ isActive }) =>
+              isActive ? "mobile-nav-link active" : "mobile-nav-link"
+            }
+          >
+            <span className="mobile-nav-label">{link.label}</span>
+          </NavLink>
+        ))}
+      </nav>
     </div>
   );
 };
