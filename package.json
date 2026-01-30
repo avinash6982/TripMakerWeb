@@ -21,11 +21,20 @@
     "type": "git",
     "url": "git+https://github.com/avinash6982/TripMakerWeb.git"
   },
-  "keywords": ["monorepo", "tripmaker", "react", "node", "express"],
+  "keywords": [
+    "monorepo",
+    "tripmaker",
+    "react",
+    "node",
+    "express"
+  ],
   "author": "",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/avinash6982/TripMakerWeb/issues"
   },
-  "homepage": "https://github.com/avinash6982/TripMakerWeb#readme"
+  "homepage": "https://github.com/avinash6982/TripMakerWeb#readme",
+  "devDependencies": {
+    "@vercel/node": "^5.5.28"
+  }
 }
