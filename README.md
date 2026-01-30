@@ -1,6 +1,6 @@
 # TripMaker Monorepo
 
-A monorepo containing the TripMaker frontend and backend applications.
+A unified monorepo for the TripMaker travel planning platform, containing both frontend and backend applications.
 
 ## Project Structure
 
@@ -9,9 +9,12 @@ TripMaker/
 ├── apps/
 │   ├── frontend/          # React/Vite frontend application
 │   └── backend/           # Express.js backend API
-├── package.json           # Root package.json with workspace configuration
-├── vercel.json           # Vercel deployment configuration
-└── README.md
+├── package.json           # Root workspace configuration
+├── vercel.json           # Vercel deployment config
+├── .cursorrules          # Cursor AI integration
+├── QUICK_START.md        # Quick local setup guide
+├── CONTRIBUTING.md       # Development guidelines
+└── VERCEL_DEPLOYMENT_GUIDE.md  # Deployment instructions
 ```
 
 ## Getting Started
@@ -73,23 +76,21 @@ Start the backend in production mode:
 npm run start:backend
 ```
 
+## Documentation
+
+- **[QUICK_START.md](QUICK_START.md)** - Get running locally in 2 minutes
+- **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)** - Deploy to Vercel
+- **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines
+
 ## Deployment
 
-This monorepo is configured for Vercel deployment with the following setup:
+This monorepo is configured for Vercel deployment:
 
-- **Frontend**: Deployed as a static site from `apps/frontend/dist`
-- **Backend**: Deployed as serverless functions with API routes under `/api/*`
+- **Frontend**: Static site from `apps/frontend/dist`
+- **Backend**: Serverless functions at `/api/*` routes
+- **CI/CD**: Push to `main` → automatic deployment
 
-### Vercel Configuration
-
-The project uses `vercel.json` to configure the monorepo deployment:
-- Frontend builds are handled by `@vercel/static-build`
-- Backend is handled by `@vercel/node`
-- API routes are prefixed with `/api/`
-
-### CI/CD
-
-Push to `main` branch will automatically trigger a deployment to Vercel.
+See **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)** for detailed deployment instructions.
 
 ## Applications
 
@@ -107,11 +108,13 @@ Push to `main` branch will automatically trigger a deployment to Vercel.
 
 ## Contributing
 
+See **[CONTRIBUTING.md](CONTRIBUTING.md)** for detailed development guidelines.
+
+Quick reference:
 1. Create a feature branch from `main`
-2. Make your changes
-3. Test locally
-4. Push to your branch
-5. Create a pull request
+2. Make your changes and test locally
+3. Commit with conventional commit messages
+4. Create a pull request
 
 ## License
 

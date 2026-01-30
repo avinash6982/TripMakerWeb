@@ -16,43 +16,36 @@ Since we have a `vercel.json` file in the repository, **Vercel will automaticall
 4. Choose **GitHub** and find `avinash6982/TripMakerWeb`
 5. Click **"Import"**
 
-### Step 2: Project Settings (Optional - vercel.json handles this!)
+### Step 2: Project Settings (Just Accept Defaults!)
 
 When importing, you'll see a screen with these options:
 
-**You can leave everything as default!** Vercel will read `vercel.json` automatically.
+**✨ IMPORTANT: Just accept all the defaults and click "Deploy"!** 
 
-However, if you want to verify or customize:
+Vercel will automatically read `vercel.json` and configure everything correctly.
 
-#### Where to Find Build Settings:
+#### What You'll See During Import:
 
-**During Import:**
-- Look for the section called **"Configure Project"** or **"Build and Output Settings"**
-- You should see fields for:
-  - Framework Preset
-  - Build Command
-  - Output Directory
-  - Install Command
-  - Root Directory
+**Configure Project Screen:**
+- **Framework Preset**: Will likely auto-detect as "Other" or "Vite" - **Leave as is** ✅
+- **Root Directory**: Should show "/" or be empty - **Leave as is** ✅
+- **Build Command**: Might show "npm run build" - **Leave as is** ✅
+- **Output Directory**: Should be empty or show "dist" - **Leave as is** ✅
+- **Install Command**: Should show "npm install" - **Leave as is** ✅
 
-**After Import (to modify later):**
-1. Go to your project dashboard
-2. Click **"Settings"** tab at the top
-3. Click **"General"** in the left sidebar
-4. Scroll to **"Build & Development Settings"**
+**You don't need to change ANY of these!** The `vercel.json` file in your repository tells Vercel exactly what to do.
 
-#### Recommended Settings (if customizing):
+#### ⚠️ Common Confusion About Root Directory
 
-```
-Framework Preset: Other (or leave auto-detected)
-Root Directory: ./
-Build Command: npm run build
-Output Directory: (leave blank - handled by vercel.json)
-Install Command: npm install
-Node.js Version: 18.x or higher
-```
+**Don't worry if you can't type "./" in the Root Directory field!**
 
-**Important**: With our `vercel.json`, these settings are **mostly overridden** anyway!
+The Root Directory field in modern Vercel:
+- Often shows a dropdown of folders (not a text input)
+- Leaving it empty or at "/" means the repository root
+- This is exactly what we want!
+- Our `vercel.json` handles the actual path configuration
+
+**Just leave it as the default (empty or /)** - this is correct!
 
 ### Step 3: Set Environment Variables (REQUIRED!)
 
