@@ -388,8 +388,52 @@ async function ensureUsersFile() {
   }
 }
 
+// Development test user for consistent testing
+const DEV_USER = {
+  id: 'dev-user-00000000-0000-0000-0000-000000000001',
+  email: 'dev@tripmaker.com',
+  password: 'DevUser123!',
+  profile: {
+    phone: '+1 555 123 4567',
+    country: 'United States',
+    language: 'en',
+    currencyType: 'USD'
+  }
+};
+
+async function seedDevUser() {
+  try {
+    await ensureUsersFile();
+    const raw = await fs.readFile(getUsersFilePath(), "utf8");
+    const users = raw.trim() ? JSON.parse(raw) : [];
+    
+    // Check if dev user exists
+    const existingUser = users.find(u => u.id === DEV_USER.id);
+    if (existingUser) {
+      return; // Already exists
+    }
+    
+    // Create dev user
+    const devUser = {
+      id: DEV_USER.id,
+      email: DEV_USER.email,
+      passwordHash: hashPassword(DEV_USER.password),
+      profile: { ...DEV_USER.profile },
+      createdAt: new Date().toISOString(),
+      isTestUser: true
+    };
+    
+    users.push(devUser);
+    await fs.writeFile(getUsersFilePath(), JSON.stringify(users, null, 2));
+    console.log('✅ Development test user seeded:', DEV_USER.email);
+  } catch (error) {
+    console.error('Failed to seed dev user:', error);
+  }
+}
+
 async function readUsers() {
   await writeQueue;
+  await seedDevUser(); // Auto-seed dev user
   await ensureUsersFile();
   const raw = await fs.readFile(getUsersFilePath(), "utf8");
   if (!raw.trim()) {
