@@ -1,6 +1,8 @@
-const DEFAULT_API_BASE = "https://trip-maker-web-be.vercel.app";
+// In production (monorepo), API is at /api
+// In development, use full URL to backend server
+const DEFAULT_API_BASE = "/api";
 
-const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE).replace(/\/$/, "");
+const API_BASE_URL = (import.meta.env.VITE_API_URL || DEFAULT_API_BASE).replace(/\/$/, "");
 const USER_STORAGE_KEY = "waypoint.user";
 
 const parseJson = async (response) => {
