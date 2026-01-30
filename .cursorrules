@@ -1,52 +1,651 @@
-# TripMaker Monorepo Rules
+# TripMaker Monorepo - Cursor AI Rules
 
-## Project Structure
-This is a monorepo containing:
-- Frontend: React/Vite app in `apps/frontend/`
-- Backend: Express.js API in `apps/backend/`
+## 🏗️ PROJECT OVERVIEW
 
-## Development Guidelines
+This is a **production-ready monorepo** for TripMaker, a travel planning platform.
+- **Repository**: https://github.com/avinash6982/TripMakerWeb
+- **Structure**: npm workspaces monorepo
+- **Deployment**: Vercel (automatic on push to main)
+- **Status**: Fully operational, all systems configured
 
-### General
-- Use npm workspaces for dependency management
-- Follow consistent code style across frontend and backend
-- Write clear, descriptive commit messages
-- Test changes locally before pushing
+## 📁 MONOREPO STRUCTURE
 
-### Frontend (apps/frontend/)
-- React with Vite
-- Use functional components and hooks
-- Implement proper error handling
-- Follow React best practices
-- Use i18next for internationalization
+```
+TripMaker/                              # Root (monorepo workspace)
+├── apps/
+│   ├── frontend/                       # @tripmaker/frontend - React/Vite
+│   │   ├── src/
+│   │   │   ├── pages/                 # React pages (Home, Login, Register, Profile)
+│   │   │   ├── layouts/               # Layout components (AuthLayout, SiteLayout)
+│   │   │   ├── services/              # API layer (auth.js, profile.js)
+│   │   │   ├── App.jsx                # Main app component
+│   │   │   ├── main.jsx               # Entry point
+│   │   │   ├── i18n.js                # Internationalization (6 languages)
+│   │   │   └── index.css              # Global styles
+│   │   ├── .env.development           # Dev config (tracked in git)
+│   │   ├── .env.example               # Template
+│   │   ├── vite.config.js             # Vite configuration
+│   │   └── package.json               # Frontend deps
+│   │
+│   └── backend/                        # @tripmaker/backend - Express.js
+│       ├── server.js                   # Main server (34KB, all routes & logic)
+│       ├── .env.development            # Dev config (tracked in git)
+│       ├── .env.example                # Template
+│       ├── FEATURES.md                 # Backend features list
+│       └── package.json                # Backend deps
+│
+├── .cursorrules                        # THIS FILE
+├── .gitignore                          # Git ignore patterns
+├── .env.example                        # Root environment template
+├── package.json                        # Workspace config (npm workspaces)
+├── vercel.json                         # Vercel deployment config
+│
+└── Documentation/
+    ├── README.md                       # Main overview
+    ├── QUICK_START.md                  # Quick local setup (2 min)
+    ├── VERCEL_DEPLOYMENT_GUIDE.md      # Deployment guide
+    ├── CONTRIBUTING.md                 # Development guidelines
+    └── PROJECT_ANALYSIS.md             # Complete project analysis
+```
 
-### Backend (apps/backend/)
-- Express.js with modern ES6+ syntax
-- Use proper middleware (helmet, cors, rate-limiting)
-- Implement JWT authentication
-- Follow RESTful API conventions
-- Add proper error handling and validation
-- Document APIs with Swagger
+## 🎯 CRITICAL RULES - READ FIRST
 
-### File Changes
-- When modifying frontend, work in `apps/frontend/`
-- When modifying backend, work in `apps/backend/`
-- Root-level changes affect the entire monorepo
+### 1. Workspace Awareness
+- **ALWAYS** identify which workspace you're working in: root, frontend, or backend
+- **NEVER** mix frontend and backend code
+- **ROOT changes** affect the entire monorepo (package.json, vercel.json, docs)
+- **Frontend changes** go in `apps/frontend/`
+- **Backend changes** go in `apps/backend/`
 
-### Deployment
-- Push to main branch triggers Vercel deployment
-- Frontend deploys to root path
-- Backend deploys to `/api/*` routes
-- Use environment variables for configuration
+### 2. API Integration Pattern
+```javascript
+// Frontend API calls ALWAYS use environment-aware configuration
+// Production: /api (relative path)
+// Development: http://localhost:3000 (full URL)
 
-### Commands
-- `npm run dev` - Run both apps in development
-- `npm run dev:frontend` - Run only frontend
-- `npm run dev:backend` - Run only backend
-- `npm run build` - Build both apps
-- `npm install` - Install all dependencies
+// Example in apps/frontend/src/services/auth.js:
+const API_BASE_URL = (import.meta.env.VITE_API_URL || "/api").replace(/\/$/, "");
+```
 
-## API Integration
-- Backend API should be accessed at `/api/*` in production
-- Use proper CORS configuration
-- Implement rate limiting for API endpoints
+### 3. Backend Routes Pattern
+```javascript
+// ALL backend routes are in server.js
+// In production, routes are accessible at /api/* due to vercel.json routing
+// Examples:
+//   /register       (dev) → /api/register      (prod)
+//   /login          (dev) → /api/login         (prod)
+//   /health         (dev) → /api/health        (prod)
+```
+
+### 4. Environment Variables
+```bash
+# Frontend vars MUST be prefixed with VITE_
+VITE_API_URL=http://localhost:3000  # Dev
+VITE_API_URL=/api                    # Prod
+
+# Backend vars are standard
+PORT=3000
+JWT_SECRET=<auto-generated-in-dev>
+CORS_ORIGINS=http://localhost:5173
+```
+
+### 5. Development Commands
+```bash
+npm run dev              # Start BOTH apps in parallel (use this!)
+npm run dev:frontend     # Frontend only (port 5173)
+npm run dev:backend      # Backend only (port 3000)
+npm run build            # Build both apps
+npm install              # Install all workspace dependencies
+```
+
+## 🎨 FRONTEND GUIDELINES (apps/frontend/)
+
+### Technology Stack
+- **Framework**: React 19.2.3 (functional components, hooks only)
+- **Build Tool**: Vite 7.3.1 (fast, modern)
+- **Router**: React Router DOM 7.12.0
+- **i18n**: react-i18next (6 languages: en, hi, ml, ar, es, de)
+
+### Code Patterns
+
+#### Components
+```jsx
+// ✅ CORRECT: Functional component with hooks
+import { useState, useEffect } from 'react';
+
+export const MyComponent = () => {
+  const [data, setData] = useState(null);
+  
+  useEffect(() => {
+    // Side effects here
+  }, []);
+  
+  return <div>{data}</div>;
+};
+
+// ❌ WRONG: Class components
+class MyComponent extends React.Component { }
+```
+
+#### API Calls
+```javascript
+// ✅ CORRECT: Use service layer from src/services/
+import { registerUser, loginUser } from '../services/auth';
+
+const handleRegister = async (email, password) => {
+  try {
+    const data = await registerUser({ email, password });
+    // Handle success
+  } catch (error) {
+    // Handle error - error.message contains user-friendly message
+  }
+};
+
+// ❌ WRONG: Direct fetch calls
+fetch('http://localhost:3000/register', { ... })  // Hardcoded URL!
+```
+
+#### Routing
+```jsx
+// ✅ CORRECT: Use React Router
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+<Routes>
+  <Route path="/" element={<Home />} />
+  <Route path="/login" element={<Login />} />
+</Routes>
+
+// ❌ WRONG: Manual URL manipulation
+window.location.href = '/login';
+```
+
+#### Internationalization
+```jsx
+// ✅ CORRECT: Use useTranslation hook
+import { useTranslation } from 'react-i18next';
+
+const MyComponent = () => {
+  const { t } = useTranslation();
+  return <h1>{t('welcome')}</h1>;
+};
+
+// ❌ WRONG: Hardcoded text
+<h1>Welcome</h1>  // Won't translate!
+```
+
+### File Locations
+- **Pages**: `src/pages/` (Home.jsx, Login.jsx, Register.jsx, Profile.jsx)
+- **Layouts**: `src/layouts/` (AuthLayout.jsx, SiteLayout.jsx)
+- **Services**: `src/services/` (auth.js, profile.js)
+- **Main App**: `src/App.jsx`
+- **Entry**: `src/main.jsx`
+- **i18n Config**: `src/i18n.js`
+- **Styles**: `src/index.css`
+
+### Build Configuration
+- **Config File**: `vite.config.js` (minimal, just React plugin)
+- **Output**: `dist/` directory
+- **Build**: Automatic via Vercel using `@vercel/static-build`
+- **Dev Server**: Port 5173 (or next available)
+
+## 🔧 BACKEND GUIDELINES (apps/backend/)
+
+### Technology Stack
+- **Framework**: Express.js 5.2.1
+- **Authentication**: JWT (jsonwebtoken 9.0.3)
+- **Security**: Helmet 7.2.0, CORS 2.8.6, Rate Limiting
+- **Validation**: express-validator 7.3.1
+- **API Docs**: Swagger (swagger-ui-express, swagger-jsdoc)
+
+### Architecture
+```javascript
+// ALL backend logic is in server.js
+// Structure:
+//   1. Configuration & Constants
+//   2. Swagger Documentation
+//   3. Middleware (helmet, CORS, rate limiting)
+//   4. Utility Functions (password hashing, user storage)
+//   5. Auth Middleware (requireAuth, optionalAuth)
+//   6. API Endpoints (register, login, profile)
+//   7. Error Handlers
+//   8. Server Start
+```
+
+### Adding New Endpoints
+
+#### 1. Add Swagger Documentation
+```javascript
+/**
+ * @swagger
+ * /api/new-endpoint:
+ *   post:
+ *     tags: [TagName]
+ *     summary: Brief description
+ *     description: Detailed description
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               field:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Success
+ *       400:
+ *         description: Validation error
+ */
+```
+
+#### 2. Add Route Handler
+```javascript
+app.post(
+  "/new-endpoint",
+  optionalAuth,  // or requireAuth if auth needed
+  [
+    // Validation
+    body("field")
+      .notEmpty()
+      .withMessage("Field is required."),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      // Logic here
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);  // Pass to error handler
+    }
+  }
+);
+```
+
+### Authentication Pattern
+```javascript
+// For protected routes, use requireAuth
+app.get("/protected", requireAuth, async (req, res) => {
+  // req.user contains decoded JWT: { id, email }
+  const userId = req.user.id;
+});
+
+// For optional auth, use optionalAuth
+app.get("/public", optionalAuth, async (req, res) => {
+  // req.user exists if token provided, undefined otherwise
+});
+```
+
+### Rate Limiting
+```javascript
+// Current limits:
+// - Registration: 5 requests per 15 minutes
+// - Login: 10 requests per 15 minutes
+// - General: 100 requests per 15 minutes
+
+// To add custom limiter:
+const customLimiter = createLimiter(
+  15 * 60 * 1000,  // Window: 15 minutes
+  50,               // Max requests
+  "Custom error message"
+);
+
+app.post("/endpoint", customLimiter, handler);
+```
+
+### User Storage
+```javascript
+// Read users
+const users = await readUsers();
+
+// Write users (uses queue to prevent race conditions)
+await writeUsers(users);
+
+// Hash password
+const hash = hashPassword(password);
+
+// Verify password
+const isValid = verifyPassword(password, storedHash);
+
+// Generate JWT token
+const token = generateToken(user);
+```
+
+### Environment Variables
+```javascript
+// Access via process.env
+const port = Number(process.env.PORT) || 3000;
+const jwtSecret = process.env.JWT_SECRET;  // Auto-generated in dev
+const corsOrigins = process.env.CORS_ORIGINS;  // Comma-separated
+```
+
+## 🚀 DEPLOYMENT (Vercel)
+
+### vercel.json Configuration
+```json
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "apps/frontend/package.json",
+      "use": "@vercel/static-build",
+      "config": { "distDir": "dist" }
+    },
+    {
+      "src": "apps/backend/server.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    { "src": "/api/(.*)", "dest": "apps/backend/server.js" },
+    { "src": "/(.*)", "dest": "apps/frontend/dist/$1" }
+  ]
+}
+```
+
+### How Deployment Works
+1. **Push to main** → Vercel detects changes
+2. **Frontend**: Built with Vite → static files in `dist/`
+3. **Backend**: Deployed as serverless functions
+4. **Routing**: `/api/*` → backend, everything else → frontend
+5. **Environment**: Variables from Vercel dashboard
+
+### Required Vercel Environment Variables
+```bash
+JWT_SECRET=<64-char-random-string>      # Generate: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+NODE_ENV=production
+VITE_API_URL=/api
+CORS_ORIGINS=https://your-app.vercel.app
+```
+
+### Deployment Checklist
+- [ ] Environment variables set in Vercel dashboard
+- [ ] Push to main branch
+- [ ] Wait for build to complete
+- [ ] Test /api/health endpoint
+- [ ] Test frontend loads
+- [ ] Update CORS_ORIGINS to actual Vercel URL
+- [ ] Redeploy after CORS update
+
+## 🔒 SECURITY BEST PRACTICES
+
+### Frontend Security
+- ✅ Never hardcode API URLs
+- ✅ Use environment variables (VITE_API_URL)
+- ✅ Store tokens in localStorage (already implemented)
+- ✅ Clear tokens on logout
+- ❌ Never store sensitive data in frontend code
+- ❌ Never commit .env files with real credentials
+
+### Backend Security
+- ✅ JWT tokens expire after 7 days (configurable)
+- ✅ Passwords hashed with scrypt + salt
+- ✅ Rate limiting on all endpoints
+- ✅ Helmet security headers
+- ✅ CORS restricted to allowed origins
+- ✅ Input validation on all endpoints
+- ❌ Never log passwords or tokens
+- ❌ Never return stack traces in production
+
+### Environment Security
+- ✅ `.env` files in .gitignore
+- ✅ `.env.example` and `.env.development` safe to commit (no secrets)
+- ✅ JWT_SECRET auto-generated in development
+- ✅ JWT_SECRET required in production
+- ❌ Never commit real JWT_SECRET
+- ❌ Never use development secrets in production
+
+## 📝 GIT WORKFLOW
+
+### Commit Messages
+Use conventional commit format:
+```bash
+feat: add user profile editing
+fix: resolve CORS issue in production
+docs: update API documentation
+style: format code with prettier
+refactor: simplify authentication logic
+test: add user registration tests
+chore: update dependencies
+```
+
+### Branch Strategy
+- **main**: Production-ready code (protected)
+- **feature/***: New features
+- **fix/***: Bug fixes
+- **docs/***: Documentation updates
+
+### Before Committing
+1. Test locally: `npm run dev`
+2. Build successfully: `npm run build`
+3. No console errors
+4. Code follows patterns in this file
+5. Environment variables not hardcoded
+
+## 🧪 TESTING PATTERNS
+
+### Manual Testing Checklist
+- [ ] Backend health: `curl http://localhost:3000/health`
+- [ ] Frontend loads: Visit http://localhost:5173
+- [ ] Registration: Try creating a user
+- [ ] Login: Try logging in
+- [ ] API docs: Visit http://localhost:3000/api-docs
+- [ ] CORS: Check browser console for CORS errors
+
+### Testing New Features
+1. **Backend API**: Test with curl or Swagger UI
+2. **Frontend**: Test in browser with React DevTools
+3. **Integration**: Test frontend → backend flow
+4. **Error Cases**: Test with invalid inputs
+5. **Edge Cases**: Test boundary conditions
+
+## 📚 DOCUMENTATION
+
+### When to Update Docs
+- **README.md**: Project structure or overview changes
+- **QUICK_START.md**: Setup process changes
+- **VERCEL_DEPLOYMENT_GUIDE.md**: Deployment process changes
+- **CONTRIBUTING.md**: Development workflow changes
+- **PROJECT_ANALYSIS.md**: Major configuration changes
+
+### Documentation Standards
+- Keep it concise and actionable
+- Use examples and code blocks
+- Update dates when modifying
+- Test instructions before committing
+- Link related documents
+
+## 🎯 COMMON TASKS
+
+### Adding a New Page (Frontend)
+1. Create component in `apps/frontend/src/pages/NewPage.jsx`
+2. Add route in `apps/frontend/src/App.jsx`
+3. Add navigation link if needed
+4. Add translations to `apps/frontend/src/i18n.js`
+5. Test navigation and rendering
+
+### Adding a New API Endpoint (Backend)
+1. Add Swagger docs above endpoint
+2. Add route handler in `apps/backend/server.js`
+3. Add validation with express-validator
+4. Implement logic with error handling
+5. Test with Swagger UI or curl
+6. Document in FEATURES.md if significant
+
+### Updating Dependencies
+```bash
+# Update all workspaces
+npm update
+
+# Update specific workspace
+npm update --workspace=apps/frontend
+
+# Check for outdated packages
+npm outdated
+```
+
+### Debugging Issues
+```bash
+# Backend logs
+# Check terminal output where npm run dev:backend is running
+
+# Frontend logs
+# Check browser console (F12)
+
+# Vercel logs
+# Dashboard → Deployments → [deployment] → Functions tab
+
+# Check environment variables
+# Verify .env.development files exist and are correct
+```
+
+## ⚠️ COMMON MISTAKES TO AVOID
+
+### ❌ DON'T DO THIS:
+
+1. **Hardcode URLs**
+   ```javascript
+   fetch('http://localhost:3000/api/users')  // ❌ WRONG
+   // Use: const API_BASE_URL = import.meta.env.VITE_API_URL
+   ```
+
+2. **Mix workspace dependencies**
+   ```bash
+   cd apps/frontend && npm install express  # ❌ WRONG
+   # Express belongs in backend only
+   ```
+
+3. **Commit sensitive data**
+   ```bash
+   git add .env  # ❌ WRONG
+   # .env is gitignored, only commit .env.example
+   ```
+
+4. **Modify vercel.json without understanding**
+   ```json
+   // ❌ WRONG: Changing routes breaks API routing
+   { "src": "/api/(.*)", "dest": "apps/frontend/dist/$1" }
+   ```
+
+5. **Run workspaces sequentially**
+   ```bash
+   npm run dev:backend && npm run dev:frontend  # ❌ WRONG
+   # Use: npm run dev (runs in parallel with &)
+   ```
+
+6. **Create class components**
+   ```jsx
+   class MyComponent extends React.Component { }  // ❌ WRONG
+   // Use: const MyComponent = () => { }
+   ```
+
+7. **Skip error handling**
+   ```javascript
+   const data = await fetch(url);  // ❌ WRONG (no try/catch)
+   // Always wrap async calls in try/catch
+   ```
+
+## 🚦 DECISION FLOWCHART
+
+### "Where should this code go?"
+```
+Is it API logic?
+  ├─ YES → apps/backend/server.js
+  └─ NO ↓
+
+Is it UI/React?
+  ├─ YES → apps/frontend/src/
+  │         ├─ Page? → pages/
+  │         ├─ Layout? → layouts/
+  │         ├─ API call? → services/
+  │         └─ Style? → index.css
+  └─ NO ↓
+
+Is it deployment config?
+  ├─ YES → vercel.json or .env.example
+  └─ NO ↓
+
+Is it documentation?
+  ├─ YES → README.md, CONTRIBUTING.md, etc.
+  └─ NO ↓
+
+Is it workspace config?
+  └─ YES → Root package.json
+```
+
+### "How should I test this?"
+```
+Backend change?
+  └─ YES → curl or Swagger UI (http://localhost:3000/api-docs)
+
+Frontend change?
+  └─ YES → Browser (http://localhost:5173) + React DevTools
+
+Integration?
+  └─ YES → Full user flow in browser
+
+Deployment?
+  └─ YES → Vercel preview deployment first
+```
+
+## 🎓 LEARNING RESOURCES
+
+### Understanding the Stack
+- **React**: https://react.dev
+- **Vite**: https://vitejs.dev
+- **Express**: https://expressjs.com
+- **Vercel**: https://vercel.com/docs
+
+### Project-Specific
+- See `QUICK_START.md` for local setup
+- See `VERCEL_DEPLOYMENT_GUIDE.md` for deployment
+- See `CONTRIBUTING.md` for workflow
+- See `PROJECT_ANALYSIS.md` for complete analysis
+
+## 🎯 CURSOR AI REMINDERS
+
+When working on this project:
+
+1. **ALWAYS** check which workspace (root/frontend/backend) before making changes
+2. **NEVER** hardcode URLs, use environment variables
+3. **ALWAYS** follow existing patterns (see examples in this file)
+4. **NEVER** commit sensitive data (.env with real secrets)
+5. **ALWAYS** test locally before committing
+6. **ALWAYS** update documentation when changing behavior
+7. **NEVER** skip error handling
+8. **ALWAYS** use conventional commit messages
+9. **NEVER** modify vercel.json without consulting this file
+10. **ALWAYS** verify Vercel deployment after changes to config
+
+## 📍 QUICK REFERENCE
+
+```bash
+# Start development
+npm run dev
+
+# Test backend API
+curl http://localhost:3000/health
+
+# Test frontend
+open http://localhost:5173
+
+# API documentation
+open http://localhost:3000/api-docs
+
+# Build for production
+npm run build
+
+# Check git status
+git status
+
+# Commit changes
+git add .
+git commit -m "feat: description"
+git push origin main
+```
+
+---
+
+**Last Updated**: January 30, 2026
+**Status**: Production Ready ✅
+**Repository**: https://github.com/avinash6982/TripMakerWeb
