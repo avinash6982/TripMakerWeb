@@ -10,7 +10,7 @@
     "dev": "npm run dev --workspace=apps/backend & npm run dev --workspace=apps/frontend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",
-    "build": "npm run build --workspaces --if-present",
+    "build": "cd apps/frontend && npm run build",
     "build:frontend": "npm run build --workspace=apps/frontend",
     "build:backend": "npm run build --workspace=apps/backend --if-present",
     "start": "npm run start --workspaces --if-present",
