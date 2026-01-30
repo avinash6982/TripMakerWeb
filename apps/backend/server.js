@@ -29,9 +29,11 @@ let usersFilePath = path.resolve(
 
 // Auto-generate JWT secret for development if not provided
 const JWT_SECRET = process.env.JWT_SECRET || (() => {
-  if (process.env.NODE_ENV === "production") {
-    console.error("❌ CRITICAL: JWT_SECRET is required in production!");
-    process.exit(1);
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+    const error = "❌ CRITICAL: JWT_SECRET is required in production!";
+    console.error(error);
+    // In serverless, throw error instead of exit to allow graceful error handling
+    throw new Error(error);
   }
   // Generate a random secret for development
   const devSecret = crypto.randomBytes(32).toString("hex");
