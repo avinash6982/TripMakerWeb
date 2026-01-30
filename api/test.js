@@ -1,8 +1,0 @@
-// Simple test function to verify Vercel serverless functions work
-module.exports = (req, res) => {
-  res.status(200).json({ 
-    message: 'API is working!',
-    path: req.url,
-    method: req.method
-  });
-};
