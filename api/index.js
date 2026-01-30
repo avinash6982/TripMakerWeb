@@ -1,25 +1,25 @@
-// Debug: Try to load backend and report specific error
+// Vercel serverless function for Express backend
+const path = require('path');
+
+// Cache the app instance
+let app = null;
+
 module.exports = (req, res) => {
   try {
-    // Test if we can access the backend file
-    const path = require('path');
-    const backendPath = path.join(process.cwd(), 'apps', 'backend', 'server.js');
+    // Load Express app on first request
+    if (!app) {
+      const backendPath = path.join(process.cwd(), 'apps', 'backend', 'server.js');
+      app = require(backendPath);
+    }
     
-    // Try to require it
-    const app = require(backendPath);
-    
-    // If we get here, it loaded!
-    return res.status(200).json({
-      success: true,
-      message: 'Backend loaded successfully!',
-      appType: typeof app
-    });
+    // Let Express handle the request
+    return app(req, res);
   } catch (error) {
+    console.error('API Error:', error);
     return res.status(500).json({
-      error: 'Failed to load backend',
+      error: 'Internal server error',
       message: error.message,
-      code: error.code,
-      stack: error.stack
+      code: error.code
     });
   }
 };
