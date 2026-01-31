@@ -7,7 +7,9 @@ import {
   deleteTrip,
   archiveTrip,
   unarchiveTrip,
+  createInvite,
 } from "../services/trips";
+import { getStoredUser } from "../services/auth";
 import { getTransportHubsForDestination } from "../data/transportHubs";
 
 const TripDetail = () => {
@@ -22,6 +24,10 @@ const TripDetail = () => {
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [inviteCode, setInviteCode] = useState(null);
+  const [inviteRole, setInviteRole] = useState("viewer");
+  const [inviteExpiresAt, setInviteExpiresAt] = useState(null);
 
   const loadTrip = async () => {
     if (!id) return;
@@ -143,6 +149,12 @@ const TripDetail = () => {
     );
   }
 
+  const currentUser = getStoredUser();
+  const isOwner = trip && currentUser?.id && trip.userId === currentUser.id;
+  const collab = trip?.collaborators?.find((c) => c.userId === currentUser?.id);
+  const isEditor = collab && collab.role === "editor";
+  const canEdit = isOwner || isEditor;
+
   if (error || !trip) {
     return (
       <main className="trip-detail-page">
@@ -166,7 +178,7 @@ const TripDetail = () => {
             ← {t("trips.title")}
           </Link>
 
-          {editMode ? (
+          {isOwner && editMode ? (
             <form onSubmit={handleSaveEdit} className="trip-detail-edit-form">
               <div className="field">
                 <label>{t("tripPlanner.saveTrip.nameLabel")}</label>
@@ -242,6 +254,7 @@ const TripDetail = () => {
                 </span>
               </div>
 
+              {(isOwner || isEditor) && (
               <div className="trip-detail-action-bar">
                 <button
                   type="button"
@@ -282,13 +295,58 @@ const TripDetail = () => {
                 )}
                 <button
                   type="button"
+                  className={`btn small ${trip.isPublic ? "primary" : "ghost"}`}
+                  onClick={async () => {
+                    setActionLoading(true);
+                    setMessage("");
+                    try {
+                      const updated = await updateTrip(trip.id, {
+                        isPublic: !trip.isPublic,
+                      });
+                      setTrip(updated);
+                      setMessage(
+                        updated.isPublic
+                          ? t("trips.makePublicSuccess")
+                          : t("trips.makePrivateSuccess")
+                      );
+                    } catch (err) {
+                      setMessage(err?.message || "Update failed.");
+                    } finally {
+                      setActionLoading(false);
+                    }
+                  }}
+                  disabled={actionLoading}
+                >
+                  {trip.isPublic ? t("trips.makePrivate") : t("trips.makePublic")}
+                </button>
+                {isOwner && (
+                <button
+                  type="button"
+                  className="btn small ghost"
+                  onClick={() => {
+                    setShowInviteModal(true);
+                    setInviteCode(null);
+                  }}
+                  disabled={actionLoading}
+                >
+                  {t("trips.invite")}
+                </button>
+                )}
+                {isOwner && (
+                <button
+                  type="button"
                   className="btn small ghost"
                   onClick={() => setShowDeleteConfirm(true)}
                   disabled={actionLoading}
                 >
                   {t("trips.delete")}
                 </button>
+                )}
               </div>
+              )}
+              {!isOwner && trip.ownerEmail && (
+                <p className="muted trip-detail-owner">{t("feed.by")} {trip.ownerEmail}</p>
+              )}
             </>
           )}
 
@@ -308,14 +366,68 @@ const TripDetail = () => {
 
         {!editMode && (() => {
           const hubs = getTransportHubsForDestination(trip.destination);
+          const transportMode = trip.transportMode || null;
+
+          const handleTransportModeChange = async (mode) => {
+            const next = mode === transportMode ? null : mode;
+            setActionLoading(true);
+            setMessage("");
+            try {
+              const updated = await updateTrip(trip.id, {
+                transportMode: next === null ? null : next,
+              });
+              setTrip(updated);
+              setMessage(t("trips.updateSuccess"));
+            } catch (err) {
+              setMessage(err?.message || "Update failed.");
+            } finally {
+              setActionLoading(false);
+            }
+          };
+
           if (!hubs) return null;
+          const modeToHub = {
+            flight: hubs.airport,
+            train: hubs.train,
+            bus: hubs.bus,
+          };
           return (
             <div className="trip-detail-transport">
               <h2>{t("trips.transportation")}</h2>
+              {canEdit && (
+              <>
+              <p className="trip-detail-transport-label">{t("trips.howAreYouGettingThere")}</p>
+              <div className="transport-mode-chips">
+                {["flight", "train", "bus"].map((mode) => {
+                  const hub = modeToHub[mode];
+                  if (!hub) return null;
+                  const isSelected = transportMode === mode;
+                  return (
+                    <button
+                      key={mode}
+                      type="button"
+                      className={`chip ${isSelected ? "chip-selected" : ""}`}
+                      onClick={() => handleTransportModeChange(mode)}
+                      disabled={actionLoading}
+                      aria-pressed={isSelected}
+                    >
+                      {t(`trips.transportMode.${mode}`)}
+                    </button>
+                  );
+                })}
+              </div>
+              </>
+              )}
               <ul className="transport-hubs-list">
-                <li><strong>{t("trips.nearestAirport")}:</strong> {hubs.airport?.name} — {hubs.airport?.distance}</li>
-                <li><strong>{t("trips.nearestTrain")}:</strong> {hubs.train?.name} — {hubs.train?.distance}</li>
-                <li><strong>{t("trips.nearestBus")}:</strong> {hubs.bus?.name} — {hubs.bus?.distance}</li>
+                <li className={transportMode === "flight" ? "transport-hub-selected" : ""}>
+                  <strong>{t("trips.nearestAirport")}:</strong> {hubs.airport?.name} — {hubs.airport?.distance}
+                </li>
+                <li className={transportMode === "train" ? "transport-hub-selected" : ""}>
+                  <strong>{t("trips.nearestTrain")}:</strong> {hubs.train?.name} — {hubs.train?.distance}
+                </li>
+                <li className={transportMode === "bus" ? "transport-hub-selected" : ""}>
+                  <strong>{t("trips.nearestBus")}:</strong> {hubs.bus?.name} — {hubs.bus?.distance}
+                </li>
               </ul>
             </div>
           );
@@ -343,6 +455,89 @@ const TripDetail = () => {
           </div>
         )}
       </section>
+
+      {showInviteModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h2>{t("trips.inviteTitle")}</h2>
+            {!inviteCode ? (
+              <>
+                <div className="field">
+                  <label htmlFor="invite-role-select">{t("trips.inviteRole")}</label>
+                  <select
+                    id="invite-role-select"
+                    className="invite-role-select"
+                    value={inviteRole}
+                    onChange={(e) => setInviteRole(e.target.value)}
+                    aria-label={t("trips.inviteRole")}
+                  >
+                    <option value="viewer">{t("trips.inviteRole.viewer")}</option>
+                    <option value="editor">{t("trips.inviteRole.editor")}</option>
+                  </select>
+                </div>
+                <div className="modal-actions">
+                  <button
+                    type="button"
+                    className="btn primary"
+                    disabled={actionLoading}
+                    onClick={async () => {
+                      setActionLoading(true);
+                      try {
+                        const data = await createInvite(trip.id, inviteRole);
+                        setInviteCode(data.code);
+                        setInviteExpiresAt(data.expiresAt);
+                      } catch (err) {
+                        setMessage(err?.message || "Failed to create invite.");
+                      } finally {
+                        setActionLoading(false);
+                      }
+                    }}
+                  >
+                    {actionLoading ? t("labels.loading") : t("trips.createInvite")}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => setShowInviteModal(false)}
+                  >
+                    {t("trips.cancel")}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <p className="invite-code-label">{t("trips.inviteCodeLabel")}</p>
+                <p className="invite-code">{inviteCode}</p>
+                <button
+                  type="button"
+                  className="btn small primary"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(inviteCode);
+                    setMessage(t("trips.inviteCopied"));
+                  }}
+                >
+                  {t("trips.copyCode")}
+                </button>
+                {inviteExpiresAt && (
+                  <p className="muted small">{t("trips.inviteExpires")}</p>
+                )}
+                <div className="modal-actions" style={{ marginTop: "1rem" }}>
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => {
+                      setShowInviteModal(false);
+                      setInviteCode(null);
+                    }}
+                  >
+                    {t("trips.close")}
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {showDeleteConfirm && (
         <div className="modal-overlay" role="dialog" aria-modal="true">

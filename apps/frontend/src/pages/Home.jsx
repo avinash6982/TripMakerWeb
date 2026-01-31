@@ -5,7 +5,7 @@ import MapView from "../components/MapView";
 import { getPlaceSuggestionsForDestination } from "../data/placeSuggestions";
 import {
   buildOpenStreetMapLink,
-  collectPlaceNamesFromPlan,
+  collectPlaceNamesByDay,
   DESTINATION_SUGGESTIONS,
   geocodePlace,
   getDestinationCoordinates,
@@ -37,6 +37,7 @@ const Home = () => {
   const [editingDay, setEditingDay] = useState(null);
   const [regeneratingDay, setRegeneratingDay] = useState(null);
   const [itineraryMarkers, setItineraryMarkers] = useState([]);
+  const [dayRoutes, setDayRoutes] = useState([]);
   const [saveModalOpen, setSaveModalOpen] = useState(false);
   const [saveTripName, setSaveTripName] = useState("");
   const [saveStatus, setSaveStatus] = useState("idle");
@@ -86,6 +87,7 @@ const Home = () => {
   const loadMapForDestination = async (destination) => {
     setMapState({ status: "loading", data: null, message: "" });
     setItineraryMarkers([]);
+    setDayRoutes([]);
     try {
       const coordinates = await getDestinationCoordinates(destination);
       if (!coordinates) {
@@ -113,25 +115,44 @@ const Home = () => {
     }
   };
 
-  // Geocode itinerary places for map markers (rate-limited: 1 req ~1.2s for Nominatim policy)
+  // Geocode itinerary places for markers + day routes (rate-limited: 1 req ~1.2s for Nominatim)
   useEffect(() => {
     if (!plan || mapState.status !== "ready" || !mapState.data) return;
     setItineraryMarkers([]);
+    setDayRoutes([]);
     let cancelled = false;
-    const places = collectPlaceNamesFromPlan(plan, 10);
+    const placesByDay = collectPlaceNamesByDay(plan);
+    const seenNames = new Set();
     const run = async () => {
-      for (let i = 0; i < places.length; i++) {
+      let reqIndex = 0;
+      const routes = placesByDay.map(() => []);
+      for (let dayIndex = 0; dayIndex < placesByDay.length; dayIndex++) {
         if (cancelled) return;
-        await new Promise((r) => setTimeout(r, i === 0 ? 0 : 1200));
-        if (cancelled) return;
-        const coords = await geocodePlace(places[i].name, plan.destination);
-        if (cancelled) return;
-        if (coords) {
-          setItineraryMarkers((prev) => [
-            ...prev,
-            { ...coords, category: places[i].category },
-          ]);
+        const dayPlaces = placesByDay[dayIndex];
+        for (let j = 0; j < dayPlaces.length; j++) {
+          if (cancelled) return;
+          await new Promise((r) => setTimeout(r, reqIndex === 0 ? 0 : 1200));
+          if (cancelled) return;
+          const place = dayPlaces[j];
+          const coords = await geocodePlace(place.name, plan.destination);
+          reqIndex++;
+          if (cancelled) return;
+          if (coords && Number.isFinite(coords.lat) && Number.isFinite(coords.lng)) {
+            routes[dayIndex].push([coords.lat, coords.lng]);
+            if (!seenNames.has(place.name) && seenNames.size < 10) {
+              seenNames.add(place.name);
+              setItineraryMarkers((prev) => [
+                ...prev,
+                { ...coords, category: place.category },
+              ]);
+            }
+          }
         }
+        setDayRoutes((prev) => {
+          const next = prev.slice(0, dayIndex);
+          next[dayIndex] = [...routes[dayIndex]];
+          return next;
+        });
       }
     };
     run();
@@ -383,6 +404,7 @@ const Home = () => {
                         mapState.data.label || plan.destination
                       }
                       itineraryMarkers={itineraryMarkers}
+                      dayRoutes={dayRoutes}
                     />
                     <div className="planner-map-footer">
                       <span className="muted">{mapState.data.label}</span>

@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Trips from "./pages/Trips";
 import TripDetail from "./pages/TripDetail";
+import Feed from "./pages/Feed";
 import { getStoredUser } from "./services/auth";
 
 const RequireAuth = ({ children }) => {
@@ -28,6 +29,7 @@ const App = () => {
       <Route element={<SiteLayout />}>
         <Route path="home" element={<RequireAuth><Home /></RequireAuth>} />
         <Route path="trips" element={<RequireAuth><Trips /></RequireAuth>} />
+        <Route path="feed" element={<RequireAuth><Feed /></RequireAuth>} />
         <Route path="trips/:id" element={<RequireAuth><TripDetail /></RequireAuth>} />
         <Route
           path="profile"

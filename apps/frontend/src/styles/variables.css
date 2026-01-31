@@ -1,0 +1,77 @@
+/**
+ * Waypoint Design System – Design Tokens
+ * Use these variables for consistent, responsive UI.
+ */
+
+:root {
+  /* Colors – primary palette */
+  --color-primary: #0f766e;
+  --color-primary-hover: #0d5c55;
+  --color-primary-muted: rgba(15, 118, 110, 0.12);
+  --color-accent: #0284c7;
+  --color-accent-muted: rgba(2, 132, 199, 0.15);
+
+  /* Neutrals */
+  --color-bg: #f8fafc;
+  --color-bg-elevated: #ffffff;
+  --color-text: #0f172a;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  /* Semantic (keep for compatibility) */
+  --primary: var(--color-primary);
+  --primary-dark: var(--color-primary-hover);
+  --accent: var(--color-accent);
+  --bg: var(--color-bg);
+  --text: var(--color-text);
+  --muted: var(--color-text-muted);
+  --border: var(--color-border);
+
+  /* Spacing scale (4px base) */
+  --space-1: 0.25rem;   /* 4px */
+  --space-2: 0.5rem;   /* 8px */
+  --space-3: 0.75rem;  /* 12px */
+  --space-4: 1rem;     /* 16px */
+  --space-5: 1.25rem;  /* 20px */
+  --space-6: 1.5rem;   /* 24px */
+  --space-8: 2rem;     /* 32px */
+  --space-10: 2.5rem;  /* 40px */
+  --space-12: 3rem;    /* 48px */
+  --space-16: 4rem;    /* 64px */
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-full: 9999px;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1);
+  --shadow-xl: 0 20px 40px rgba(15, 23, 42, 0.12);
+
+  /* Typography */
+  --font-sans: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --text-xs: 0.75rem;
+  --text-sm: 0.875rem;
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-xl: 1.25rem;
+  --text-2xl: 1.5rem;
+  --text-3xl: clamp(1.75rem, 3vw, 2.25rem);
+  --font-medium: 500;
+  --font-semibold: 600;
+  --font-bold: 700;
+
+  /* Layout */
+  --container-max: 1120px;
+  --header-height: 56px;
+  --tabbar-height: 64px;
+  --tabbar-height-safe: calc(64px + env(safe-area-inset-bottom, 0px));
+
+  /* Breakpoints (for reference; use in media queries) */
+  /* 640px = sm, 768px = md, 1024px = lg, 1280px = xl */
+}

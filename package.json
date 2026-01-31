@@ -7,6 +7,7 @@
     "apps/*"
   ],
   "scripts": {
+    "test:sanity": "node test-mvp2-sanity.js",
     "dev": "npm run dev --workspace=apps/backend & npm run dev --workspace=apps/frontend",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",

@@ -1,18 +1,24 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { fetchTrips } from "../services/trips";
+import { fetchTrips, redeemInvite } from "../services/trips";
 
 const Trips = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [showRedeemModal, setShowRedeemModal] = useState(false);
+  const [redeemCode, setRedeemCode] = useState("");
+  const [redeemLoading, setRedeemLoading] = useState(false);
+  const [redeemError, setRedeemError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
+      setLoading(true);
       try {
         const data = await fetchTrips();
         if (!cancelled) setTrips(data?.trips || []);
@@ -25,6 +31,31 @@ const Trips = () => {
     load();
     return () => { cancelled = true; };
   }, []);
+
+  const handleRedeem = async (e) => {
+    e?.preventDefault();
+    const code = redeemCode.trim().toUpperCase();
+    if (!code) {
+      setRedeemError("Please enter the invite code.");
+      return;
+    }
+    setRedeemLoading(true);
+    setRedeemError("");
+    try {
+      const data = await redeemInvite(code);
+      setShowRedeemModal(false);
+      setRedeemCode("");
+      const refresh = await fetchTrips();
+      setTrips(refresh?.trips || []);
+      if (data?.trip?.id) {
+        navigate(`/trips/${data.trip.id}`);
+      }
+    } catch (err) {
+      setRedeemError(err?.message || "Invalid or expired code.");
+    } finally {
+      setRedeemLoading(false);
+    }
+  };
 
   const displayedTrips = showArchived
     ? trips
@@ -49,6 +80,13 @@ const Trips = () => {
         <div className="trips-header">
           <h1>{t("trips.title")}</h1>
           <div className="trips-header-actions">
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => setShowRedeemModal(true)}
+            >
+              {t("trips.redeemCode")}
+            </button>
             <button
               type="button"
               className="btn ghost"
@@ -105,6 +143,52 @@ const Trips = () => {
           </ul>
         )}
       </section>
+
+      {showRedeemModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true">
+          <div className="modal-card">
+            <h2>{t("trips.redeemTitle")}</h2>
+            <form onSubmit={handleRedeem}>
+              <div className="field">
+                <label htmlFor="redeem-code">{t("trips.redeemPlaceholder")}</label>
+                <input
+                  id="redeem-code"
+                  type="text"
+                  value={redeemCode}
+                  onChange={(e) => setRedeemCode(e.target.value)}
+                  placeholder="ABC123"
+                  className="invite-code-input"
+                  autoFocus
+                  disabled={redeemLoading}
+                />
+              </div>
+              {redeemError && (
+                <p className="message error" role="alert">{redeemError}</p>
+              )}
+              <div className="modal-actions">
+                <button
+                  type="submit"
+                  className="btn primary"
+                  disabled={redeemLoading}
+                >
+                  {redeemLoading ? t("labels.loading") : t("trips.redeemCode")}
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => {
+                    setShowRedeemModal(false);
+                    setRedeemCode("");
+                    setRedeemError("");
+                  }}
+                >
+                  {t("trips.cancel")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

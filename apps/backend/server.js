@@ -310,6 +310,15 @@ Authorization: Bearer <your_jwt_token>
               type: "array",
               items: { $ref: "#/components/schemas/TripPlanDay" },
             },
+            transportMode: {
+              type: "string",
+              enum: ["flight", "train", "bus"],
+              description: "MVP2: How user gets there (optional)",
+            },
+            isPublic: {
+              type: "boolean",
+              description: "MVP2: Shown in public feed (optional)",
+            },
             createdAt: { type: "string", format: "date-time" },
             updatedAt: { type: "string", format: "date-time" },
           },
@@ -615,6 +624,8 @@ function ensureProfile(user) {
   return user.profile;
 }
 
+const TRANSPORT_MODES = ["flight", "train", "bus"];
+
 /**
  * @typedef {Object} Trip
  * @property {string} id
@@ -627,7 +638,19 @@ function ensureProfile(user) {
  * @property {string} createdAt
  * @property {string} updatedAt
  * @property {"upcoming"|"active"|"completed"|"archived"} status
+ * @property {"flight"|"train"|"bus"} [transportMode] - MVP2: how user gets there
+ * @property {boolean} [isPublic] - MVP2: shown in public feed
+ * @property {Array<{code:string,role:string,expiresAt:string}>} [invites] - MVP2: pending invite codes
+ * @property {Array<{userId:string,email:string,role:string}>} [collaborators] - MVP2: users with access
  */
+function ensureInvites(trip) {
+  if (!Array.isArray(trip.invites)) trip.invites = [];
+  return trip.invites;
+}
+function ensureCollaborators(trip) {
+  if (!Array.isArray(trip.collaborators)) trip.collaborators = [];
+  return trip.collaborators;
+}
 function ensureTrips(user) {
   if (!Array.isArray(user.trips)) {
     user.trips = [];
@@ -769,6 +792,58 @@ const CITY_LIBRARY = [
       { name: "Little Italy Dinner", category: "food", area: "Little Italy", avgTime: 1.5 },
     ],
   },
+  {
+    key: "yerevan",
+    name: "Yerevan",
+    country: "Armenia",
+    places: [
+      { name: "Cascade Complex", category: "landmark", area: "Kentron", avgTime: 1.5 },
+      { name: "Republic Square", category: "landmark", area: "Kentron", avgTime: 1 },
+      { name: "Matenadaran Museum", category: "museum", area: "Kentron", avgTime: 2 },
+      { name: "Vernissage Market", category: "market", area: "Kentron", avgTime: 1.5 },
+      { name: "Tsitsernakaberd Memorial", category: "museum", area: "Tsitsernakaberd", avgTime: 1.5 },
+      { name: "Cafesjian Center for the Arts", category: "museum", area: "Cascade", avgTime: 1.5 },
+      { name: "Opera House Area", category: "landmark", area: "Kentron", avgTime: 1 },
+      { name: "Northern Avenue Stroll", category: "neighborhood", area: "Kentron", avgTime: 1 },
+      { name: "Garni Temple", category: "landmark", area: "Kotayk", avgTime: 2 },
+      { name: "Geghard Monastery", category: "landmark", area: "Kotayk", avgTime: 1.5 },
+      { name: "Echmiadzin Cathedral", category: "landmark", area: "Vagharshapat", avgTime: 2 },
+      { name: "Lake Sevan Shore", category: "viewpoint", area: "Gegharkunik", avgTime: 2 },
+      { name: "Armenian Brandy Factory Tour", category: "experience", area: "Yerevan", avgTime: 1.5 },
+      { name: "Armenian Tavern Dinner", category: "food", area: "Kentron", avgTime: 1.5 },
+      { name: "Saryan Street Cafes", category: "food", area: "Kentron", avgTime: 1 },
+      { name: "History Museum of Armenia", category: "museum", area: "Kentron", avgTime: 1.5 },
+      { name: "Blue Mosque", category: "landmark", area: "Kentron", avgTime: 1 },
+      { name: "Dilijan Old Town", category: "neighborhood", area: "Dilijan", avgTime: 1.5 },
+    ],
+  },
+  {
+    key: "ladakh-spiti-manali",
+    name: "Ladakh, Spiti & Manali",
+    country: "India",
+    places: [
+      { name: "Leh Palace", category: "landmark", area: "Leh", avgTime: 1.5 },
+      { name: "Shanti Stupa", category: "viewpoint", area: "Leh", avgTime: 1.5 },
+      { name: "Thiksey Monastery", category: "landmark", area: "Leh Valley", avgTime: 1.5 },
+      { name: "Hemis Monastery", category: "landmark", area: "Leh Valley", avgTime: 2 },
+      { name: "Leh Market", category: "market", area: "Leh", avgTime: 1.5 },
+      { name: "Pangong Lake", category: "viewpoint", area: "Ladakh", avgTime: 3 },
+      { name: "Nubra Valley", category: "experience", area: "Ladakh", avgTime: 2.5 },
+      { name: "Magnetic Hill", category: "landmark", area: "Leh", avgTime: 1 },
+      { name: "Key Monastery", category: "landmark", area: "Spiti Valley", avgTime: 1.5 },
+      { name: "Tabo Monastery", category: "landmark", area: "Spiti Valley", avgTime: 1.5 },
+      { name: "Dhankar Monastery", category: "viewpoint", area: "Spiti Valley", avgTime: 2 },
+      { name: "Chandratal Lake", category: "viewpoint", area: "Spiti Valley", avgTime: 2 },
+      { name: "Kaza Town", category: "neighborhood", area: "Spiti Valley", avgTime: 1 },
+      { name: "Kibber Village", category: "neighborhood", area: "Spiti Valley", avgTime: 1.5 },
+      { name: "Hadimba Temple", category: "landmark", area: "Manali", avgTime: 1 },
+      { name: "Old Manali Walk", category: "neighborhood", area: "Manali", avgTime: 1.5 },
+      { name: "Solang Valley", category: "experience", area: "Manali", avgTime: 2 },
+      { name: "Rohtang Pass", category: "viewpoint", area: "Manali", avgTime: 2.5 },
+      { name: "Vashisht Hot Springs", category: "relax", area: "Manali", avgTime: 1.5 },
+      { name: "Mall Road Manali", category: "market", area: "Manali", avgTime: 1 },
+    ],
+  },
 ];
 
 const CITY_ALIASES = {
@@ -779,6 +854,16 @@ const CITY_ALIASES = {
   "new york": "new-york",
   "new york city": "new-york",
   nyc: "new-york",
+  yerevan: "yerevan",
+  armenia: "yerevan",
+  "yerevan armenia": "yerevan",
+  ladakh: "ladakh-spiti-manali",
+  spiti: "ladakh-spiti-manali",
+  manali: "ladakh-spiti-manali",
+  "ladakh spiti manali": "ladakh-spiti-manali",
+  "ladakh spiti": "ladakh-spiti-manali",
+  "spiti valley": "ladakh-spiti-manali",
+  "himalayas north india": "ladakh-spiti-manali",
 };
 
 const FALLBACK_LABELS = {
@@ -1622,6 +1707,12 @@ app.post(
         return res.status(400).json({ error: "Days must be 1-10." });
       }
 
+      let transportMode = null;
+      const tm = String(req.body?.transportMode || "").toLowerCase().trim();
+      if (tm && TRANSPORT_MODES.includes(tm)) transportMode = tm;
+
+      const isPublic = Boolean(req.body?.isPublic);
+
       const timestamp = new Date().toISOString();
       const trip = {
         id: crypto.randomUUID(),
@@ -1632,6 +1723,8 @@ app.post(
         pace: normalizedPace,
         status: "upcoming",
         itinerary,
+        transportMode: transportMode || undefined,
+        isPublic,
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -1690,14 +1783,64 @@ app.get("/trips", requireAuth, async (req, res, next) => {
     }
     ensureTrips(user);
     let trips = [...(user.trips || [])];
+    for (const u of users) {
+      if (u.id === userId) continue;
+      ensureTrips(u);
+      for (const t of u.trips || []) {
+        ensureCollaborators(t);
+        if ((t.collaborators || []).some((c) => c.userId === userId)) {
+          trips.push({ ...t, ownerEmail: u.email, isCollaborator: true });
+        }
+      }
+    }
     const statusFilter = String(req.query?.status || "").trim();
     if (statusFilter && ["upcoming", "active", "completed", "archived"].includes(statusFilter)) {
       trips = trips.filter((t) => t.status === statusFilter);
     }
-    trips.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    trips.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
     return res.status(200).json({ trips });
   } catch (error) {
     return next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /trips/feed:
+ *   get:
+ *     tags: [Trips]
+ *     summary: Public trip feed (MVP2)
+ *     description: Returns trips marked public. No auth required.
+ *     parameters:
+ *       - in: query
+ *         name: destination
+ *         schema: { type: string }
+ *       - in: query
+ *         name: limit
+ *         schema: { type: integer, default: 20 }
+ *     responses:
+ *       200:
+ *         description: Public trips
+ */
+app.get("/trips/feed", async (req, res, next) => {
+  try {
+    const users = await readUsers();
+    const allTrips = users.flatMap((u) => {
+      ensureTrips(u);
+      return (u.trips || []).map((t) => ({ ...t, ownerEmail: u.email }));
+    });
+    let trips = allTrips.filter((t) => Boolean(t.isPublic));
+    const destFilter = String(req.query?.destination || "").trim();
+    if (destFilter) {
+      const lower = destFilter.toLowerCase();
+      trips = trips.filter((t) => String(t.destination || "").toLowerCase().includes(lower));
+    }
+    const limit = Math.min(50, Math.max(1, Number(req.query?.limit) || 20));
+    trips.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
+    trips = trips.slice(0, limit);
+    return res.status(200).json({ trips });
+  } catch (error) {
+    next(error);
   }
 });
 
@@ -1731,21 +1874,34 @@ app.get("/trips", requireAuth, async (req, res, next) => {
  *       500:
  *         description: Server error
  */
-app.get("/trips/:id", requireAuth, [param("id").notEmpty().withMessage("Trip ID is required.")], handleValidationErrors, async (req, res, next) => {
+app.get("/trips/:id", optionalAuth, [param("id").notEmpty().withMessage("Trip ID is required.")], handleValidationErrors, async (req, res, next) => {
   try {
     const userId = req.user?.id;
     const tripId = String(req.params.id || "");
     const users = await readUsers();
-    const user = users.find((candidate) => candidate.id === userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found." });
+    if (userId) {
+      const user = users.find((candidate) => candidate.id === userId);
+      if (user) {
+        ensureTrips(user);
+        const trip = (user.trips || []).find((t) => t.id === tripId);
+        if (trip) return res.status(200).json(trip);
+      }
+      for (const u of users) {
+        ensureTrips(u);
+        const trip = (u.trips || []).find((t) => t.id === tripId);
+        if (!trip) continue;
+        ensureCollaborators(trip);
+        if ((trip.collaborators || []).some((c) => c.userId === userId)) {
+          return res.status(200).json({ ...trip, ownerEmail: u.email, isCollaborator: true });
+        }
+      }
     }
-    ensureTrips(user);
-    const trip = (user.trips || []).find((t) => t.id === tripId);
-    if (!trip) {
-      return res.status(404).json({ error: "Trip not found." });
+    for (const u of users) {
+      ensureTrips(u);
+      const trip = (u.trips || []).find((t) => t.id === tripId && Boolean(t.isPublic));
+      if (trip) return res.status(200).json({ ...trip, ownerEmail: u.email });
     }
-    return res.status(200).json(trip);
+    return res.status(404).json({ error: "Trip not found." });
   } catch (error) {
     return next(error);
   }
@@ -1799,15 +1955,42 @@ app.put(
       const user = users.find((c) => c.id === userId);
       if (!user) return res.status(404).json({ error: "User not found." });
       ensureTrips(user);
-      const trip = (user.trips || []).find((t) => t.id === tripId);
+      let trip = (user.trips || []).find((t) => t.id === tripId);
+      let ownerUser = user;
+      if (!trip) {
+        for (const u of users) {
+          ensureTrips(u);
+          const t = (u.trips || []).find((x) => x.id === tripId);
+          if (!t) continue;
+          ensureCollaborators(t);
+          const collab = (t.collaborators || []).find((c) => c.userId === userId);
+          if (collab) {
+            if (collab.role === "editor") {
+              trip = t;
+              ownerUser = u;
+              break;
+            }
+            return res.status(403).json({ error: "Viewers cannot edit this trip." });
+          }
+        }
+      }
       if (!trip) return res.status(404).json({ error: "Trip not found." });
 
-      const allowed = ["name", "destination", "days", "pace", "status", "itinerary"];
+      const allowed = ["name", "destination", "days", "pace", "status", "itinerary", "transportMode", "isPublic"];
       const statusValues = ["upcoming", "active", "completed", "archived"];
       for (const key of allowed) {
         if (req.body[key] === undefined) continue;
         if (key === "status") {
           if (statusValues.includes(String(req.body[key]))) trip.status = req.body[key];
+          continue;
+        }
+        if (key === "transportMode") {
+          const tm = String(req.body[key] || "").toLowerCase().trim();
+          trip.transportMode = TRANSPORT_MODES.includes(tm) ? tm : undefined;
+          continue;
+        }
+        if (key === "isPublic") {
+          trip.isPublic = Boolean(req.body[key]);
           continue;
         }
         if (key === "name" || key === "destination") {
@@ -1871,9 +2054,24 @@ app.delete(
       const user = users.find((c) => c.id === userId);
       if (!user) return res.status(404).json({ error: "User not found." });
       ensureTrips(user);
-      const idx = (user.trips || []).findIndex((t) => t.id === tripId);
+      let trip = (user.trips || []).find((t) => t.id === tripId);
+      let ownerUser = user;
+      if (!trip) {
+        for (const u of users) {
+          ensureTrips(u);
+          const t = (u.trips || []).find((x) => x.id === tripId);
+          if (!t) continue;
+          ensureCollaborators(t);
+          const collab = (t.collaborators || []).find((c) => c.userId === userId);
+          if (collab) {
+            return res.status(403).json({ error: "Only the owner can delete this trip." });
+          }
+        }
+        return res.status(404).json({ error: "Trip not found." });
+      }
+      const idx = ownerUser.trips.findIndex((t) => t.id === tripId);
       if (idx === -1) return res.status(404).json({ error: "Trip not found." });
-      user.trips.splice(idx, 1);
+      ownerUser.trips.splice(idx, 1);
       await writeUsers(users);
       return res.status(200).json({ message: "Trip deleted." });
     } catch (error) {
@@ -1971,6 +2169,87 @@ app.patch(
       trip.updatedAt = new Date().toISOString();
       await writeUsers(users);
       return res.status(200).json(trip);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+const INVITE_ROLES = ["viewer", "editor"];
+const INVITE_EXPIRY_HOURS = 24;
+
+function generateInviteCode() {
+  return crypto.randomBytes(4).toString("hex").toUpperCase();
+}
+
+app.post(
+  "/trips/:id/invite",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const role = INVITE_ROLES.includes(String(req.body?.role || "").toLowerCase())
+        ? String(req.body.role).toLowerCase()
+        : "viewer";
+      const users = await readUsers();
+      const user = users.find((c) => c.id === userId);
+      if (!user) return res.status(404).json({ error: "User not found." });
+      ensureTrips(user);
+      const trip = (user.trips || []).find((t) => t.id === tripId);
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+      ensureInvites(trip);
+      const code = generateInviteCode();
+      const expiresAt = new Date(Date.now() + INVITE_EXPIRY_HOURS * 60 * 60 * 1000).toISOString();
+      trip.invites.push({ code, role, expiresAt, createdAt: new Date().toISOString() });
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(201).json({ code, role, expiresAt });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.post(
+  "/invite/redeem",
+  requireAuth,
+  [body("code").trim().notEmpty().withMessage("Code is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const userEmail = req.user?.email || "";
+      const code = String(req.body?.code || "").trim().toUpperCase();
+      const users = await readUsers();
+      const authUser = users.find((c) => c.id === userId);
+      if (!authUser) return res.status(404).json({ error: "User not found." });
+      for (const u of users) {
+        ensureTrips(u);
+        for (const trip of u.trips || []) {
+          ensureInvites(trip);
+          ensureCollaborators(trip);
+          const idx = trip.invites.findIndex(
+            (i) => i.code === code && new Date(i.expiresAt) > new Date()
+          );
+          if (idx === -1) continue;
+          if (trip.userId === userId) {
+            return res.status(400).json({ error: "You already own this trip." });
+          }
+          if (trip.collaborators.some((c) => c.userId === userId)) {
+            return res.status(400).json({ error: "You are already a collaborator." });
+          }
+          const role = trip.invites[idx].role;
+          trip.invites.splice(idx, 1);
+          trip.collaborators.push({ userId, email: userEmail, role });
+          trip.updatedAt = new Date().toISOString();
+          await writeUsers(users);
+          return res.status(200).json({ trip: { ...trip, ownerEmail: u.email }, role });
+        }
+      }
+      return res.status(400).json({ error: "Invalid or expired invite code." });
     } catch (error) {
       return next(error);
     }

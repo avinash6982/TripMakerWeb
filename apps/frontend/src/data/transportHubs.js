@@ -30,6 +30,36 @@ const HUBS = {
     train: { name: "Penn Station", type: "train", distance: "Manhattan" },
     bus: { name: "Port Authority Bus Terminal", type: "bus", distance: "Manhattan" },
   },
+  yerevan: {
+    airport: { name: "Zvartnots International (EVN)", type: "airport", distance: "~12 km from center" },
+    train: { name: "Yerevan Railway Station", type: "train", distance: "~5 km from center" },
+    bus: { name: "Kilikia Central Bus Station", type: "bus", distance: "~4 km from center" },
+  },
+  armenia: {
+    airport: { name: "Zvartnots International (EVN)", type: "airport", distance: "~12 km from Yerevan" },
+    train: { name: "Yerevan Railway Station", type: "train", distance: "~5 km from center" },
+    bus: { name: "Kilikia Central Bus Station", type: "bus", distance: "~4 km from center" },
+  },
+  ladakh: {
+    airport: { name: "Kushok Bakula Rimpochee (LEH)", type: "airport", distance: "~4 km from Leh" },
+    train: { name: "Jammu Tawi (nearest major)", type: "train", distance: "~700 km; connect by road" },
+    bus: { name: "Leh Bus Stand", type: "bus", distance: "Leh town" },
+  },
+  spiti: {
+    airport: { name: "Bhuntar (Kullu) nearest", type: "airport", distance: "~250 km from Kaza" },
+    train: { name: "Joginder Nagar (narrow gauge)", type: "train", distance: "~200 km from Kaza" },
+    bus: { name: "Kaza Bus Stand", type: "bus", distance: "Kaza town" },
+  },
+  manali: {
+    airport: { name: "Bhuntar (Kullu-Manali)", type: "airport", distance: "~50 km from Manali" },
+    train: { name: "Joginder Nagar Railway", type: "train", distance: "~165 km from Manali" },
+    bus: { name: "Manali Bus Stand", type: "bus", distance: "Manali town" },
+  },
+  "ladakh spiti manali": {
+    airport: { name: "Leh (LEH) / Bhuntar (Kullu)", type: "airport", distance: "Leh ~4 km; Manali ~50 km" },
+    train: { name: "Jammu Tawi / Joginder Nagar", type: "train", distance: "Connect by road" },
+    bus: { name: "Leh / Manali / Kaza bus stands", type: "bus", distance: "Circuit by road" },
+  },
 };
 
 export function getTransportHubsForDestination(destination) {
