@@ -340,7 +340,7 @@ vercel --prod
 
 - Check existing issues on GitHub
 - Read documentation in `/docs` folder
-- Review `VERCEL_MONOREPO_SETUP.md` for deployment help
+- Review `VERCEL_DEPLOYMENT_GUIDE.md` for deployment help
 - Create a new issue with detailed description
 
 ## Code of Conduct

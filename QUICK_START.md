@@ -133,7 +133,7 @@ npm install
 
 - Read `README.md` for full documentation
 - Read `CONTRIBUTING.md` for development guidelines
-- Read `VERCEL_MONOREPO_SETUP.md` for deployment instructions
+- Read `VERCEL_DEPLOYMENT_GUIDE.md` for deployment instructions
 - Explore the code in `apps/frontend/` and `apps/backend/`
 
 ## Development Tips
@@ -158,5 +158,4 @@ Both frontend and backend support hot reload. Changes are reflected automaticall
 
 For detailed information, see:
 - `README.md` - Full documentation
-- `SETUP_COMPLETE.md` - What was set up
-- `VERCEL_MONOREPO_SETUP.md` - Deployment guide
+- `VERCEL_DEPLOYMENT_GUIDE.md` - Deployment guide

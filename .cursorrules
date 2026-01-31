@@ -1,6 +1,6 @@
 # 🎯 TripMaker (Waypoint) - Cursor AI Master Rules
 
-> **Last Updated:** January 31, 2026  
+> **Last Updated:** January 31, 2026 (doc cleanup)  
 > **Version:** 3.0.0  
 > **Status:** MVP1 In Development 🚧 (See MVP_ROADMAP.md for details)
 
@@ -224,15 +224,16 @@ TripMaker/                                   # Root (monorepo workspace)
 │       ├── db.js                           # Database functions
 │       └── seedUser.js                     # Auto-seed dev user
 │
-├── Documentation/
-│   ├── APP_ARCHITECTURE.md                 # ⭐ Complete architecture guide
-│   ├── API_REFERENCE.md                    # ⭐ All API endpoints
-│   ├── PROFILE_TESTING_RESULTS.md          # Testing results
-│   ├── README.md                           # Project overview
-│   ├── QUICK_START.md                      # 2-minute local setup
-│   ├── SETUP_COMPLETE.md                   # Setup completion guide
-│   ├── DEV_USER_GUIDE.md                   # Dev user documentation
-│   └── TEST_USER.md                        # Test user credentials
+├── APP_ARCHITECTURE.md                     # ⭐ Complete architecture guide
+├── API_REFERENCE.md                        # ⭐ All API endpoints
+├── PROFILE_TESTING_RESULTS.md              # Testing results
+├── README.md                               # Project overview
+├── QUICK_START.md                          # 2-minute local setup
+├── DEVELOPMENT_QUICKSTART.md               # Daily dev workflow
+├── DEV_USER_GUIDE.md                       # Dev user documentation
+├── TEST_USER.md                            # Test user credentials
+├── DOCUMENTATION_INDEX.md                  # Documentation map
+└── VERCEL_DEPLOYMENT_GUIDE.md              # Deployment instructions
 │
 ├── .cursorrules                             # ⭐ THIS FILE (Cursor AI guide)
 ├── .gitignore                              # Git ignore patterns
@@ -801,7 +802,7 @@ chore: update dependencies
 - **QUICK_START.md**: Setup process changes
 - **VERCEL_DEPLOYMENT_GUIDE.md**: Deployment process changes
 - **CONTRIBUTING.md**: Development workflow changes
-- **PROJECT_ANALYSIS.md**: Major configuration changes
+- **APP_ARCHITECTURE.md**: Major configuration changes
 
 ### Documentation Standards
 - Keep it concise and actionable
@@ -1160,7 +1161,7 @@ Deployment?
 - See `QUICK_START.md` for local setup
 - See `VERCEL_DEPLOYMENT_GUIDE.md` for deployment
 - See `CONTRIBUTING.md` for workflow
-- See `PROJECT_ANALYSIS.md` for complete analysis
+- See `DOCUMENTATION_INDEX.md` for documentation map
 
 ## 🎯 CURSOR AI BEST PRACTICES
 
