@@ -5,6 +5,8 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Profile from "./pages/Profile";
 import Register from "./pages/Register";
+import Trips from "./pages/Trips";
+import TripDetail from "./pages/TripDetail";
 import { getStoredUser } from "./services/auth";
 
 const RequireAuth = ({ children }) => {
@@ -24,10 +26,9 @@ const App = () => {
         <Route path="register" element={<Register />} />
       </Route>
       <Route element={<SiteLayout />}>
-        <Route
-          path="home"
-          element={<Home />}
-        />
+        <Route path="home" element={<RequireAuth><Home /></RequireAuth>} />
+        <Route path="trips" element={<RequireAuth><Trips /></RequireAuth>} />
+        <Route path="trips/:id" element={<RequireAuth><TripDetail /></RequireAuth>} />
         <Route
           path="profile"
           element={

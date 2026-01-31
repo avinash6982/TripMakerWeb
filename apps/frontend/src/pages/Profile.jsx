@@ -65,18 +65,20 @@ const Profile = () => {
     }
   }, [i18n.language, user]);
 
+  // Fetch profile only when user id changes (not on every re-render; i18n/t change often)
+  const userId = user?.id;
   useEffect(() => {
-    if (!user) {
+    if (!userId) {
       return;
     }
     setStatus("loading");
     setMessage("");
 
-    fetchProfile(user.id)
+    fetchProfile(userId)
       .then((profile) => {
         saveProfile(profile);
         setFormState({
-          email: profile.email || user.email,
+          email: profile.email || user?.email || "",
           phone: profile.phone || "",
           country: profile.country || "",
           language: profile.language || i18n.language,
@@ -91,7 +93,7 @@ const Profile = () => {
         setStatus("error");
         setMessage(error.message || t("profile.status.loadError"));
       });
-  }, [i18n, t, user]);
+  }, [userId]);
 
   useEffect(() => {
     const handleAuthChange = () => {

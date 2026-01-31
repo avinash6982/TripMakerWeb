@@ -99,3 +99,83 @@ export const buildStaticMapUrl = ({ lat, lon }) => {
 
 export const buildOpenStreetMapLink = ({ lat, lon }) =>
   `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
+
+/** In-memory cache for place geocoding (Nominatim 1 req/sec policy). */
+const placeCache = new Map();
+
+/**
+ * Geocode a single place in the context of a destination (e.g. "Eiffel Tower", "Paris").
+ * Returns { lat, lng, name } or null. Respects Nominatim usage (use with delay between calls).
+ */
+export const geocodePlace = async (placeName, destination) => {
+  const key = `${normalizeKey(placeName)}|${normalizeKey(destination)}`;
+  if (placeCache.has(key)) {
+    return placeCache.get(key);
+  }
+
+  const query = `${String(placeName || "").trim()}, ${String(destination || "").trim()}`.trim();
+  if (!query || query === ",") {
+    return null;
+  }
+
+  const params = new URLSearchParams({
+    format: "json",
+    limit: "1",
+    q: query,
+  });
+  const response = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
+    headers: { Accept: "application/json" },
+  });
+
+  if (!response.ok) {
+    return null;
+  }
+
+  const results = await response.json();
+  if (!Array.isArray(results) || results.length === 0) {
+    placeCache.set(key, null);
+    return null;
+  }
+
+  const first = results[0];
+  const lat = Number(first.lat);
+  const lon = Number(first.lon);
+  if (!Number.isFinite(lat) || !Number.isFinite(lon)) {
+    placeCache.set(key, null);
+    return null;
+  }
+
+  const result = {
+    lat,
+    lng: lon,
+    name: first.display_name || placeName,
+  };
+  placeCache.set(key, result);
+  return result;
+};
+
+/**
+ * Collect unique place names and categories from a plan itinerary (day.slots[].items[]).
+ * Returns array of { name, category }, max size limit, in order of appearance.
+ */
+export const collectPlaceNamesFromPlan = (plan, limit = 12) => {
+  if (!plan?.itinerary || !Array.isArray(plan.itinerary)) {
+    return [];
+  }
+  const seen = new Set();
+  const out = [];
+  for (const day of plan.itinerary) {
+    if (!Array.isArray(day.slots)) continue;
+    for (const slot of day.slots) {
+      if (!Array.isArray(slot.items)) continue;
+      for (const item of slot.items) {
+        const name = String(item?.name || "").trim();
+        if (!name || seen.has(name)) continue;
+        seen.add(name);
+        out.push({ name, category: item?.category || "" });
+        if (out.length >= limit) return out;
+      }
+    }
+  }
+  return out;
+};

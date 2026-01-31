@@ -1,11 +1,16 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import MapView from "../components/MapView";
+import { getPlaceSuggestionsForDestination } from "../data/placeSuggestions";
 import {
   buildOpenStreetMapLink,
-  buildStaticMapUrl,
+  collectPlaceNamesFromPlan,
   DESTINATION_SUGGESTIONS,
+  geocodePlace,
   getDestinationCoordinates,
 } from "../services/geocode";
+import { createTrip } from "../services/trips";
 import { generateTripPlan } from "../services/tripPlanner";
 
 const paceOptions = [
@@ -31,6 +36,11 @@ const Home = () => {
   });
   const [editingDay, setEditingDay] = useState(null);
   const [regeneratingDay, setRegeneratingDay] = useState(null);
+  const [itineraryMarkers, setItineraryMarkers] = useState([]);
+  const [saveModalOpen, setSaveModalOpen] = useState(false);
+  const [saveTripName, setSaveTripName] = useState("");
+  const [saveStatus, setSaveStatus] = useState("idle");
+  const [saveMessage, setSaveMessage] = useState("");
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -75,6 +85,7 @@ const Home = () => {
 
   const loadMapForDestination = async (destination) => {
     setMapState({ status: "loading", data: null, message: "" });
+    setItineraryMarkers([]);
     try {
       const coordinates = await getDestinationCoordinates(destination);
       if (!coordinates) {
@@ -89,7 +100,6 @@ const Home = () => {
         status: "ready",
         data: {
           ...coordinates,
-          url: buildStaticMapUrl(coordinates),
           link: buildOpenStreetMapLink(coordinates),
         },
         message: "",
@@ -102,6 +112,33 @@ const Home = () => {
       });
     }
   };
+
+  // Geocode itinerary places for map markers (rate-limited: 1 req ~1.2s for Nominatim policy)
+  useEffect(() => {
+    if (!plan || mapState.status !== "ready" || !mapState.data) return;
+    setItineraryMarkers([]);
+    let cancelled = false;
+    const places = collectPlaceNamesFromPlan(plan, 10);
+    const run = async () => {
+      for (let i = 0; i < places.length; i++) {
+        if (cancelled) return;
+        await new Promise((r) => setTimeout(r, i === 0 ? 0 : 1200));
+        if (cancelled) return;
+        const coords = await geocodePlace(places[i].name, plan.destination);
+        if (cancelled) return;
+        if (coords) {
+          setItineraryMarkers((prev) => [
+            ...prev,
+            { ...coords, category: places[i].category },
+          ]);
+        }
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [plan, mapState.status, mapState.data]);
 
   const handleRegenerateDay = async (dayIndex) => {
     if (!plan) {
@@ -164,6 +201,39 @@ const Home = () => {
       });
       return { ...prev, itinerary };
     });
+  };
+
+  const handleSaveTrip = async (e) => {
+    e?.preventDefault();
+    if (!plan) return;
+    const name = String(saveTripName || "").trim();
+    if (!name) {
+      setSaveMessage(t("tripPlanner.saveTrip.nameLabel") + " is required.");
+      return;
+    }
+    setSaveStatus("loading");
+    setSaveMessage("");
+    try {
+      await createTrip({
+        name,
+        destination: plan.destination,
+        itinerary: plan.itinerary,
+        days: plan.days,
+        pace: plan.pace,
+      });
+      setSaveStatus("success");
+      setSaveMessage(t("tripPlanner.saveTrip.success"));
+    } catch (err) {
+      setSaveStatus("error");
+      setSaveMessage(err?.message || t("tripPlanner.status.error"));
+    }
+  };
+
+  const closeSaveModal = () => {
+    setSaveModalOpen(false);
+    setSaveTripName(plan?.destination ? `${plan.destination} trip` : "");
+    setSaveStatus("idle");
+    setSaveMessage("");
   };
 
   const summary = useMemo(() => {
@@ -275,6 +345,20 @@ const Home = () => {
               {plan.isFallback && (
                 <p className="planner-note">{t("tripPlanner.results.fallback")}</p>
               )}
+              <div className="planner-save-row">
+                <button
+                  className="btn primary"
+                  type="button"
+                  onClick={() => {
+                    setSaveTripName(plan.destination ? `${plan.destination} trip` : "");
+                    setSaveModalOpen(true);
+                    setSaveMessage("");
+                    setSaveStatus("idle");
+                  }}
+                >
+                  {t("tripPlanner.actions.saveTrip")}
+                </button>
+              </div>
               <div className="planner-map-card">
                 <div className="planner-map-header">
                   <h3>{t("tripPlanner.map.title")}</h3>
@@ -293,12 +377,12 @@ const Home = () => {
                 )}
                 {mapState.status === "ready" && mapState.data && (
                   <>
-                    <img
-                      className="planner-map-image"
-                      src={mapState.data.url}
-                      alt={t("tripPlanner.map.alt", {
-                        destination: mapState.data.label || plan.destination,
-                      })}
+                    <MapView
+                      center={{ lat: mapState.data.lat, lon: mapState.data.lon }}
+                      destinationLabel={
+                        mapState.data.label || plan.destination
+                      }
+                      itineraryMarkers={itineraryMarkers}
                     />
                     <div className="planner-map-footer">
                       <span className="muted">{mapState.data.label}</span>
@@ -314,6 +398,11 @@ const Home = () => {
                   </>
                 )}
               </div>
+              <datalist id="activity-place-suggestions">
+                {getPlaceSuggestionsForDestination(plan.destination).map((place) => (
+                  <option key={place} value={place} />
+                ))}
+              </datalist>
               <div className="planner-days">
                 {plan.itinerary.map((day, dayIndex) => (
                   <article className="planner-day" key={`day-${day.day}`}>
@@ -370,11 +459,15 @@ const Home = () => {
                                 defaultValue: item.category,
                               });
                               return (
-                                <li className="planner-item" key={`${day.day}-${slot.timeOfDay}-${item.name}-${itemIndex}`}>
+                                <li
+                                  className="planner-item"
+                                  key={`day-${day.day}-slot-${slot.timeOfDay}-item-${itemIndex}`}
+                                >
                                   {editingDay === dayIndex ? (
                                     <input
                                       type="text"
                                       value={item.name}
+                                      list="activity-place-suggestions"
                                       onChange={(event) =>
                                         handleItemChange(
                                           dayIndex,
@@ -404,6 +497,66 @@ const Home = () => {
                 ))}
               </div>
               <p className="planner-note">{t("tripPlanner.results.generated")}</p>
+
+              {saveModalOpen && (
+                <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="save-trip-title">
+                  <div className="modal-card">
+                    <h2 id="save-trip-title">{t("tripPlanner.saveTrip.title")}</h2>
+                    {saveStatus === "success" ? (
+                      <>
+                        <p className="message success">{saveMessage}</p>
+                        <div className="modal-actions">
+                          <Link className="btn primary" to="/trips">
+                            {t("tripPlanner.saveTrip.viewMyTrips")}
+                          </Link>
+                          <button className="btn ghost" type="button" onClick={closeSaveModal}>
+                            {t("tripPlanner.actions.doneEditing")}
+                          </button>
+                        </div>
+                      </>
+                    ) : (
+                      <form onSubmit={handleSaveTrip}>
+                        <div className="field">
+                          <label htmlFor="save-trip-name">{t("tripPlanner.saveTrip.nameLabel")}</label>
+                          <input
+                            id="save-trip-name"
+                            type="text"
+                            value={saveTripName}
+                            onChange={(e) => setSaveTripName(e.target.value)}
+                            placeholder={t("tripPlanner.saveTrip.namePlaceholder")}
+                            disabled={saveStatus === "loading"}
+                            autoFocus
+                          />
+                        </div>
+                        {saveMessage && (
+                          <p className={`message ${saveStatus === "error" ? "error" : "success"}`} role="alert">
+                            {saveMessage}
+                          </p>
+                        )}
+                        <div className="modal-actions">
+                          <button
+                            className="btn primary"
+                            type="submit"
+                            disabled={saveStatus === "loading"}
+                          >
+                            {saveStatus === "loading"
+                              ? t("tripPlanner.saveTrip.saving")
+                              : t("tripPlanner.actions.saveTrip")}
+                          </button>
+                          <button
+                            className="btn ghost"
+                            type="button"
+                            onClick={closeSaveModal}
+                            disabled={saveStatus === "loading"}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
+              )}
             </>
           ) : (
             <div className="planner-empty">

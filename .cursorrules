@@ -50,6 +50,7 @@
 - ✅ Update DEVELOPMENT_STATUS.md with completion
 - ✅ Update API_REFERENCE.md if API changed
 - ✅ Update APP_ARCHITECTURE.md if data model changed
+- ✅ **Verify in browser:** Run the app, exercise the changed flow in a real browser (see `MVP1_BROWSER_TEST_CHECKLIST.md` for flows). Do not mark the task complete until the feature works correctly in browser view.
 - ✅ Commit with clear message referencing task number
 
 #### Rule 2: Scope Management (CRITICAL)
@@ -79,6 +80,7 @@
 
 ✅ **Before committing:**
 - Test feature works locally (both dev and build)
+- **Verify in browser:** Open the app in a browser and confirm the changed/affected flows work (see `MVP1_BROWSER_TEST_CHECKLIST.md`). Ensures no regressions (e.g. one-character input bug, broken forms).
 - No console errors or warnings
 - All existing features still work
 - Documentation updated
@@ -108,11 +110,10 @@
 5. What files need updating? (Check "After completing" checklist)
 
 **Current Phase Context:**
-- **MVP Phase:** MVP1 - Core Trip Planning
-- **Current Sprint:** Phase 1.1 - Save Trip Functionality  
-- **Next Up:** Task 1.1.1 - Trip storage schema
+- **MVP Phase:** MVP1 - Core Trip Planning (100% complete)
+- **Current Sprint:** MVP1 complete; browser verification and docs enforced
 - **Blocked Features:** All MVP2-5 features
-- **Critical Missing:** Save/Create Trip (P0 priority)
+- **Browser verification:** Required after each task — see `MVP1_BROWSER_TEST_CHECKLIST.md`
 
 ---
 
@@ -121,6 +122,7 @@
 ### Essential Documentation (READ FIRST)
 - **`MVP_PLAN.md`** - ⭐ **START HERE** - Complete feature breakdown, tasks, phases
 - **`DEVELOPMENT_STATUS.md`** - ⭐ **CHECK DAILY** - Current sprint, progress, blockers
+- **`MVP1_BROWSER_TEST_CHECKLIST.md`** - ⭐ **VERIFY IN BROWSER** - Manual browser test flows after each task
 - **`APP_ARCHITECTURE.md`** - Complete system architecture, data flow, security
 - **`API_REFERENCE.md`** - All API endpoints, request/response formats
 - **`README.md`** - Project overview and quick start

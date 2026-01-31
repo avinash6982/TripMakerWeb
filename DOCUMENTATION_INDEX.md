@@ -49,6 +49,7 @@
 ### Testing & Reference
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
+| **[MVP1_BROWSER_TEST_CHECKLIST.md](MVP1_BROWSER_TEST_CHECKLIST.md)** | ⭐ Browser verification flows after each task | Per task |
 | **[PROFILE_TESTING_RESULTS.md](PROFILE_TESTING_RESULTS.md)** | Testing workflows | Per feature |
 | **[TEST_USER.md](TEST_USER.md)** | Dev user credentials | Never |
 

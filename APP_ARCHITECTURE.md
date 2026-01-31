@@ -1,6 +1,6 @@
 # 🏗️ TripMaker Application Architecture
 
-**Last Updated:** January 31, 2026 (trip create API)  
+**Last Updated:** January 31, 2026 (map preview with markers)  
 **Version:** 1.0.0  
 **Status:** Production-Ready
 
@@ -104,6 +104,8 @@ LOCAL DEVELOPMENT
 | **React Router DOM** | 7.12.0 | Client-side routing |
 | **i18next** | 25.8.0 | Internationalization framework |
 | **react-i18next** | 16.5.3 | React bindings for i18n |
+| **Leaflet** | (see package.json) | Map rendering (OSM tiles) |
+| **react-leaflet** | (see package.json) | React bindings for Leaflet |
 
 ### Backend
 | Technology | Version | Purpose |
@@ -229,13 +231,20 @@ apps/frontend/
 │   │   ├── Home.jsx
 │   │   ├── Login.jsx
 │   │   ├── Register.jsx
-│   │   └── Profile.jsx
+│   │   ├── Profile.jsx
+│   │   ├── Trips.jsx
+│   │   └── TripDetail.jsx
+│   ├── components/         # Reusable UI components
+│   │   └── MapView.jsx     # Leaflet map with destination + itinerary markers
 │   ├── layouts/            # Layout wrappers
 │   │   ├── AuthLayout.jsx  # For login/register pages
 │   │   └── SiteLayout.jsx  # For authenticated pages
 │   ├── services/           # API communication layer
 │   │   ├── auth.js         # Auth API calls
-│   │   └── profile.js      # Profile API calls
+│   │   ├── profile.js      # Profile API calls
+│   │   ├── geocode.js      # Nominatim geocoding, place cache
+│   │   ├── tripPlanner.js  # POST /trips/plan
+│   │   └── trips.js        # createTrip, fetchTrips, fetchTrip (POST/GET /trips)
 │   ├── App.jsx             # Main app with routing
 │   ├── main.jsx            # Entry point
 │   ├── i18n.js             # i18n configuration (6 languages)
@@ -258,8 +267,17 @@ App (Router)
    ├─ Navigation
    ├─ Language Switcher
    ├─ Home (RequireAuth)
+   │  └─ MapView (Leaflet: destination marker + itinerary markers, popups)
+   ├─ Trips (RequireAuth) – list saved trips, Create New Trip → Home
+   ├─ TripDetail (RequireAuth) – view single trip by ID
    └─ Profile (RequireAuth)
 ```
+
+### Map Preview (MVP1)
+
+- **MapView** (Leaflet + OpenStreetMap tiles): destination marker (red), itinerary place markers (blue), popups with name/category.
+- **Geocoding**: `getDestinationCoordinates(destination)` and `geocodePlace(placeName, destination)` via Nominatim; in-memory cache for places; rate-limited (~1.2s between place requests) for policy compliance.
+- **Home flow**: After plan is generated, map loads destination; itinerary markers are geocoded in background and added as they resolve. "Open in map" link opens OSM in a new tab.
 
 ### State Management
 

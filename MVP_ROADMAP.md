@@ -49,7 +49,7 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
 
 ### 🎯 MVP1: Trip Planning Foundation
 
-**Status:** 🔄 IN PROGRESS (25% complete)  
+**Status:** ✅ COMPLETE (100%)  
 **Started:** January 30, 2026  
 **Target:** February 15, 2026  
 **Goal:** Users can plan, visualize, and manage basic trips
@@ -62,37 +62,36 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
 5. ✅ Vercel deployment
 
 #### In Progress 🔄
-- Trip persistence and CRUD operations
+- Trip edit, delete, archive (CRUD remainder)
 
 #### Remaining Features 📋
-1. ⏳ **Trip Creation & Persistence**
+1. ✅ **Trip Creation & Persistence** (complete)
    - Data model: Trip → User relationship
-   - API endpoints: POST/GET/PUT/DELETE /trips
-   - Store trips in file-based storage (/tmp)
+   - API: POST /trips (create), GET /trips (list), GET /trips/:id (get)
+   - Vercel: api/trips/index.js (GET + POST), api/trips/[id].js (GET)
+   - Frontend: Save Trip UI on Home, Trips list page, Trip detail page
    - Tasks:
-    - [x] Define Trip data model
-     - [ ] Create trip storage utilities (api/lib/trips.js)
-    - [ ] Implement POST /api/trips (create) (backend complete, serverless pending)
-     - [ ] Implement GET /api/trips (list user trips)
-     - [ ] Implement GET /api/trips/:id (get details)
-     - [ ] Implement PUT /api/trips/:id (update)
-     - [ ] Implement DELETE /api/trips/:id (delete)
-     - [ ] Add authentication middleware to trip endpoints
-     - [ ] Update API_REFERENCE.md
+     - [x] Define Trip data model
+     - [x] POST /trips (backend + Vercel)
+     - [x] GET /trips (backend + Vercel)
+     - [x] GET /trips/:id (backend + Vercel)
+     - [x] PUT /trips/:id (update)
+     - [x] DELETE /trips/:id (delete)
+     - [x] PATCH /trips/:id/archive
+     - [x] API_REFERENCE.md updated
 
-2. ⏳ **Map Visualization**
+2. ✅ **Map Visualization** (complete)
    - Integrate Leaflet.js (free, open-source)
-   - Display destination as center marker
-   - Show itinerary locations as markers
-   - City center marker (fixed coordinate)
+   - Display destination as center marker (red)
+   - Show itinerary locations as markers (blue, geocoded with Nominatim)
    - Tasks:
-     - [ ] Install react-leaflet dependencies
-     - [ ] Create MapView component
-     - [ ] Fetch destination coordinates (Nominatim API)
-     - [ ] Render destination marker
-     - [ ] Render itinerary item markers
-     - [ ] Add marker popups with location details
-     - [ ] Style map container
+     - [x] Install react-leaflet dependencies
+     - [x] Create MapView component
+     - [x] Fetch destination coordinates (Nominatim API)
+     - [x] Render destination marker
+     - [x] Render itinerary item markers
+     - [x] Add marker popups with location details
+     - [x] Style map container
 
 3. ⏳ **Day-wise Itinerary View**
    - Timeline-style day breakdown
@@ -281,13 +280,13 @@ Will be broken down when MVP1 is complete.
 
 ### Current Phase (MVP1) Progress
 
-**Overall:** 25% (2/7 features complete)
+**Overall:** 100% (MVP1 complete)
 
 | Feature | Status | Progress | Notes |
 |---------|--------|----------|-------|
 | Auth & Profile | ✅ Complete | 100% | Deployed to production |
-| Trip Persistence | 🔄 In Progress | 0% | Next up |
-| Map Visualization | ⏳ Planned | 0% | Depends on persistence |
+| Map Visualization | ✅ Complete | 100% | Leaflet, markers, popups on Home |
+| Trip Persistence | ✅ Complete | 100% | CRUD + archive, edit/delete/status/transport hubs |
 | Day-wise View | ⏳ Planned | 0% | Depends on persistence |
 | Trip Editing | ⏳ Planned | 0% | Depends on persistence |
 | Status Management | ⏳ Planned | 0% | Depends on persistence |

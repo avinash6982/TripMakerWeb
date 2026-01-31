@@ -28,6 +28,7 @@ const SiteLayout = () => {
 
   const navLinks = [
     { to: "/home", label: t("nav.home") },
+    { to: "/trips", label: t("nav.trips") },
     { to: "/profile", label: t("nav.profile") },
   ];
 

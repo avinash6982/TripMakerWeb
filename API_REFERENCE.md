@@ -3,7 +3,7 @@
 **Base URL (Local):** `http://localhost:3000`  
 **Base URL (Production):** `https://trip-maker-pink.vercel.app/api`  
 **API Version:** 2.0.0  
-**Last Updated:** January 31, 2026 (trip create API)
+**Last Updated:** January 31, 2026 (trips list + get + save UI)
 
 ---
 
@@ -388,6 +388,141 @@ curl -X POST http://localhost:3000/trips \
   "error": "User not found."
 }
 ```
+
+---
+
+### 📋 List Trips
+
+**Endpoint:** `GET /trips` or `GET /api/trips`  
+**Authentication:** Required (JWT)  
+**Rate Limit:** 100 req/15min
+
+#### Request
+
+```bash
+curl http://localhost:3000/trips \
+  -H "Authorization: Bearer <token>"
+```
+
+#### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `status` | string | Optional. Filter by status: `upcoming`, `active`, `completed`, `archived` |
+
+#### Response (200 OK)
+
+```json
+{
+  "trips": [
+    {
+      "id": "trip-uuid",
+      "userId": "user-uuid",
+      "name": "Paris weekend",
+      "destination": "Paris",
+      "days": 3,
+      "pace": "balanced",
+      "status": "upcoming",
+      "itinerary": [],
+      "createdAt": "2026-01-31T18:45:00.000Z",
+      "updatedAt": "2026-01-31T18:45:00.000Z"
+    }
+  ]
+}
+```
+
+Trips are sorted by `createdAt` (newest first).
+
+#### Error Responses
+
+**401 Unauthorized** - Missing or invalid token  
+**404 Not Found** - User not found  
+**500 Internal Server Error**
+
+---
+
+### 🧳 Get Trip by ID
+
+**Endpoint:** `GET /trips/:id` or `GET /api/trips/:id`  
+**Authentication:** Required (JWT)  
+**Rate Limit:** 100 req/15min
+
+#### Request
+
+```bash
+curl http://localhost:3000/trips/<trip-id> \
+  -H "Authorization: Bearer <token>"
+```
+
+#### URL Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string (UUID) | Trip ID |
+
+#### Response (200 OK)
+
+Returns the full trip object (same shape as Create Trip response).
+
+#### Error Responses
+
+**401 Unauthorized** - Missing or invalid token  
+**404 Not Found** - Trip not found or not owned by user  
+**500 Internal Server Error**
+
+---
+
+### ✏️ Update Trip
+
+**Endpoint:** `PUT /trips/:id` or `PUT /api/trips/:id`  
+**Authentication:** Required (JWT)  
+**Rate Limit:** 100 req/15min
+
+#### Request
+
+```bash
+curl -X PUT http://localhost:3000/trips/<trip-id> \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Updated name","status":"completed"}'
+```
+
+#### Request Body (all fields optional)
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `name` | string | Trip name |
+| `destination` | string | Destination |
+| `days` | integer | 1-10 |
+| `pace` | string | relaxed, balanced, fast |
+| `status` | string | upcoming, active, completed, archived |
+| `itinerary` | array | Full itinerary array |
+
+#### Response (200 OK)
+
+Returns the updated trip object.
+
+---
+
+### 🗑️ Delete Trip
+
+**Endpoint:** `DELETE /trips/:id` or `DELETE /api/trips/:id`  
+**Authentication:** Required (JWT)
+
+#### Response (200 OK)
+
+```json
+{ "message": "Trip deleted." }
+```
+
+---
+
+### 📦 Archive Trip
+
+**Endpoint:** `PATCH /trips/:id/archive` or `PATCH /api/trips/:id/archive`  
+**Authentication:** Required (JWT)
+
+Sets trip `status` to `archived`. Returns the updated trip.
 
 ---
 

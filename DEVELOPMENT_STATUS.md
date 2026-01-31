@@ -1,24 +1,22 @@
 # 🚧 Development Status
 
-> **Last Updated:** January 31, 2026 (task 1.1.2 complete)  
-> **Current Sprint:** MVP1 Phase 1.1 - Save Trip Functionality  
-> **Sprint Day:** 1 of 7
+> **Last Updated:** January 31, 2026 (MVP1 complete; browser verification enforced)  
+> **Current Sprint:** MVP1 Complete — Browser verification & docs  
+> **Sprint Day:** N/A
 
 ---
 
 ## 📊 Current Sprint Overview
 
 ### Sprint Goal
-Enable users to **save generated trip plans** as persistent trips in their account.
+MVP1 is **100% complete**. Current focus: enforce **browser verification after each task** and keep docs aligned so every change is verified in a real browser for flawless functionality.
 
-### Sprint Deliverables
-1. Backend API for trip CRUD operations
-2. Vercel serverless functions for production
-3. Frontend service layer for trip management
-4. "Save Trip" UI on Home page
-5. Complete documentation updates
+### Key Practice: Browser Verification After Each Task
+- **Required:** After completing any task, verify affected flows in a browser using `MVP1_BROWSER_TEST_CHECKLIST.md`.
+- **Why:** Prevents regressions (e.g. one-character edit bug, broken forms) and ensures end-to-end flows work.
+- **Reference:** See `.cursorrules` (Rule 1 "AFTER completing ANY task") and `MVP_PLAN.md` (Browser Verification section).
 
-### Sprint Progress: 22% (2/9 tasks complete)
+### Sprint Progress: MVP1 100% (all phases complete)
 
 ---
 
@@ -58,68 +56,50 @@ Enable users to **save generated trip plans** as persistent trips in their accou
 
 ## 🎯 Next Tasks (Priority Order)
 
-### Immediate (Today)
-1. **Update `.cursorrules`** with documentation and scope rules
-2. ✅ **Task 1.1.1:** Add trip storage schema to backend
-3. ✅ **Task 1.1.2:** Implement `POST /trips` API endpoint
-4. **Task 1.1.3:** Implement `GET /trips` API endpoint
-5. **Task 1.1.4:** Implement `GET /trips/:id` API endpoint
+### Immediate
+1. **Browser verification:** After any future task, run through relevant flows in `MVP1_BROWSER_TEST_CHECKLIST.md`.
+2. **MVP2 (when approved):** Collaboration & Community features — blocked until user approves start.
 
-### Tomorrow
-6. **Task 1.1.5-1.1.6:** Create Vercel serverless functions
-7. **Task 1.1.7:** Create frontend trip service layer
-8. **Task 1.1.8:** Implement "Save Trip" UI
-9. **Task 1.1.9:** Testing & documentation updates
+### Completed (MVP1)
+- All Phase 1.1–1.6 tasks (trip CRUD, save, list, detail, edit, delete, archive, transport hubs).
+- One-character edit bug fix (stable key in Home.jsx).
+- Place suggestions (datalist) for activity editing on Home page.
+- Documentation and .cursorrules updated to require browser verification after each task.
 
 ---
 
-## 🔬 Current Focus: Task 1.1.3
+## 🔬 Current Focus: Browser Verification & Docs
 
-### List Trips API (GET /trips)
+**Objective:** Ensure every completed task is verified in a browser using `MVP1_BROWSER_TEST_CHECKLIST.md`. No task is considered done until affected flows work in a real browser.
 
-**Objective:** Return authenticated user's trips with sorting and optional status filter.
-
-**Status:** In Progress  
-**Blocker:** None  
-**Next Step:** Add route, filtering, and pagination in `apps/backend/server.js`
+**Status:** Enforced in .cursorrules and MVP_PLAN.md  
+**Reference:** See MVP1_BROWSER_TEST_CHECKLIST.md for full flows (auth, plan, edit day, place suggestions, save trip, My Trips, detail, archive/delete).
 
 ---
 
 ## 🐛 Known Issues
 
-### High Priority
-1. **Map preview shows single tile** - Works but not ideal
-   - Solution: Research overlay marker options (Phase 1.6)
-   - Workaround: "Open in map" link provided
-
-### Medium Priority
-2. **No trip persistence** - Critical feature missing
-   - Solution: Implement in current sprint (Phase 1.1)
-   - Impact: Users cannot save generated plans
-
-3. **Limited city coverage** - Only Paris, Tokyo, NYC
-   - Solution: Phase 1 uses hardcoded data (by design)
-   - Future: Add more cities or AI generation (MVP2)
+### Resolved (Jan 31, 2026)
+- **One-character edit bug:** Fixed with stable key (day/slot/index) in Home.jsx itinerary items.
+- **Trip persistence:** Implemented (POST/GET/PUT/DELETE trips, Save Trip UI, My Trips, Trip Detail).
 
 ### Low Priority
-4. **React DevTools warning** in console
-   - Impact: Development only, no user impact
-   - Fix: Update React DevTools extension
+1. **Limited city coverage** - Only Paris, Tokyo, NYC (by design for MVP1).
+2. **React DevTools warning** in console - development only, no user impact.
 
 ---
 
 ## 📈 Progress Metrics
 
 ### Overall MVP1 Progress
-- **Completed:** 5/13 features (38%)
-- **In Progress:** 1/13 features (8%)
-- **Blocked:** 0/13 features (0%)
-- **Not Started:** 7/13 features (54%)
+- **Completed:** 13/13 features (100%)
+- **In Progress:** 0
+- **Blocked:** 0
+- **Not Started:** 0 (MVP1 complete)
 
 ### Current Sprint Progress
-- **Completed:** 2/9 tasks (22%)
-- **In Progress:** 1/9 tasks (11%)
-- **Not Started:** 6/9 tasks (67%)
+- **MVP1:** All phases and tasks complete
+- **Practice:** Browser verification required after each future task (see MVP1_BROWSER_TEST_CHECKLIST.md)
 
 ### Code Statistics
 - **Backend Endpoints:** 5 total (2 needed for trips)
@@ -174,13 +154,10 @@ Enable users to **save generated trip plans** as persistent trips in their accou
 ## 🎯 Definition of Done (Current Sprint)
 
 ### Task-Level DoD
-- [ ] Code implemented in `apps/backend/server.js`
-- [ ] Corresponding Vercel function in `api/trips/*.js`
-- [ ] Frontend service in `apps/frontend/src/services/trips.js`
-- [ ] Swagger documentation added
-- [ ] Tested with curl locally
-- [ ] Tested in browser locally
-- [ ] No console errors
+- [ ] Code implemented and tested locally
+- [ ] **Verified in browser:** Relevant flows from `MVP1_BROWSER_TEST_CHECKLIST.md` exercised; no regressions
+- [ ] No console errors or warnings
+- [ ] API/docs updated if applicable
 - [ ] Git commit with clear message
 
 ### Sprint-Level DoD

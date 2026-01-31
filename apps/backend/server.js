@@ -27,19 +27,16 @@ let usersFilePath = path.resolve(
     (process.env.VERCEL ? TMP_USER_DB_PATH : DEFAULT_USER_DB_PATH)
 );
 
-// Auto-generate JWT secret for development if not provided
+// JWT secret: required in production; fixed dev default so tokens survive server restarts
+const DEV_JWT_SECRET = "tripmaker-dev-secret-do-not-use-in-production";
 const JWT_SECRET = process.env.JWT_SECRET || (() => {
   if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
     const error = "❌ CRITICAL: JWT_SECRET is required in production!";
     console.error(error);
-    // In serverless, throw error instead of exit to allow graceful error handling
     throw new Error(error);
   }
-  // Generate a random secret for development
-  const devSecret = crypto.randomBytes(32).toString("hex");
-  console.log("⚠️  Development mode: Using auto-generated JWT secret");
-  console.log("💡 For production, set JWT_SECRET in environment variables");
-  return devSecret;
+  console.log("⚠️  Development: Using fixed JWT secret (tokens valid across restarts)");
+  return DEV_JWT_SECRET;
 })();
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || "7d";
 
@@ -427,21 +424,25 @@ const createLimiter = (windowMs, max, message) =>
     legacyHeaders: false,
   });
 
+// Relax limits in development to avoid 429 during local dev (retries, multiple tabs)
+const isDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
 const registerLimiter = createLimiter(
   15 * 60 * 1000,
-  5,
+  isDev ? 50 : 5,
   "Too many registration attempts, please try again later."
 );
 
 const loginLimiter = createLimiter(
   15 * 60 * 1000,
-  10,
+  isDev ? 100 : 10,
   "Too many login attempts, please try again later."
 );
 
+// Higher limit in development to avoid 429 during local dev (refreshes, HMR, multiple tabs)
+const generalLimiterMax = process.env.NODE_ENV === "production" ? 100 : 500;
 const generalLimiter = createLimiter(
   15 * 60 * 1000,
-  100,
+  generalLimiterMax,
   "Too many requests, please try again later."
 );
 
@@ -1640,6 +1641,289 @@ app.post(
       await writeUsers(users);
 
       return res.status(201).json(trip);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /trips:
+ *   get:
+ *     tags: [Trips]
+ *     summary: List user trips
+ *     description: Returns the authenticated user's trips, sorted by createdAt (newest first).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         schema:
+ *           type: string
+ *           enum: [upcoming, active, completed, archived]
+ *         description: Optional filter by trip status
+ *     responses:
+ *       200:
+ *         description: List of trips
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 trips:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/Trip'
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+app.get("/trips", requireAuth, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const users = await readUsers();
+    const user = users.find((candidate) => candidate.id === userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    ensureTrips(user);
+    let trips = [...(user.trips || [])];
+    const statusFilter = String(req.query?.status || "").trim();
+    if (statusFilter && ["upcoming", "active", "completed", "archived"].includes(statusFilter)) {
+      trips = trips.filter((t) => t.status === statusFilter);
+    }
+    trips.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    return res.status(200).json({ trips });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /trips/{id}:
+ *   get:
+ *     tags: [Trips]
+ *     summary: Get trip by ID
+ *     description: Returns a single trip. Trip must belong to the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Trip found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Trip'
+ *       404:
+ *         description: Trip not found or not owned by user
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+app.get("/trips/:id", requireAuth, [param("id").notEmpty().withMessage("Trip ID is required.")], handleValidationErrors, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const tripId = String(req.params.id || "");
+    const users = await readUsers();
+    const user = users.find((candidate) => candidate.id === userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    ensureTrips(user);
+    const trip = (user.trips || []).find((t) => t.id === tripId);
+    if (!trip) {
+      return res.status(404).json({ error: "Trip not found." });
+    }
+    return res.status(200).json(trip);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /trips/{id}:
+ *   put:
+ *     tags: [Trips]
+ *     summary: Update trip
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               name: { type: string }
+ *               destination: { type: string }
+ *               days: { type: integer }
+ *               pace: { type: string }
+ *               status: { type: string, enum: [upcoming, active, completed, archived] }
+ *               itinerary: { type: array }
+ *     responses:
+ *       200:
+ *         description: Trip updated
+ *       404:
+ *         description: Trip not found
+ *       401:
+ *         description: Unauthorized
+ */
+app.put(
+  "/trips/:id",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const users = await readUsers();
+      const user = users.find((c) => c.id === userId);
+      if (!user) return res.status(404).json({ error: "User not found." });
+      ensureTrips(user);
+      const trip = (user.trips || []).find((t) => t.id === tripId);
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+
+      const allowed = ["name", "destination", "days", "pace", "status", "itinerary"];
+      const statusValues = ["upcoming", "active", "completed", "archived"];
+      for (const key of allowed) {
+        if (req.body[key] === undefined) continue;
+        if (key === "status") {
+          if (statusValues.includes(String(req.body[key]))) trip.status = req.body[key];
+          continue;
+        }
+        if (key === "name" || key === "destination") {
+          trip[key] = String(req.body[key] ?? "").trim();
+          continue;
+        }
+        if (key === "days") {
+          const n = Number(req.body[key]);
+          if (Number.isInteger(n) && n >= 1 && n <= 10) trip.days = n;
+          continue;
+        }
+        if (key === "pace") {
+          const p = PACE_ALIASES[String(req.body[key] || "").toLowerCase().trim()];
+          if (p) trip.pace = p;
+          continue;
+        }
+        if (key === "itinerary" && Array.isArray(req.body[key])) trip.itinerary = req.body[key];
+      }
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(200).json(trip);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /trips/{id}:
+ *   delete:
+ *     tags: [Trips]
+ *     summary: Delete trip
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Trip deleted
+ *       404:
+ *         description: Trip not found
+ *       401:
+ *         description: Unauthorized
+ */
+app.delete(
+  "/trips/:id",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const users = await readUsers();
+      const user = users.find((c) => c.id === userId);
+      if (!user) return res.status(404).json({ error: "User not found." });
+      ensureTrips(user);
+      const idx = (user.trips || []).findIndex((t) => t.id === tripId);
+      if (idx === -1) return res.status(404).json({ error: "Trip not found." });
+      user.trips.splice(idx, 1);
+      await writeUsers(users);
+      return res.status(200).json({ message: "Trip deleted." });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /trips/{id}/archive:
+ *   patch:
+ *     tags: [Trips]
+ *     summary: Archive trip
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     responses:
+ *       200:
+ *         description: Trip archived
+ *       404:
+ *         description: Trip not found
+ *       401:
+ *         description: Unauthorized
+ */
+app.patch(
+  "/trips/:id/archive",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const users = await readUsers();
+      const user = users.find((c) => c.id === userId);
+      if (!user) return res.status(404).json({ error: "User not found." });
+      ensureTrips(user);
+      const trip = (user.trips || []).find((t) => t.id === tripId);
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+      trip.status = "archived";
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(200).json(trip);
     } catch (error) {
       return next(error);
     }
