@@ -284,6 +284,39 @@ Authorization: Bearer <your_jwt_token>
             },
           },
         },
+        Trip: {
+          type: "object",
+          required: [
+            "id",
+            "userId",
+            "name",
+            "destination",
+            "days",
+            "pace",
+            "status",
+            "itinerary",
+            "createdAt",
+            "updatedAt",
+          ],
+          properties: {
+            id: { type: "string", format: "uuid" },
+            userId: { type: "string", format: "uuid" },
+            name: { type: "string", example: "Paris Family Vacation" },
+            destination: { type: "string", example: "Paris" },
+            days: { type: "integer", example: 3 },
+            pace: { type: "string", example: "balanced" },
+            status: {
+              type: "string",
+              enum: ["upcoming", "active", "completed", "archived"],
+            },
+            itinerary: {
+              type: "array",
+              items: { $ref: "#/components/schemas/TripPlanDay" },
+            },
+            createdAt: { type: "string", format: "date-time" },
+            updatedAt: { type: "string", format: "date-time" },
+          },
+        },
         HealthResponse: {
           type: "object",
           properties: {
@@ -1466,6 +1499,147 @@ app.post(
       const { destination, days, pace, seed } = req.body || {};
       const plan = buildTripPlan({ destination, days, pace, seed });
       return res.status(200).json(plan);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /trips:
+ *   post:
+ *     tags: [Trips]
+ *     summary: Create a new trip
+ *     description: Saves a generated itinerary to the authenticated user's trips list.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - name
+ *               - destination
+ *               - itinerary
+ *             properties:
+ *               name:
+ *                 type: string
+ *                 example: "Paris Family Vacation"
+ *               destination:
+ *                 type: string
+ *                 example: "Paris"
+ *               days:
+ *                 type: integer
+ *                 minimum: 1
+ *                 maximum: 10
+ *                 example: 3
+ *               pace:
+ *                 type: string
+ *                 description: relaxed | balanced | fast
+ *                 example: "balanced"
+ *               itinerary:
+ *                 type: array
+ *                 items:
+ *                   $ref: '#/components/schemas/TripPlanDay'
+ *     responses:
+ *       201:
+ *         description: Trip created
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Trip'
+ *       400:
+ *         description: Validation error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       401:
+ *         description: Unauthorized
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       404:
+ *         description: User not found
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ *       500:
+ *         description: Server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Error'
+ */
+app.post(
+  "/trips",
+  requireAuth,
+  [
+    body("name").trim().notEmpty().withMessage("Trip name is required."),
+    body("destination").trim().notEmpty().withMessage("Destination is required."),
+    body("itinerary").isArray({ min: 1 }).withMessage("Itinerary must be an array."),
+    body("days").optional().isInt({ min: 1, max: 10 }).withMessage("Days must be 1-10."),
+    body("pace").optional().isString().withMessage("Pace must be a string."),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const users = await readUsers();
+      const user = users.find((candidate) => candidate.id === userId);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      const name = String(req.body?.name || "").trim();
+      const destination = String(req.body?.destination || "").trim();
+      const itinerary = Array.isArray(req.body?.itinerary) ? req.body.itinerary : [];
+      const paceInput = req.body?.pace;
+
+      let normalizedPace = "balanced";
+      if (paceInput) {
+        const paceKey = PACE_ALIASES[String(paceInput).toLowerCase().trim()];
+        if (!paceKey) {
+          return res.status(400).json({
+            error: "Pace must be relaxed, balanced, or fast.",
+          });
+        }
+        normalizedPace = paceKey;
+      }
+
+      const daysCandidate = Number.isInteger(Number(req.body?.days))
+        ? Number(req.body?.days)
+        : itinerary.length;
+
+      if (!Number.isInteger(daysCandidate) || daysCandidate < 1 || daysCandidate > 10) {
+        return res.status(400).json({ error: "Days must be 1-10." });
+      }
+
+      const timestamp = new Date().toISOString();
+      const trip = {
+        id: crypto.randomUUID(),
+        userId,
+        name,
+        destination,
+        days: daysCandidate,
+        pace: normalizedPace,
+        status: "upcoming",
+        itinerary,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+
+      ensureTrips(user);
+      user.trips.push(trip);
+      await writeUsers(users);
+
+      return res.status(201).json(trip);
     } catch (error) {
       return next(error);
     }

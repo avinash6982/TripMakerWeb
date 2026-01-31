@@ -1,6 +1,6 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** January 31, 2026 (doc cleanup)  
+**Last Updated:** January 31, 2026 (trip create API)  
 **Current Phase:** MVP1 - Trip Planning Foundation  
 **Overall Progress:** 25% (Auth + Profile ✅)
 
@@ -72,7 +72,7 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
    - Tasks:
     - [x] Define Trip data model
      - [ ] Create trip storage utilities (api/lib/trips.js)
-     - [ ] Implement POST /api/trips (create)
+    - [ ] Implement POST /api/trips (create) (backend complete, serverless pending)
      - [ ] Implement GET /api/trips (list user trips)
      - [ ] Implement GET /api/trips/:id (get details)
      - [ ] Implement PUT /api/trips/:id (update)

@@ -3,7 +3,7 @@
 **Base URL (Local):** `http://localhost:3000`  
 **Base URL (Production):** `https://trip-maker-pink.vercel.app/api`  
 **API Version:** 2.0.0  
-**Last Updated:** January 31, 2026 (doc cleanup)
+**Last Updated:** January 31, 2026 (trip create API)
 
 ---
 
@@ -299,6 +299,93 @@ curl -X POST http://localhost:3000/trips/plan \
 {
   "error": "Trip plan generation failed",
   "message": "Detailed error message"
+}
+```
+
+---
+
+### 🧳 Create Trip
+
+**Endpoint:** `POST /trips` or `POST /api/trips`  
+**Authentication:** Required (JWT)  
+**Rate Limit:** 100 req/15min
+
+#### Request
+
+```bash
+curl -X POST http://localhost:3000/trips \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Paris Family Vacation",
+    "destination": "Paris",
+    "days": 3,
+    "pace": "balanced",
+    "itinerary": [
+      {
+        "day": 1,
+        "area": "Montmartre",
+        "totalHours": 5.5,
+        "slots": []
+      }
+    ]
+  }'
+```
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `name` | string | Yes | Trip name |
+| `destination` | string | Yes | City or destination name |
+| `days` | integer | No | 1-10 days (defaults to itinerary length) |
+| `pace` | string | No | `relaxed`, `balanced`, or `fast` |
+| `itinerary` | array | Yes | Day-by-day itinerary array (non-empty) |
+
+#### Response (201 Created)
+
+```json
+{
+  "id": "trip-uuid",
+  "userId": "dev-user-00000000-0000-0000-0000-000000000001",
+  "name": "Paris Family Vacation",
+  "destination": "Paris",
+  "days": 3,
+  "pace": "balanced",
+  "status": "upcoming",
+  "itinerary": [
+    {
+      "day": 1,
+      "area": "Montmartre",
+      "totalHours": 5.5,
+      "slots": []
+    }
+  ],
+  "createdAt": "2026-01-31T18:45:00.000Z",
+  "updatedAt": "2026-01-31T18:45:00.000Z"
+}
+```
+
+#### Error Responses
+
+**400 Bad Request** - Missing or invalid fields
+```json
+{
+  "error": "Trip name is required."
+}
+```
+
+**401 Unauthorized** - Missing or invalid token
+```json
+{
+  "error": "Authorization token required."
+}
+```
+
+**404 Not Found** - User not found
+```json
+{
+  "error": "User not found."
 }
 ```
 

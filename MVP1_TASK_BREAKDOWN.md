@@ -2,7 +2,7 @@
 
 **Phase:** MVP1 - Trip Planning Foundation  
 **Status:** 🔄 IN PROGRESS  
-**Last Updated:** January 31, 2026 (doc cleanup)
+**Last Updated:** January 31, 2026 (task 1.1.2 complete)
 
 **Maintenance Note:** Documentation cleanup (removed redundant summaries and setup/deploy notes).
 
@@ -90,16 +90,17 @@ console.log(trips); // Should be []
 **Branch:** `feat/trip-create`
 
 **Implementation:**
-1. Create `api/trips/create.js`
-2. Add authentication (JWT required)
-3. Validate input:
+1. ✅ Add `POST /trips` in `apps/backend/server.js` (local dev)
+2. Create `api/trips/create.js`
+3. Add authentication (JWT required)
+4. Validate input:
    - destination (required, string)
    - days (optional, 1-10, default: 3)
    - pace (optional, enum, default: 'balanced')
-4. Generate trip ID (UUID)
-5. Call `/trips/plan` internally to get itinerary
-6. Save to storage
-7. Return trip object
+5. Generate trip ID (UUID)
+6. Call `/trips/plan` internally to get itinerary
+7. Save to storage
+8. Return trip object
 
 **Test Criteria:**
 - [ ] Returns 401 without JWT

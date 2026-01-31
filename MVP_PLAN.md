@@ -1,6 +1,6 @@
 # 🎯 TripMaker MVP Plan & Feature Breakdown
 
-> **Last Updated:** January 31, 2026 (doc cleanup)  
+> **Last Updated:** January 31, 2026 (trip create API)  
 > **Current Phase:** MVP1 (In Development)  
 > **Status:** 40% Complete
 
@@ -168,12 +168,12 @@
 - [x] **Acceptance:** User data structure supports trips array
 
 #### Task 1.1.2: Backend - Create Trip API ✅
-- [ ] Add `POST /trips` endpoint with authentication
-- [ ] Validate trip data (name, destination, itinerary)
-- [ ] Save trip to user's trips array
-- [ ] Return saved trip with generated ID
-- [ ] Add Swagger documentation
-- [ ] **Acceptance:** `curl` test successfully creates trip
+- [x] Add `POST /trips` endpoint with authentication
+- [x] Validate trip data (name, destination, itinerary)
+- [x] Save trip to user's trips array
+- [x] Return saved trip with generated ID
+- [x] Add Swagger documentation
+- [x] **Acceptance:** `curl` test successfully creates trip
 
 #### Task 1.1.3: Backend - List Trips API ✅
 - [ ] Add `GET /trips` endpoint with authentication
@@ -498,6 +498,7 @@
 - ✅ Broke down MVP1 into atomic tasks
 - ✅ Defined MVP phases 1-5
 - ✅ Established development rules
+- ✅ Implemented backend POST /trips create endpoint
 - 🧹 Removed redundant documentation summaries and setup/deploy notes
 
 ---
@@ -512,6 +513,6 @@
 
 ---
 
-**Last Updated:** January 31, 2026 (doc cleanup)  
+**Last Updated:** January 31, 2026 (trip create API)  
 **Next Review:** After completing Phase 1.1 (Save Trip)  
 **Maintained By:** Development Team

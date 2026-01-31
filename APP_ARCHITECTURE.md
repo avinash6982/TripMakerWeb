@@ -1,6 +1,6 @@
 # 🏗️ TripMaker Application Architecture
 
-**Last Updated:** January 31, 2026 (doc cleanup)  
+**Last Updated:** January 31, 2026 (trip create API)  
 **Version:** 1.0.0  
 **Status:** Production-Ready
 
@@ -350,6 +350,8 @@ Local Development (apps/backend/server.js)
 │  ├─ GET  /health           (Health check)
 │  ├─ POST /register         (Create user)
 │  ├─ POST /login            (Authenticate)
+│  ├─ POST /trips/plan       (Generate trip plan)
+│  ├─ POST /trips            (Create trip)
 │  ├─ GET  /profile/:id      (Get profile)
 │  └─ PUT  /profile/:id      (Update profile)
 ├─ Error Handlers
