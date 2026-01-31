@@ -248,8 +248,10 @@ apps/frontend/
 │   ├── App.jsx             # Main app with routing
 │   ├── main.jsx            # Entry point
 │   ├── i18n.js             # i18n configuration (6 languages)
-│   └── index.css           # Global styles
-├── index.html              # HTML template
+│   ├── index.css           # Global styles (imports variables.css)
+│   └── styles/
+│       └── variables.css   # Design tokens (colors, spacing, radius, typography)
+├── index.html              # HTML template (Plus Jakarta Sans font)
 ├── vite.config.js          # Vite configuration
 └── package.json            # Dependencies
 ```
@@ -264,14 +266,29 @@ App (Router)
 │  └─ Register
 │
 └─ SiteLayout
-   ├─ Navigation
+   ├─ Navigation (desktop: top bar; mobile: bottom tab bar with icons)
    ├─ Language Switcher
    ├─ Home (RequireAuth)
    │  └─ MapView (Leaflet: destination marker + itinerary markers, popups)
    ├─ Trips (RequireAuth) – list saved trips, Create New Trip → Home
+   ├─ Feed (RequireAuth) – discover / public trips (MVP2)
    ├─ TripDetail (RequireAuth) – view single trip by ID
    └─ Profile (RequireAuth)
 ```
+
+### UI Standards & Responsive Layout
+
+**Design system:** `src/styles/variables.css` defines design tokens (colors, spacing, radius, shadows, typography). Global styles in `index.css` use these tokens for consistency.
+
+**Breakpoints:**
+- **Desktop (≥768px):** Top header with logo, horizontal nav links (Home, Trips, Feed, Profile), language selector, and logout. Content area full width up to `--container-max` (1120px).
+- **Mobile (<768px):** Top header (logo + language + logout only). **Bottom tab bar** with 4 equal columns: icon + label per item (Home, Trips, Feed, Profile). Content has bottom padding for safe area and tab bar height.
+
+**Typography:** Plus Jakarta Sans (Google Fonts). Font sizes and weights use CSS variables (`--text-sm`, `--font-semibold`, etc.).
+
+**Navigation:** Mobile uses inline SVG icons (no icon library). Tab bar is fixed to bottom with `env(safe-area-inset-bottom)` for notched devices. Active state uses primary color and slight icon scale.
+
+**AI-ready look:** Subtle gradients on auth shell and hero sections; consistent card shadows and radii; primary/accent palette (teal/blue) applied to buttons and active states.
 
 ### Map Preview (MVP1)
 
@@ -338,10 +355,11 @@ App (Router)
 - File-based user storage (`data/users.json`)
 
 **Serverless Functions** (Vercel production)
-- Individual functions in `api/` directory
-- Shared utilities in `api/lib/`
-- Ephemeral storage (`/tmp/tripmaker-users.json`)
-- Auto-seeding on every invocation
+- **Single entry point:** `api/index.js` (Vercel Hobby plan allows max 12 functions; one router keeps us under the limit)
+- All `/api/*` requests are rewritten to `api/index.js`; routing is done by path and method inside that file
+- Handler logic lives in `api/lib/handlers/` (health, auth, userProfile, trips, invite); these are required modules, not separate serverless functions
+- Shared utilities in `api/lib/` (db, auth, seedUser, tripPlanner)
+- Ephemeral storage (`/tmp/tripmaker-users.json`), auto-seeding on every invocation
 
 ### API Structure
 
