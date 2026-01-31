@@ -22,33 +22,33 @@ Every task must:
 
 ### Feature 1: Trip Data Model & Storage
 
-#### Task 1.1: Define Trip Data Model
+#### Task 1.1: Define Trip Data Model ✅
 **Time:** 30 minutes  
 **Branch:** `feat/trip-model`
 
 **Implementation:**
-1. Create `api/lib/trips.js`
-2. Define Trip interface:
+1. Add `trips: []` to user objects (backend + serverless seed/register)
+2. Define Trip schema (JSDoc) in `apps/backend/server.js`:
 ```javascript
 {
   id: string (UUID),
   userId: string (UUID),
+  name: string,
   destination: string,
   days: number (1-10),
   pace: 'relaxed' | 'balanced' | 'fast',
-  status: 'planning' | 'active' | 'completed' | 'archived',
+  status: 'upcoming' | 'active' | 'completed' | 'archived',
   itinerary: Array (from /trips/plan response),
-  startDate: string (ISO 8601) | null,
   createdAt: string (ISO 8601),
   updatedAt: string (ISO 8601)
 }
 ```
-3. Add JSDoc comments
+3. Add trip helper to normalize user records
 
 **Test Criteria:**
-- [ ] File created and exports Trip type definition
-- [ ] All fields documented
-- [ ] No linter errors
+- [x] User records include a `trips` array
+- [x] Trip fields documented
+- [x] No linter errors
 
 **Demo Impact:** None (internal only)
 

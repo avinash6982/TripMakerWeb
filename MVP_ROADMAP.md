@@ -70,7 +70,7 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
    - API endpoints: POST/GET/PUT/DELETE /trips
    - Store trips in file-based storage (/tmp)
    - Tasks:
-     - [ ] Define Trip data model
+    - [x] Define Trip data model
      - [ ] Create trip storage utilities (api/lib/trips.js)
      - [ ] Implement POST /api/trips (create)
      - [ ] Implement GET /api/trips (list user trips)

@@ -405,11 +405,26 @@ Vercel Production (api/)
 ### Data Models
 
 ```typescript
+// Trip Model
+interface Trip {
+  id: string;                   // UUID
+  userId: string;               // Owner user ID
+  name: string;                 // Trip name
+  destination: string;          // Destination name
+  days: number;                 // 1-10
+  pace: 'relaxed' | 'balanced' | 'fast';
+  status: 'upcoming' | 'active' | 'completed' | 'archived';
+  itinerary: Array<Record<string, unknown>>;
+  createdAt: string;            // ISO 8601 timestamp
+  updatedAt: string;            // ISO 8601 timestamp
+}
+
 // User Model
 interface User {
   id: string;                    // UUID
   email: string;                 // Normalized, unique
   passwordHash: string;          // salt:hash format
+  trips: Trip[];                 // Saved trips
   profile: {
     phone: string;               // Optional
     country: string;             // Optional
@@ -424,6 +439,7 @@ const DEV_USER = {
   id: 'dev-user-00000000-0000-0000-0000-000000000001',
   email: 'dev@tripmaker.com',
   password: 'DevUser123!',       // Plain text (only for reference)
+  trips: [],
   profile: {
     phone: '+1 555 123 4567',
     country: 'United States',

@@ -26,6 +26,7 @@ const TEST_USER = {
   id: 'dev-user-00000000-0000-0000-0000-000000000001',
   email: 'dev@tripmaker.com',
   password: 'DevUser123!',
+  trips: [],
   profile: {
     phone: '+1 555 123 4567',
     country: 'United States',
@@ -86,6 +87,7 @@ async function seedTestUser() {
       id: TEST_USER.id,
       email: TEST_USER.email,
       passwordHash: hashPassword(TEST_USER.password),
+      trips: [],
       profile: { ...TEST_USER.profile },
       createdAt: new Date().toISOString(),
       isTestUser: true

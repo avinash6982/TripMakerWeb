@@ -18,7 +18,7 @@ Enable users to **save generated trip plans** as persistent trips in their accou
 4. "Save Trip" UI on Home page
 5. Complete documentation updates
 
-### Sprint Progress: 0% (0/9 tasks complete)
+### Sprint Progress: 11% (1/9 tasks complete)
 
 ---
 
@@ -50,13 +50,16 @@ Enable users to **save generated trip plans** as persistent trips in their accou
 - Preparing to update `.cursorrules` with new requirements
 - Removed redundant setup/deployment summary docs
 
+#### ✅ Trip Persistence
+- Implemented trip storage schema (trips array + helpers)
+
 ---
 
 ## 🎯 Next Tasks (Priority Order)
 
 ### Immediate (Today)
 1. **Update `.cursorrules`** with documentation and scope rules
-2. **Task 1.1.1:** Add trip storage schema to backend
+2. ✅ **Task 1.1.1:** Add trip storage schema to backend
 3. **Task 1.1.2:** Implement `POST /trips` API endpoint
 4. **Task 1.1.3:** Implement `GET /trips` API endpoint
 5. **Task 1.1.4:** Implement `GET /trips/:id` API endpoint
@@ -69,73 +72,15 @@ Enable users to **save generated trip plans** as persistent trips in their accou
 
 ---
 
-## 🔬 Current Focus: Task 1.1.1
+## 🔬 Current Focus: Task 1.1.2
 
-### Trip Storage Schema Design
+### Create Trip API (POST /trips)
 
-**Objective:** Define data structure for storing trips in `users.json`
+**Objective:** Add authenticated endpoint to create a trip and store it in the user's `trips` array.
 
-**Schema Design:**
-
-```javascript
-{
-  id: "user-uuid",
-  email: "user@example.com",
-  // ... existing user fields ...
-  
-  // NEW: Trips array
-  trips: [
-    {
-      id: "trip-uuid",
-      userId: "user-uuid",
-      name: "Paris Family Vacation",
-      destination: "Paris, France",
-      days: 5,
-      pace: "balanced",
-      status: "upcoming", // upcoming | active | completed | archived
-      itinerary: [
-        // Same structure as current generateTripPlan response
-        {
-          day: 1,
-          area: "Latin Quarter",
-          totalHours: 6.5,
-          slots: [
-            {
-              timeOfDay: "morning",
-              totalHours: 2,
-              items: [
-                {
-                  name: "Notre-Dame Cathedral",
-                  category: "landmark",
-                  durationHours: 1
-                }
-              ]
-            }
-          ]
-        }
-      ],
-      startPoint: {
-        type: "airport", // airport | train | bus | other
-        name: "Charles de Gaulle Airport",
-        coordinates: { lat: 49.0097, lon: 2.5479 }
-      },
-      endPoint: {
-        type: "airport",
-        name: "Charles de Gaulle Airport",
-        coordinates: { lat: 49.0097, lon: 2.5479 }
-      },
-      createdAt: "2026-01-31T14:30:00.000Z",
-      updatedAt: "2026-01-31T14:30:00.000Z",
-      completedAt: null, // Set when marked complete
-      archivedAt: null // Set when archived
-    }
-  ]
-}
-```
-
-**Status:** Planning  
+**Status:** In Progress  
 **Blocker:** None  
-**Next Step:** Implement in `server.js`
+**Next Step:** Add route, validation, and persistence in `apps/backend/server.js`
 
 ---
 

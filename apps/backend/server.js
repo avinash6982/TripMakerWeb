@@ -453,6 +453,7 @@ const DEV_USER = {
   id: 'dev-user-00000000-0000-0000-0000-000000000001',
   email: 'dev@tripmaker.com',
   password: 'DevUser123!',
+  trips: [],
   profile: {
     phone: '+1 555 123 4567',
     country: 'United States',
@@ -478,6 +479,7 @@ async function seedDevUser() {
       id: DEV_USER.id,
       email: DEV_USER.email,
       passwordHash: hashPassword(DEV_USER.password),
+      trips: [],
       profile: { ...DEV_USER.profile },
       createdAt: new Date().toISOString(),
       isTestUser: true
@@ -501,7 +503,22 @@ async function readUsers() {
   }
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    const users = Array.isArray(parsed) ? parsed : [];
+    let needsWrite = false;
+
+    users.forEach((user) => {
+      const hadTrips = Array.isArray(user.trips);
+      ensureTrips(user);
+      if (!hadTrips) {
+        needsWrite = true;
+      }
+    });
+
+    if (needsWrite) {
+      await writeUsers(users);
+    }
+
+    return users;
   } catch (error) {
     error.message = `Invalid users data file: ${error.message}`;
     throw error;
@@ -562,6 +579,26 @@ function ensureProfile(user) {
     ...currentProfile,
   };
   return user.profile;
+}
+
+/**
+ * @typedef {Object} Trip
+ * @property {string} id
+ * @property {string} userId
+ * @property {string} name
+ * @property {string} destination
+ * @property {number} days
+ * @property {"relaxed"|"balanced"|"fast"} pace
+ * @property {Array<Object>} itinerary
+ * @property {string} createdAt
+ * @property {string} updatedAt
+ * @property {"upcoming"|"active"|"completed"|"archived"} status
+ */
+function ensureTrips(user) {
+  if (!Array.isArray(user.trips)) {
+    user.trips = [];
+  }
+  return user.trips;
 }
 
 function buildProfileResponse(user) {
@@ -1222,6 +1259,7 @@ app.post(
         id: crypto.randomUUID(),
         email,
         passwordHash: hashPassword(password),
+        trips: [],
         profile: { ...DEFAULT_PROFILE },
         createdAt: new Date().toISOString(),
       };

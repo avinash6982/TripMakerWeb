@@ -162,10 +162,10 @@
 **Tasks:** (All tasks are atomic and demo-safe)
 
 #### Task 1.1.1: Backend - Trip Storage Schema ✅
-- [ ] Add `trips` array to user object in `data/users.json`
-- [ ] Define trip schema: `{ id, userId, name, destination, days, pace, itinerary, createdAt, updatedAt, status }`
-- [ ] Add trip helper functions in `server.js`
-- [ ] **Acceptance:** User data structure supports trips array
+- [x] Add `trips` array to user object in `data/users.json`
+- [x] Define trip schema: `{ id, userId, name, destination, days, pace, itinerary, createdAt, updatedAt, status }`
+- [x] Add trip helper functions in `server.js`
+- [x] **Acceptance:** User data structure supports trips array
 
 #### Task 1.1.2: Backend - Create Trip API ✅
 - [ ] Add `POST /trips` endpoint with authentication

@@ -41,7 +41,16 @@ async function readUsers() {
   if (!raw.trim()) return [];
   try {
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    const users = Array.isArray(parsed) ? parsed : [];
+    const needsWrite = users.reduce((shouldWrite, user) => {
+      return ensureTrips(user) || shouldWrite;
+    }, false);
+
+    if (needsWrite) {
+      await writeUsers(users);
+    }
+
+    return users;
   } catch (error) {
     throw new Error(`Invalid users data: ${error.message}`);
   }
@@ -79,6 +88,14 @@ function generateToken(user) {
 function normalizeEmail(email) {
   if (!email) return '';
   return email.toLowerCase().trim();
+}
+
+function ensureTrips(user) {
+  if (!Array.isArray(user.trips)) {
+    user.trips = [];
+    return true;
+  }
+  return false;
 }
 
 module.exports = {

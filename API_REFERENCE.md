@@ -457,8 +457,26 @@ interface User {
   id: string;                    // UUID v4
   email: string;                 // Normalized lowercase, unique
   passwordHash: string;          // scrypt hash (salt:hash format)
+  trips: Trip[];                 // Saved trips
   profile: Profile;              // User profile data
   createdAt: string;             // ISO 8601 timestamp
+}
+```
+
+### Trip Object
+
+```typescript
+interface Trip {
+  id: string;                    // UUID v4
+  userId: string;                // Owner user ID
+  name: string;                  // Trip name
+  destination: string;           // Destination
+  days: number;                  // 1-10
+  pace: 'relaxed' | 'balanced' | 'fast';
+  status: 'upcoming' | 'active' | 'completed' | 'archived';
+  itinerary: Array<Record<string, unknown>>;
+  createdAt: string;             // ISO 8601 timestamp
+  updatedAt: string;             // ISO 8601 timestamp
 }
 ```
 

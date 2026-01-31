@@ -54,6 +54,7 @@ module.exports = async (req, res) => {
       id: crypto.randomUUID(),
       email,
       passwordHash: hashPassword(password),
+      trips: [],
       profile: { ...DEFAULT_PROFILE },
       createdAt: new Date().toISOString()
     };
