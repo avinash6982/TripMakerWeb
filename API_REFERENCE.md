@@ -3,7 +3,7 @@
 **Base URL (Local):** `http://localhost:3000`  
 **Base URL (Production):** `https://trip-maker-pink.vercel.app/api`  
 **API Version:** 2.0.0  
-**Last Updated:** January 30, 2026
+**Last Updated:** January 31, 2026 (doc cleanup)
 
 ---
 

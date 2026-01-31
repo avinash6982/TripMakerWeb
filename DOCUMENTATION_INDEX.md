@@ -45,7 +45,6 @@
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
 | **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)** | Deploy to production | Rarely |
-| **[DEPLOYMENT_STATUS.md](DEPLOYMENT_STATUS.md)** | Current deployment info | Per deploy |
 
 ### Testing & Reference
 | Document | Purpose | Update Frequency |
@@ -197,8 +196,8 @@
 |----------|------|--------|
 | MVP_ROADMAP.md | Jan 31, 2026 | ✅ Current |
 | MVP1_TASK_BREAKDOWN.md | Jan 31, 2026 | ✅ Current |
-| APP_ARCHITECTURE.md | Jan 30, 2026 | ✅ Current |
-| API_REFERENCE.md | Jan 30, 2026 | ✅ Current |
+| APP_ARCHITECTURE.md | Jan 31, 2026 | ✅ Current |
+| API_REFERENCE.md | Jan 31, 2026 | ✅ Current |
 | PRODUCT_VISION.md | Jan 31, 2026 | ✅ Current |
 
 ### Coverage
@@ -263,5 +262,5 @@ Production API:  https://trip-maker-pink.vercel.app/api
 ---
 
 **Maintained By:** TripMaker Development Team  
-**Last Updated:** January 31, 2026  
+**Last Updated:** January 31, 2026 (doc cleanup)  
 **Next Review:** Weekly (during sprint planning)

@@ -1,6 +1,6 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** January 31, 2026  
+**Last Updated:** January 31, 2026 (doc cleanup)  
 **Current Phase:** MVP1 - Trip Planning Foundation  
 **Overall Progress:** 25% (Auth + Profile ✅)
 
@@ -331,6 +331,7 @@ Will be broken down when MVP1 is complete.
 - 📝 Created MVP roadmap with atomic task breakdown
 - 📝 Established transactional development principle
 - 📝 Set up Cursor rules for scope discipline
+- 🧹 Removed redundant documentation summaries and setup/deploy notes
 
 ---
 

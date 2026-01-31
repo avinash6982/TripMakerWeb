@@ -2,7 +2,9 @@
 
 **Phase:** MVP1 - Trip Planning Foundation  
 **Status:** 🔄 IN PROGRESS  
-**Last Updated:** January 31, 2026
+**Last Updated:** January 31, 2026 (doc cleanup)
+
+**Maintenance Note:** Documentation cleanup (removed redundant summaries and setup/deploy notes).
 
 ---
 
