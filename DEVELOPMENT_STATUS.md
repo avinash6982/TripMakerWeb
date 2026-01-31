@@ -1,22 +1,21 @@
 # 🚧 Development Status
 
-> **Last Updated:** January 31, 2026 (MVP1 complete; browser verification enforced)  
-> **Current Sprint:** MVP1 Complete — Browser verification & docs  
-> **Sprint Day:** N/A
+> **Last Updated:** January 31, 2026 (unarchive + MVP2 start)  
+> **Current Sprint:** MVP2 - Collaboration & Discovery  
+> **Sprint Day:** 1
 
 ---
 
 ## 📊 Current Sprint Overview
 
 ### Sprint Goal
-MVP1 is **100% complete**. Current focus: enforce **browser verification after each task** and keep docs aligned so every change is verified in a real browser for flawless functionality.
+**MVP2: Collaboration & Discovery** — Users can share trips and collaborate. MVP1 is 100% complete (including **Unarchive**). Current focus: MVP2 feature breakdown and first deliverables.
 
-### Key Practice: Browser Verification After Each Task
-- **Required:** After completing any task, verify affected flows in a browser using `MVP1_BROWSER_TEST_CHECKLIST.md`.
-- **Why:** Prevents regressions (e.g. one-character edit bug, broken forms) and ensures end-to-end flows work.
-- **Reference:** See `.cursorrules` (Rule 1 "AFTER completing ANY task") and `MVP_PLAN.md` (Browser Verification section).
+### MVP1 Completed (including Unarchive)
+- Trip CRUD, save, list, detail, edit, delete, **archive**, **unarchive**, mark complete, transport hubs, map, day-wise itinerary, place suggestions.
+- Browser verification required after each task (see `MVP1_BROWSER_TEST_CHECKLIST.md`).
 
-### Sprint Progress: MVP1 100% (all phases complete)
+### Sprint Progress: MVP2 0% (just started)
 
 ---
 
@@ -57,23 +56,23 @@ MVP1 is **100% complete**. Current focus: enforce **browser verification after e
 ## 🎯 Next Tasks (Priority Order)
 
 ### Immediate
-1. **Browser verification:** After any future task, run through relevant flows in `MVP1_BROWSER_TEST_CHECKLIST.md`.
-2. **MVP2 (when approved):** Collaboration & Community features — blocked until user approves start.
+1. **MVP2:** Create MVP2 task breakdown; implement first features (e.g. 2.1 day-wise route lines, 2.3 transportation mode selection).
+2. **Browser verification:** After each task, verify in browser per `MVP1_BROWSER_TEST_CHECKLIST.md` (and MVP2 flows when added).
 
 ### Completed (MVP1)
-- All Phase 1.1–1.6 tasks (trip CRUD, save, list, detail, edit, delete, archive, transport hubs).
+- All Phase 1.1–1.6 tasks (trip CRUD, save, list, detail, edit, delete, archive, **unarchive**, transport hubs).
 - One-character edit bug fix (stable key in Home.jsx).
 - Place suggestions (datalist) for activity editing on Home page.
 - Documentation and .cursorrules updated to require browser verification after each task.
 
 ---
 
-## 🔬 Current Focus: Browser Verification & Docs
+## 🔬 Current Focus: MVP2 Kickoff
 
-**Objective:** Ensure every completed task is verified in a browser using `MVP1_BROWSER_TEST_CHECKLIST.md`. No task is considered done until affected flows work in a real browser.
+**Objective:** Start MVP2 (Collaboration & Discovery). Break down first features into tasks; implement in order of priority (zero-cost constraint: no paid APIs).
 
-**Status:** Enforced in .cursorrules and MVP_PLAN.md  
-**Reference:** See MVP1_BROWSER_TEST_CHECKLIST.md for full flows (auth, plan, edit day, place suggestions, save trip, My Trips, detail, archive/delete).
+**Status:** Phase switched to MVP2 in MVP_PLAN.md, MVP_ROADMAP.md, .cursorrules, mvp-development-discipline.mdc  
+**Reference:** See MVP_PLAN.md MVP2 features (2.1–2.8); MVP2_TASK_BREAKDOWN.md for task breakdown.
 
 ---
 

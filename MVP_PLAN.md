@@ -1,8 +1,8 @@
 # 🎯 TripMaker MVP Plan & Feature Breakdown
 
-> **Last Updated:** January 31, 2026 (trip create API)  
-> **Current Phase:** MVP1 (In Development)  
-> **Status:** 40% Complete
+> **Last Updated:** January 31, 2026 (unarchive + MVP2 start)  
+> **Current Phase:** MVP2 (Collaboration & Community)  
+> **Status:** MVP1 100% complete; MVP2 in progress
 
 ---
 
@@ -40,7 +40,7 @@
 
 ## 🎯 MVP Phase Breakdown
 
-### 🟢 MVP1: Core Trip Planning (CURRENT PHASE)
+### 🟢 MVP1: Core Trip Planning (COMPLETE)
 
 **Goal:** Users can create, customize, and manage trip itineraries with map visualization.
 
@@ -59,7 +59,7 @@
 | 1.7 | View saved trips list | ✅ DONE | P0 |
 | 1.8 | Edit saved trip | ✅ DONE | P1 |
 | 1.9 | Delete trip | ✅ DONE | P1 |
-| 1.10 | Archive trip | ✅ DONE | P2 |
+| 1.10 | Archive trip (+ Unarchive) | ✅ DONE | P2 |
 | 1.11 | Mark trip as complete | ✅ DONE | P2 |
 | 1.12 | Trip start/end points (transport) | ✅ DONE | P2 |
 | 1.13 | Hardcoded city suggestions | ✅ DONE | P0 |
@@ -68,26 +68,26 @@
 
 ---
 
-### 🟡 MVP2: Collaboration & Community
+### 🟢 MVP2: Collaboration & Community (CURRENT PHASE)
 
 **Goal:** Users can share trips, collaborate, and discover others' trips.
 
-**Blocked By:** MVP1 completion
+**Started:** January 31, 2026 (after MVP1 complete)
 
 #### Features
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| 2.1 | Day-wise route lines on map | ⏸️ BLOCKED | P1 |
-| 2.2 | AI-powered suggestions (any place) | ⏸️ BLOCKED | P1 |
-| 2.3 | Transportation mode selection | ⏸️ BLOCKED | P0 |
-| 2.4 | Start from airport/station/bus | ⏸️ BLOCKED | P0 |
-| 2.5 | Public timeline/feed | ⏸️ BLOCKED | P0 |
-| 2.6 | Post trips to timeline | ⏸️ BLOCKED | P0 |
-| 2.7 | Invite collaborators (viewer/editor) | ⏸️ BLOCKED | P1 |
-| 2.8 | One-time access codes | ⏸️ BLOCKED | P1 |
+| 2.1 | Day-wise route lines on map | 📋 Planned | P1 |
+| 2.2 | AI-powered suggestions (any place) | 📋 Planned | P1 |
+| 2.3 | Transportation mode selection | 📋 Planned | P0 |
+| 2.4 | Start from airport/station/bus | 📋 Planned | P0 |
+| 2.5 | Public timeline/feed | 📋 Planned | P0 |
+| 2.6 | Post trips to timeline | 📋 Planned | P0 |
+| 2.7 | Invite collaborators (viewer/editor) | 📋 Planned | P1 |
+| 2.8 | One-time access codes | 📋 Planned | P1 |
 
-**MVP2 Start Date:** TBD (After MVP1 complete)
+**MVP2 Start Date:** January 31, 2026
 
 ---
 
@@ -326,10 +326,16 @@
 - [ ] **Acceptance:** API deletes trip
 
 #### Task 1.5.2: Backend - Archive Trip API ✅
-- [ ] Add `PATCH /trips/:id/archive` endpoint
-- [ ] Update trip status to 'archived'
-- [ ] Add Swagger documentation
-- [ ] **Acceptance:** API archives trip
+- [x] Add `PATCH /trips/:id/archive` endpoint
+- [x] Update trip status to 'archived'
+- [x] Add Swagger documentation
+- [x] **Acceptance:** API archives trip
+
+#### Task 1.5.2b: Backend - Unarchive Trip API ✅
+- [x] Add `PATCH /trips/:id/unarchive` endpoint
+- [x] Set trip status to 'upcoming'
+- [x] Add Swagger documentation
+- [x] **Acceptance:** API unarchives trip
 
 #### Task 1.5.3: Vercel Functions ✅
 - [ ] Create `api/trips/delete.js`
@@ -344,12 +350,12 @@
 - [ ] Show success message
 - [ ] **Acceptance:** Delete works safely
 
-#### Task 1.5.5: Frontend - Archive Functionality ✅
-- [ ] Add archive button
-- [ ] Update UI to show archived status
-- [ ] Filter archived trips in list
-- [ ] Add "Show Archived" toggle
-- [ ] **Acceptance:** Archive works correctly
+#### Task 1.5.5: Frontend - Archive & Unarchive Functionality ✅
+- [x] Add archive button (trip detail)
+- [x] Add unarchive button when trip is archived
+- [x] Update UI to show archived status
+- [x] Filter archived trips in list; "Show archived" / "Hide archived" toggle
+- [x] **Acceptance:** Archive and unarchive work correctly
 
 ---
 
@@ -466,7 +472,7 @@
 4. Confirm: no console errors, affected flows work end-to-end (login → plan → edit → save → trips list → detail → actions).
 5. Do not mark the task complete until browser verification passes.
 
-**Reference:** See `MVP1_BROWSER_TEST_CHECKLIST.md` for the full checklist (auth, trip planning, edit day, place suggestions, save trip, My Trips, trip detail, archive/delete).
+**Reference:** See `MVP1_BROWSER_TEST_CHECKLIST.md` for the full checklist (auth, trip planning, edit day, place suggestions, save trip, My Trips, trip detail, archive/unarchive/delete).
 
 ---
 

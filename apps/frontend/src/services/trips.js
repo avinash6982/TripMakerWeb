@@ -89,3 +89,13 @@ export const archiveTrip = (id) =>
     { method: "PATCH" },
     "Unable to archive trip."
   );
+
+/**
+ * Unarchive a trip (sets status back to upcoming).
+ */
+export const unarchiveTrip = (id) =>
+  requestJson(
+    `/trips/${id}/unarchive`,
+    { method: "PATCH" },
+    "Unable to unarchive trip."
+  );

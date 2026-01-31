@@ -14,8 +14,9 @@
 
 ### Starting Development Today?
 1. **[DEVELOPMENT_QUICKSTART.md](DEVELOPMENT_QUICKSTART.md)** - Read FIRST every session
-2. **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** - Today's tasks
-3. **[API_REFERENCE.md](API_REFERENCE.md)** - When adding endpoints
+2. **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** - MVP2 tasks (current phase)
+3. **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** - MVP1 reference (complete)
+4. **[API_REFERENCE.md](API_REFERENCE.md)** - When adding endpoints
 
 ---
 
@@ -26,7 +27,8 @@
 |----------|---------|------------------|
 | **[PRODUCT_VISION.md](PRODUCT_VISION.md)** | Long-term vision, business model | Quarterly |
 | **[MVP_ROADMAP.md](MVP_ROADMAP.md)** | Phase breakdown, progress tracking | Weekly |
-| **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** | Atomic tasks for current phase | Daily |
+| **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** | MVP2 atomic tasks (current phase) | Daily |
+| **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** | MVP1 reference (complete) | Rarely |
 
 ### Architecture & Technical
 | Document | Purpose | Update Frequency |

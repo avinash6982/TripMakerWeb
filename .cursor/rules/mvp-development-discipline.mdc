@@ -5,12 +5,13 @@ alwaysApply: true
 
 # MVP Development Discipline
 
-## Current Phase: **MVP1 - Trip Planning Foundation**
+## Current Phase: **MVP2 - Collaboration & Community**
 
 ### Phase Status
-- **Started:** Jan 31, 2026
+- **Started:** Jan 31, 2026 (MVP1 complete; unarchive added)
 - **Target Completion:** TBD
 - **Demo Status:** ✅ Always demo-ready
+- **MVP1:** 100% complete (trip CRUD, archive, unarchive, map, transport hubs, etc.)
 
 ---
 
@@ -46,35 +47,26 @@ alwaysApply: true
 
 ## MVP Phase Breakdown
 
-### MVP1: Trip Planning Foundation (CURRENT)
+### MVP1: Trip Planning Foundation (COMPLETE)
 **Goal:** User can plan, visualize, and manage basic trips
 
-#### Core Features
-1. ✅ Trip plan generation (already implemented)
-2. 🔄 Trip creation and persistence
-3. 🔄 Map visualization with markers
-4. 🔄 Day-wise itinerary view
-5. 🔄 Edit/customize trip
-6. 🔄 Trip status management (archive/complete/delete)
-7. 🔄 Transportation hub integration (mock data)
+#### Core Features (all done)
+1. ✅ Trip plan generation
+2. ✅ Trip creation and persistence
+3. ✅ Map visualization with markers
+4. ✅ Day-wise itinerary view
+5. ✅ Edit/customize trip
+6. ✅ Trip status management (archive, unarchive, complete, delete)
+7. ✅ Transportation hub integration (mock data)
 
-#### Implementation Tasks
-- [ ] Create trip data model and storage
-- [ ] Build trip creation flow
-- [ ] Integrate map component (Leaflet.js - free)
-- [ ] Build day-wise itinerary component
-- [ ] Add trip editing capabilities
-- [ ] Implement trip status management
-- [ ] Add transportation hub markers (static data)
-
-### MVP2: Collaboration & Discovery
+### MVP2: Collaboration & Discovery (CURRENT)
 **Goal:** Users can share trips and collaborate
 
-#### Core Features (DO NOT IMPLEMENT YET)
-1. Multi-day route visualization (colored lines)
-2. Enhanced trip suggestions (scraping/community)
+#### Core Features (implement in order)
+1. Multi-day route visualization (colored lines on map)
+2. Enhanced trip suggestions (scraping/community; zero-cost)
 3. Transportation mode selection
-4. Live location integration
+4. Live location integration (browser Geolocation)
 5. Public timeline/feed
 6. Trip sharing (make public)
 7. Collaborator invitations (temporary codes)

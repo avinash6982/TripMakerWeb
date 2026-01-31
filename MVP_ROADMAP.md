@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** January 31, 2026 (trip create API)  
-**Current Phase:** MVP1 - Trip Planning Foundation  
-**Overall Progress:** 25% (Auth + Profile ✅)
+**Last Updated:** January 31, 2026 (unarchive + MVP2 start)  
+**Current Phase:** MVP2 - Collaboration & Discovery  
+**Overall Progress:** MVP1 100% complete; MVP2 in progress
 
 ---
 
@@ -61,10 +61,11 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
 4. ✅ i18n support (6 languages)
 5. ✅ Vercel deployment
 
-#### In Progress 🔄
-- Trip edit, delete, archive (CRUD remainder)
+#### Completed (cont.)
+- Trip edit, delete, archive, **unarchive** (CRUD + status)
 
 #### Remaining Features 📋
+None (MVP1 complete).
 1. ✅ **Trip Creation & Persistence** (complete)
    - Data model: Trip → User relationship
    - API: POST /trips (create), GET /trips (list), GET /trips/:id (get)
@@ -78,6 +79,7 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
      - [x] PUT /trips/:id (update)
      - [x] DELETE /trips/:id (delete)
      - [x] PATCH /trips/:id/archive
+     - [x] PATCH /trips/:id/unarchive
      - [x] API_REFERENCE.md updated
 
 2. ✅ **Map Visualization** (complete)
@@ -157,9 +159,9 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
 
 ### 🚀 MVP2: Collaboration & Discovery
 
-**Status:** ⏸️ NOT STARTED  
+**Status:** 🔄 IN PROGRESS  
 **Goal:** Users can share trips and collaborate  
-**Prerequisites:** MVP1 complete + user approval
+**Started:** January 31, 2026 (after MVP1 complete)
 
 #### Planned Features 📋
 1. ⏳ Multi-day Route Visualization
@@ -197,8 +199,8 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
    - Collaborator roles: viewer, editor
    - No WhatsApp/email yet (MVP3+)
 
-#### Atomic Tasks (DO NOT START)
-Will be broken down when MVP1 is complete.
+#### Atomic Tasks
+See MVP_PLAN.md and MVP2_TASK_BREAKDOWN.md (when created) for task breakdown.
 
 ---
 

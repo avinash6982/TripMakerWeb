@@ -110,9 +110,10 @@
 5. What files need updating? (Check "After completing" checklist)
 
 **Current Phase Context:**
-- **MVP Phase:** MVP1 - Core Trip Planning (100% complete)
-- **Current Sprint:** MVP1 complete; browser verification and docs enforced
-- **Blocked Features:** All MVP2-5 features
+- **MVP Phase:** MVP2 - Collaboration & Community (in progress)
+- **MVP1:** 100% complete (including archive + unarchive)
+- **Current Sprint:** MVP2 feature breakdown and first deliverables
+- **Blocked Features:** MVP3-5 until MVP2 complete
 - **Browser verification:** Required after each task — see `MVP1_BROWSER_TEST_CHECKLIST.md`
 
 ---

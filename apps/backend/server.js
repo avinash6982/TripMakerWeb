@@ -405,7 +405,7 @@ const corsOptions = {
     }
   },
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
 };
 
@@ -1921,6 +1921,53 @@ app.patch(
       const trip = (user.trips || []).find((t) => t.id === tripId);
       if (!trip) return res.status(404).json({ error: "Trip not found." });
       trip.status = "archived";
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(200).json(trip);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /trips/{id}/unarchive:
+ *   patch:
+ *     tags: [Trips]
+ *     summary: Unarchive a trip
+ *     description: Sets trip status back to upcoming. Requires authentication.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema: { type: string }
+ *     responses:
+ *       200:
+ *         description: Trip unarchived
+ *       404:
+ *         description: Trip not found
+ *       401:
+ *         description: Unauthorized
+ */
+app.patch(
+  "/trips/:id/unarchive",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const users = await readUsers();
+      const user = users.find((c) => c.id === userId);
+      if (!user) return res.status(404).json({ error: "User not found." });
+      ensureTrips(user);
+      const trip = (user.trips || []).find((t) => t.id === tripId);
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+      trip.status = "upcoming";
       trip.updatedAt = new Date().toISOString();
       await writeUsers(users);
       return res.status(200).json(trip);

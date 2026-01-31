@@ -526,6 +526,15 @@ Sets trip `status` to `archived`. Returns the updated trip.
 
 ---
 
+### 📤 Unarchive Trip
+
+**Endpoint:** `PATCH /trips/:id/unarchive` or `PATCH /api/trips/:id/unarchive`  
+**Authentication:** Required (JWT)
+
+Sets trip `status` back to `upcoming`. Returns the updated trip. Use when viewing an archived trip to restore it to the main list.
+
+---
+
 ### 👤 Get User Profile
 
 **Endpoint:** `GET /profile/:id` or `GET /api/profile/:id`  
@@ -983,6 +992,7 @@ None (v2 is current)
 ### Troubleshooting
 - Check backend is running: `curl http://localhost:3000/health`
 - Verify CORS origins: Check `CORS_ORIGINS` env var
+- **CORS methods:** Backend must allow `GET`, `POST`, `PUT`, `PATCH`, `DELETE` (Archive uses PATCH). If Archive fails with "Failed to fetch" or CORS preflight error, add `PATCH` to CORS `methods` in `apps/backend/server.js`.
 - Check rate limits: Wait 15 minutes if exceeded
 - Verify JWT secret: Auto-generated in dev, required in prod
 

@@ -6,6 +6,8 @@
 **Prerequisites:** Backend and frontend running (`npm run dev`).  
 **Test user:** `dev@tripmaker.com` / `DevUser123!`
 
+**Important:** After testing trip actions (Archive, Mark complete, Delete), confirm **no CORS errors** in the Console and **no "Failed to fetch"** on the page. If you see either, the backend CORS `methods` must include `PATCH` (and any other methods used by trip endpoints).
+
 ---
 
 ## 1. Auth & Profile
@@ -48,9 +50,12 @@
 
 - [ ] **Trip detail:** Name, destination, days, status badge, full itinerary
 - [ ] **1.8 Edit:** Click Edit → Change name/destination/days → Save changes → Trip updates
-- [ ] **1.11 Mark complete:** Click "Mark complete" → Status becomes Completed
-- [ ] **1.10 Archive:** Click Archive → Status becomes Archived; message shown
-- [ ] **1.9 Delete:** Click Delete → Confirmation modal → Confirm → Redirects to My Trips; trip removed
+- [ ] **1.11 Mark complete:** Click "Mark complete" → Status becomes Completed; no "Failed to fetch"; no CORS errors in Console
+- [ ] **1.10 Archive:** Click Archive → Status becomes Archived; success message shown (not "Failed to fetch"); no CORS errors in Console
+- [ ] **Unarchive:** On an archived trip → Click **Unarchive** → Status becomes Upcoming; success message shown; no CORS errors
+- [ ] **1.9 Delete:** Click Delete → Confirmation modal → Confirm → Redirects to My Trips; trip removed; no CORS errors in Console
+
+**CORS check:** Open DevTools → Console. After Archive / Mark complete / Delete, ensure there are no `Access-Control-Allow-Methods` or CORS preflight errors. Backend must allow `GET`, `POST`, `PUT`, `PATCH`, `DELETE` in CORS config.
 
 ---
 
@@ -71,7 +76,21 @@
 ## 8. Quick Smoke
 
 - [ ] No console errors on Login, Home, Profile, My Trips, Trip Detail
+- [ ] No CORS errors in Console when using trip actions (Archive, Mark complete, Delete, Edit, Save)
 - [ ] Network: Profile and trips APIs return 200 (no repeated profile calls on Profile page)
+- [ ] Trip Detail: No "Failed to fetch" after Archive or Mark complete
+
+---
+
+## 9. Trip Actions Deep Check (recommended before release)
+
+Run with DevTools open (Console + Network).
+
+1. **Archive:** Open a trip → Click Archive → Verify: status badge shows "Archived", no red "Failed to fetch", Console has no CORS/preflight errors, Network shows `PATCH .../trips/:id/archive` with status 200.
+2. **Mark complete:** Open a trip → Click Mark complete → Verify: status shows "Completed", no "Failed to fetch", Console clean, Network shows `PUT .../trips/:id` with 200.
+3. **Delete:** Open a trip → Click Delete → Confirm → Verify: redirect to My Trips, trip no longer in list, Network shows `DELETE .../trips/:id` with 200.
+4. **Show archived:** My Trips → "Show archived" → Archived trip(s) visible; "Hide archived" hides them.
+5. **Unarchive:** Open an archived trip → Click **Unarchive** → Status becomes Upcoming; trip appears in main list when "Hide archived" is on.
 
 ---
 

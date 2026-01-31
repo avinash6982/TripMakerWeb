@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
 import L from "leaflet";
 
 // Fix default icon in bundler (Leaflet expects images at a path that breaks with Vite)
@@ -28,6 +28,44 @@ function createCustomIcon(color, size = 24) {
 
 const destinationIcon = createCustomIcon("#dc2626"); // red
 const placeIcon = createCustomIcon("#0284c7"); // blue (accent)
+
+/** Calls invalidateSize when container is visible or resized so the map doesn't clip on scroll. */
+function MapSizeSync() {
+  const map = useMap();
+  const containerRef = useRef(map.getContainer());
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const invalidate = () => {
+      map.invalidateSize();
+    };
+
+    invalidate(); // initial
+
+    const ro = new ResizeObserver(invalidate);
+    ro.observe(container);
+
+    const io =
+      typeof IntersectionObserver !== "undefined"
+        ? new IntersectionObserver(
+            (entries) => {
+              if (entries[0]?.isIntersecting) invalidate();
+            },
+            { threshold: 0.1 }
+          )
+        : null;
+    if (io) io.observe(container);
+
+    return () => {
+      ro.disconnect();
+      io?.disconnect();
+    };
+  }, [map]);
+
+  return null;
+}
 
 /**
  * Interactive map with destination marker (red) and optional itinerary markers (blue).
@@ -59,6 +97,7 @@ const MapView = ({
         scrollWheelZoom
         className="map-view"
       >
+        <MapSizeSync />
         <TileLayer
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"

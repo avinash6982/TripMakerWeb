@@ -1,6 +1,6 @@
 # 🏗️ TripMaker Application Architecture
 
-**Last Updated:** January 31, 2026 (map preview with markers)  
+**Last Updated:** January 31, 2026 (unarchive + MVP2 phase)  
 **Version:** 1.0.0  
 **Status:** Production-Ready
 
@@ -370,6 +370,10 @@ Local Development (apps/backend/server.js)
 │  ├─ POST /login            (Authenticate)
 │  ├─ POST /trips/plan       (Generate trip plan)
 │  ├─ POST /trips            (Create trip)
+│  ├─ GET  /trips            (List trips)
+│  ├─ GET  /trips/:id        (Get/update/delete trip)
+│  ├─ PATCH /trips/:id/archive   (Archive trip)
+│  ├─ PATCH /trips/:id/unarchive (Unarchive trip)
 │  ├─ GET  /profile/:id      (Get profile)
 │  └─ PUT  /profile/:id      (Update profile)
 ├─ Error Handlers

@@ -6,6 +6,7 @@ import {
   updateTrip,
   deleteTrip,
   archiveTrip,
+  unarchiveTrip,
 } from "../services/trips";
 import { getTransportHubsForDestination } from "../data/transportHubs";
 
@@ -96,6 +97,22 @@ const TripDetail = () => {
       setMessage(t("trips.archiveSuccess"));
     } catch (err) {
       setMessage(err?.message || "Archive failed.");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleUnarchive = async () => {
+    if (!trip) return;
+    setActionLoading(true);
+    setMessage("");
+    try {
+      await unarchiveTrip(trip.id);
+      const updated = await fetchTrip(trip.id);
+      setTrip(updated);
+      setMessage(t("trips.unarchiveSuccess"));
+    } catch (err) {
+      setMessage(err?.message || "Unarchive failed.");
     } finally {
       setActionLoading(false);
     }
@@ -244,7 +261,7 @@ const TripDetail = () => {
                     {t("trips.markComplete")}
                   </button>
                 )}
-                {trip.status !== "archived" && (
+                {trip.status !== "archived" ? (
                   <button
                     type="button"
                     className="btn small ghost"
@@ -252,6 +269,15 @@ const TripDetail = () => {
                     disabled={actionLoading}
                   >
                     {t("trips.archive")}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    className="btn small ghost"
+                    onClick={handleUnarchive}
+                    disabled={actionLoading}
+                  >
+                    {t("trips.unarchive")}
                   </button>
                 )}
                 <button
