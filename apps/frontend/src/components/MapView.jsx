@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
 import "leaflet/dist/leaflet.css";
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from "react-leaflet";
 import L from "leaflet";
 
 // Fix default icon in bundler (Leaflet expects images at a path that breaks with Vite)
@@ -28,6 +28,20 @@ function createCustomIcon(color, size = 24) {
 
 const destinationIcon = createCustomIcon("#dc2626"); // red
 const placeIcon = createCustomIcon("#0284c7"); // blue (accent)
+
+/** Colors per day for route polylines (MVP2) */
+const DAY_ROUTE_COLORS = [
+  "#0284c7", // day 1: blue
+  "#059669", // day 2: green
+  "#d97706", // day 3: amber
+  "#7c3aed", // day 4: violet
+  "#dc2626", // day 5: red
+  "#0891b2", // day 6: cyan
+  "#65a30d", // day 7: lime
+  "#c026d3", // day 8: fuchsia
+  "#ea580c", // day 9: orange
+  "#0d9488", // day 10: teal
+];
 
 /** Calls invalidateSize when container is visible or resized so the map doesn't clip on scroll. */
 function MapSizeSync() {
@@ -68,16 +82,18 @@ function MapSizeSync() {
 }
 
 /**
- * Interactive map with destination marker (red) and optional itinerary markers (blue).
+ * Interactive map with destination marker (red), itinerary markers (blue), and day-wise route polylines (MVP2).
  * @param {Object} props
  * @param {{ lat: number, lon?: number, lng?: number }} props.center - Center of map (destination).
  * @param {string} [props.destinationLabel] - Label for destination popup.
  * @param {Array<{ lat: number, lng: number, name: string, category?: string }>} [props.itineraryMarkers] - Blue markers for places.
+ * @param {Array<Array<[number, number]>>} [props.dayRoutes] - MVP2: positions per day for polylines.
  */
 const MapView = ({
   center,
   destinationLabel = "",
   itineraryMarkers = [],
+  dayRoutes = [],
 }) => {
   const lat = center?.lat;
   const lon = center?.lon ?? center?.lng;
@@ -102,6 +118,20 @@ const MapView = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {(dayRoutes || []).map((positions, dayIndex) => {
+          const valid = (positions || []).filter(
+            (p) => Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1])
+          );
+          if (valid.length < 2) return null;
+          const color = DAY_ROUTE_COLORS[dayIndex % DAY_ROUTE_COLORS.length];
+          return (
+            <Polyline
+              key={`route-day-${dayIndex}`}
+              positions={valid}
+              pathOptions={{ color, weight: 4, opacity: 0.8 }}
+            />
+          );
+        })}
         <Marker position={centerPos} icon={destinationIcon}>
           <Popup>
             <strong>{destinationLabel || "Destination"}</strong>

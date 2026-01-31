@@ -341,6 +341,7 @@ curl -X POST http://localhost:3000/trips \
 | `days` | integer | No | 1-10 days (defaults to itinerary length) |
 | `pace` | string | No | `relaxed`, `balanced`, or `fast` |
 | `itinerary` | array | Yes | Day-by-day itinerary array (non-empty) |
+| `transportMode` | string | No | MVP2: `flight`, `train`, or `bus` |
 
 #### Response (201 Created)
 
@@ -441,18 +442,52 @@ Trips are sorted by `createdAt` (newest first).
 
 ---
 
+### 🌍 Public Trip Feed (MVP2)
+
+**Endpoint:** `GET /trips/feed` or `GET /api/trips/feed`  
+**Authentication:** None  
+**Rate Limit:** 100 req/15min
+
+Returns public trips from all users. No auth required.
+
+#### Query Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `destination` | string | Optional. Filter by destination (partial match). |
+| `limit` | integer | Optional. Max trips to return (1-50, default 20). |
+
+#### Response (200 OK)
+
+```json
+{
+  "trips": [
+    {
+      "id": "trip-uuid",
+      "userId": "user-uuid",
+      "name": "Paris weekend",
+      "destination": "Paris",
+      "days": 3,
+      "pace": "balanced",
+      "status": "upcoming",
+      "isPublic": true,
+      "ownerEmail": "user@example.com",
+      "createdAt": "...",
+      "updatedAt": "..."
+    }
+  ]
+}
+```
+
+---
+
 ### 🧳 Get Trip by ID
 
 **Endpoint:** `GET /trips/:id` or `GET /api/trips/:id`  
-**Authentication:** Required (JWT)  
+**Authentication:** Optional (JWT)  
 **Rate Limit:** 100 req/15min
 
-#### Request
-
-```bash
-curl http://localhost:3000/trips/<trip-id> \
-  -H "Authorization: Bearer <token>"
-```
+Returns trip if owned by user OR if trip is public. Public trips include `ownerEmail`.
 
 #### URL Parameters
 
@@ -462,12 +497,11 @@ curl http://localhost:3000/trips/<trip-id> \
 
 #### Response (200 OK)
 
-Returns the full trip object (same shape as Create Trip response).
+Returns the full trip object (same shape as Create Trip response). Public trips include `ownerEmail`.
 
 #### Error Responses
 
-**401 Unauthorized** - Missing or invalid token  
-**404 Not Found** - Trip not found or not owned by user  
+**404 Not Found** - Trip not found or not public (when not owner)  
 **500 Internal Server Error**
 
 ---
@@ -497,6 +531,8 @@ curl -X PUT http://localhost:3000/trips/<trip-id> \
 | `pace` | string | relaxed, balanced, fast |
 | `status` | string | upcoming, active, completed, archived |
 | `itinerary` | array | Full itinerary array |
+| `transportMode` | string \| null | MVP2: flight, train, or bus. Pass null to clear. |
+| `isPublic` | boolean | MVP2: Show trip in public feed. |
 
 #### Response (200 OK)
 
@@ -532,6 +568,24 @@ Sets trip `status` to `archived`. Returns the updated trip.
 **Authentication:** Required (JWT)
 
 Sets trip `status` back to `upcoming`. Returns the updated trip. Use when viewing an archived trip to restore it to the main list.
+
+---
+
+### 📨 Create Invite Code (MVP2)
+
+**Endpoint:** `POST /trips/:id/invite` or `POST /api/trips/:id/invite`  
+**Authentication:** Required (JWT)
+
+Generates a one-time invite code (8 chars, 24h expiry). Body: `{ "role": "viewer" | "editor" }`. Returns `{ code, role, expiresAt }`.
+
+---
+
+### 🔓 Redeem Invite Code (MVP2)
+
+**Endpoint:** `POST /invite/redeem` or `POST /api/invite/redeem`  
+**Authentication:** Required (JWT)
+
+Redeems a code and adds the user as collaborator. Body: `{ "code": "ABC12345" }`. Returns `{ trip, role }`.
 
 ---
 
@@ -706,6 +760,8 @@ interface Trip {
   pace: 'relaxed' | 'balanced' | 'fast';
   status: 'upcoming' | 'active' | 'completed' | 'archived';
   itinerary: Array<Record<string, unknown>>;
+  transportMode?: 'flight' | 'train' | 'bus';  // MVP2: how user gets there
+  isPublic?: boolean;            // MVP2: shown in public feed
   createdAt: string;             // ISO 8601 timestamp
   updatedAt: string;             // ISO 8601 timestamp
 }

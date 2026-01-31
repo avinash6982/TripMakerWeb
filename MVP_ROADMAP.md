@@ -164,34 +164,30 @@ None (MVP1 complete).
 **Started:** January 31, 2026 (after MVP1 complete)
 
 #### Planned Features 📋
-1. ⏳ Multi-day Route Visualization
-   - Colored lines for each day's route
-   - Interactive route highlighting
+1. ✅ Multi-day Route Visualization (done)
+   - Colored polylines per day connecting itinerary stops
+   - Day 1 blue, day 2 green, day 3 amber, etc.
 
 2. ⏳ Enhanced Trip Suggestions
    - Web scraping for popular destinations
    - Community-driven recommendations
    - Still no paid AI services
 
-3. ⏳ Transportation Mode Selection
-   - User selects: flight/train/bus
-   - Trip starts from selected hub
-   - Show routes to starting point
+3. ✅ Transportation Mode Selection (done)
+   - User selects: flight/train/bus on Trip Detail
+   - Trip starts from selected hub; hub highlighted in Transportation section
 
 4. ⏳ Live Location Integration
    - Get user's current location
    - Show distance to starting point
    - Suggest directions (text-based, not Google Maps API)
 
-5. ⏳ Public Timeline/Feed
-   - Global feed of public trips
-   - Filter by destination, pace, duration
-   - Infinite scroll
+5. ✅ Public Timeline/Feed (done)
+   - GET /trips/feed, Discover page, destination filter
 
-6. ⏳ Trip Sharing
-   - "Make public" button
-   - Public trips appear on timeline
-   - Privacy toggle
+6. ✅ Trip Sharing (done)
+   - Make public / Make private on Trip Detail
+   - Public trips appear on Discover feed
 
 7. ⏳ Collaborator Invitations
    - Generate one-time invite code

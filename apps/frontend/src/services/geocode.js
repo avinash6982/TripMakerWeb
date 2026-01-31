@@ -18,6 +18,30 @@ const STATIC_DESTINATIONS = [
     lon: -74.006,
     aliases: ["new york", "new york city", "new york, usa", "nyc"],
   },
+  {
+    label: "Yerevan, Armenia",
+    lat: 40.1872,
+    lon: 44.5152,
+    aliases: ["yerevan", "armenia", "yerevan armenia", "yerevan, armenia"],
+  },
+  {
+    label: "Leh, Ladakh, India",
+    lat: 34.1526,
+    lon: 77.5771,
+    aliases: ["leh", "ladakh", "leh ladakh", "ladakh india"],
+  },
+  {
+    label: "Manali, Himachal Pradesh, India",
+    lat: 32.2396,
+    lon: 77.1887,
+    aliases: ["manali", "manali india", "manali himachal"],
+  },
+  {
+    label: "Kaza, Spiti Valley, India",
+    lat: 32.2991,
+    lon: 78.0182,
+    aliases: ["kaza", "spiti", "spiti valley", "ladakh spiti manali", "ladakh spiti"],
+  },
 ];
 
 const normalizeKey = (value) =>
@@ -152,6 +176,30 @@ export const geocodePlace = async (placeName, destination) => {
   };
   placeCache.set(key, result);
   return result;
+};
+
+/**
+ * Collect place names and categories by day (day.slots[].items[]).
+ * Returns [[{ name, category }, ...], ...] - one array per day, items in visit order.
+ * Used for MVP2 day-wise route polylines.
+ */
+export const collectPlaceNamesByDay = (plan) => {
+  if (!plan?.itinerary || !Array.isArray(plan.itinerary)) {
+    return [];
+  }
+  return plan.itinerary.map((day) => {
+    const items = [];
+    if (!Array.isArray(day.slots)) return items;
+    for (const slot of day.slots) {
+      if (!Array.isArray(slot.items)) continue;
+      for (const item of slot.items) {
+        const name = String(item?.name || "").trim();
+        if (!name) continue;
+        items.push({ name, category: item?.category || "" });
+      }
+    }
+    return items;
+  });
 };
 
 /**

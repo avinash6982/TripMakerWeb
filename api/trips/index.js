@@ -14,6 +14,8 @@ const PACE_ALIASES = {
   active: 'fast',
 };
 
+const TRANSPORT_MODES = ['flight', 'train', 'bus'];
+
 function ensureTrips(user) {
   if (!Array.isArray(user.trips)) {
     user.trips = [];
@@ -43,20 +45,30 @@ module.exports = async (req, res) => {
     }
     ensureTrips(authUser);
 
-    // GET - List trips
+    // GET - List trips (own + collaborated)
     if (req.method === 'GET') {
       let trips = [...(authUser.trips || [])];
+      for (const u of users) {
+        if (u.id === authUser.id) continue;
+        if (!Array.isArray(u.trips)) continue;
+        for (const t of u.trips) {
+          const collab = Array.isArray(t.collaborators) ? t.collaborators : [];
+          if (collab.some((c) => c.userId === authUser.id)) {
+            trips.push({ ...t, ownerEmail: u.email, isCollaborator: true });
+          }
+        }
+      }
       const statusFilter = String(req.query?.status || '').trim();
       if (statusFilter && ['upcoming', 'active', 'completed', 'archived'].includes(statusFilter)) {
         trips = trips.filter((t) => t.status === statusFilter);
       }
-      trips.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      trips.sort((a, b) => new Date(b.updatedAt || b.createdAt || 0) - new Date(a.updatedAt || a.createdAt || 0));
       return res.status(200).json({ trips });
     }
 
     // POST - Create trip
     if (req.method === 'POST') {
-      const { name, destination, itinerary, days, pace } = req.body || {};
+      const { name, destination, itinerary, days, pace, transportMode } = req.body || {};
       const nameStr = String(name || '').trim();
       const destinationStr = String(destination || '').trim();
       const itineraryArr = Array.isArray(itinerary) ? itinerary : [];
@@ -80,6 +92,11 @@ module.exports = async (req, res) => {
       const daysCandidate = Number.isInteger(Number(days)) ? Number(days) : itineraryArr.length;
       const daysNum = Math.min(10, Math.max(1, daysCandidate));
 
+      const tm = String(transportMode || '').toLowerCase().trim();
+      const transportModeVal = TRANSPORT_MODES.includes(tm) ? tm : undefined;
+
+      const isPublic = Boolean(req.body?.isPublic);
+
       const timestamp = new Date().toISOString();
       const trip = {
         id: crypto.randomUUID(),
@@ -90,6 +107,8 @@ module.exports = async (req, res) => {
         pace: normalizedPace,
         status: 'upcoming',
         itinerary: itineraryArr,
+        transportMode: transportModeVal,
+        isPublic,
         createdAt: timestamp,
         updatedAt: timestamp,
       };

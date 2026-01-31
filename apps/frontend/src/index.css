@@ -711,6 +711,87 @@ button.text-link {
   justify-items: center;
 }
 
+/* Feed / Discover page (MVP2) */
+.feed-page {
+  padding: 2rem 0;
+}
+
+.feed-header {
+  margin-bottom: 1.5rem;
+}
+
+.feed-header h1 {
+  margin: 0 0 0.25rem;
+  font-size: 1.5rem;
+}
+
+.feed-subtitle {
+  margin: 0 0 1rem;
+  font-size: 0.95rem;
+}
+
+.feed-filter {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.feed-filter-input {
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
+  min-width: 12rem;
+}
+
+.feed-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  display: grid;
+  gap: 0.5rem;
+  justify-items: center;
+}
+
+.feed-empty .small {
+  font-size: 0.9rem;
+}
+
+/* Invite modal (MVP2) */
+.modal-card .field select.invite-role-select {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  font-size: 1rem;
+  width: 100%;
+  max-width: 20rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.invite-code-label {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.95rem;
+}
+
+.invite-code {
+  font-family: monospace;
+  font-size: 1.5rem;
+  letter-spacing: 0.2em;
+  padding: 0.75rem;
+  background: var(--bg);
+  border-radius: 8px;
+  margin: 0.5rem 0;
+}
+
+.invite-code-input {
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
+  font-family: monospace;
+  letter-spacing: 0.15em;
+  width: 100%;
+  max-width: 16rem;
+}
+
 .trips-list {
   list-style: none;
   display: grid;
@@ -858,6 +939,53 @@ button.text-link {
 .trip-detail-transport h2 {
   margin: 0 0 0.75rem;
   font-size: 1.25rem;
+}
+
+.trip-detail-transport-label {
+  margin: 0 0 0.5rem;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+
+.transport-mode-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.transport-mode-chips .chip {
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 500;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+.transport-mode-chips .chip:hover:not(:disabled) {
+  border-color: var(--primary);
+  background: var(--bg);
+}
+
+.transport-mode-chips .chip.chip-selected {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+}
+
+.transport-mode-chips .chip:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.transport-hubs-list li.transport-hub-selected {
+  background: var(--bg);
+  padding-left: 1rem;
+  border-radius: 8px;
+  border-left: 3px solid var(--primary);
 }
 
 .transport-hubs-list {

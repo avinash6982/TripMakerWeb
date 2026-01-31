@@ -15,7 +15,7 @@
 - Trip CRUD, save, list, detail, edit, delete, **archive**, **unarchive**, mark complete, transport hubs, map, day-wise itinerary, place suggestions.
 - Browser verification required after each task (see `MVP1_BROWSER_TEST_CHECKLIST.md`).
 
-### Sprint Progress: MVP2 0% (just started)
+### Sprint Progress: MVP2 ~95% (all core features done)
 
 ---
 
@@ -71,7 +71,8 @@
 
 **Objective:** Start MVP2 (Collaboration & Discovery). Break down first features into tasks; implement in order of priority (zero-cost constraint: no paid APIs).
 
-**Status:** Phase switched to MVP2 in MVP_PLAN.md, MVP_ROADMAP.md, .cursorrules, mvp-development-discipline.mdc  
+**Status:** Phase switched to MVP2. Phase 2.1 (Transport mode + Start hub) complete.  
+**Completed:** 2.1–2.2 (transport mode, route lines), 2.5/2.6 (public feed), 2.7/2.8 (invite codes, collaborators), 2.2 (enhanced place suggestions for any destination).  
 **Reference:** See MVP_PLAN.md MVP2 features (2.1–2.8); MVP2_TASK_BREAKDOWN.md for task breakdown.
 
 ---

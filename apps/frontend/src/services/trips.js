@@ -47,6 +47,22 @@ export const createTrip = (payload) =>
   );
 
 /**
+ * Fetch public trip feed (MVP2). No auth required.
+ * @param {{ destination?: string, limit?: number }} [params]
+ */
+export const fetchFeed = async (params) => {
+  const search = new URLSearchParams();
+  if (params?.destination) search.set("destination", params.destination);
+  if (params?.limit) search.set("limit", String(params.limit));
+  const qs = search.toString();
+  const path = `/trips/feed${qs ? `?${qs}` : ""}`;
+  const res = await fetch(`${API_BASE_URL}${path}`);
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data?.error || "Unable to load feed.");
+  return data;
+};
+
+/**
  * List current user's trips.
  * @param {{ status?: string }} [params] - Optional status filter (upcoming, active, completed, archived)
  */
@@ -98,4 +114,26 @@ export const unarchiveTrip = (id) =>
     `/trips/${id}/unarchive`,
     { method: "PATCH" },
     "Unable to unarchive trip."
+  );
+
+/**
+ * Create invite code (MVP2).
+ * @param {string} tripId
+ * @param {string} role - viewer | editor
+ */
+export const createInvite = (tripId, role = "viewer") =>
+  requestJson(
+    `/trips/${tripId}/invite`,
+    { method: "POST", body: JSON.stringify({ role }) },
+    "Unable to create invite."
+  );
+
+/**
+ * Redeem invite code (MVP2).
+ */
+export const redeemInvite = (code) =>
+  requestJson(
+    "/invite/redeem",
+    { method: "POST", body: JSON.stringify({ code }) },
+    "Invalid or expired invite code."
   );

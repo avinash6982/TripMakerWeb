@@ -60,14 +60,118 @@ const PLACES_BY_DESTINATION = {
     "SoHo",
     "Chelsea Market",
   ],
+  yerevan: [
+    "Cascade Complex",
+    "Republic Square",
+    "Matenadaran",
+    "Vernissage Market",
+    "Tsitsernakaberd",
+    "Cafesjian Center",
+    "Garni Temple",
+    "Geghard Monastery",
+    "Echmiadzin Cathedral",
+    "Lake Sevan",
+    "Armenian Brandy Factory",
+    "Northern Avenue",
+    "Blue Mosque",
+    "Dilijan",
+    "History Museum of Armenia",
+  ],
+  armenia: [
+    "Cascade Complex",
+    "Republic Square",
+    "Matenadaran",
+    "Vernissage Market",
+    "Garni Temple",
+    "Geghard Monastery",
+    "Echmiadzin Cathedral",
+    "Lake Sevan",
+    "Dilijan",
+    "Yerevan Opera",
+  ],
+  ladakh: [
+    "Leh Palace",
+    "Shanti Stupa",
+    "Thiksey Monastery",
+    "Hemis Monastery",
+    "Pangong Lake",
+    "Nubra Valley",
+    "Leh Market",
+    "Magnetic Hill",
+    "Key Monastery",
+    "Tabo Monastery",
+    "Dhankar",
+    "Chandratal",
+  ],
+  spiti: [
+    "Key Monastery",
+    "Tabo Monastery",
+    "Dhankar Monastery",
+    "Chandratal Lake",
+    "Kaza",
+    "Kibber",
+    "Langza",
+  ],
+  manali: [
+    "Hadimba Temple",
+    "Old Manali",
+    "Solang Valley",
+    "Rohtang Pass",
+    "Vashisht Hot Springs",
+    "Mall Road",
+    "Van Vihar",
+  ],
+  "ladakh spiti manali": [
+    "Leh Palace",
+    "Pangong Lake",
+    "Nubra Valley",
+    "Key Monastery",
+    "Chandratal",
+    "Manali",
+    "Rohtang Pass",
+    "Solang Valley",
+  ],
 };
 
 /** Aliases that map to "new york" list */
 const NYC_ALIASES = ["new york city", "nyc"];
 
 /**
+ * Generic place suggestions for destinations not in our curated list (MVP2).
+ * Works for "any place" - users can edit to match their city.
+ */
+const GENERIC_PLACES = [
+  "City Center",
+  "Old Town",
+  "Main Square",
+  "Central Park",
+  "City Museum",
+  "Cathedral",
+  "Historic District",
+  "Market Square",
+  "Waterfront",
+  "Observation Deck",
+  "Botanical Gardens",
+  "Art Gallery",
+  "Local Market",
+  "Town Hall",
+  "Famous Bridge",
+  "Beach",
+  "Harbor",
+  "Palace",
+  "Temple",
+  "Monument",
+  "Shopping Street",
+  "Food Market",
+  "Sunset Viewpoint",
+  "Rooftop Bar",
+  "Cultural Center",
+];
+
+/**
  * Returns an array of place name strings for the given destination.
  * Used to populate the activity-edit input datalist.
+ * MVP2: Returns generic suggestions when destination not in curated list.
  */
 export function getPlaceSuggestionsForDestination(destination) {
   const key = normalize(destination);
@@ -77,5 +181,5 @@ export function getPlaceSuggestionsForDestination(destination) {
     if (Array.isArray(list) && list.length && (key.includes(k) || k.includes(key)))
       return list;
   }
-  return [];
+  return GENERIC_PLACES;
 }

@@ -23,14 +23,14 @@ Every task must:
 
 | # | Feature | Priority | Status |
 |---|---------|----------|--------|
-| 2.1 | Day-wise route lines on map | P1 | 📋 Planned |
-| 2.2 | AI-powered suggestions (any place) | P1 | 📋 Planned |
-| 2.3 | Transportation mode selection | P0 | 📋 Planned |
-| 2.4 | Start from airport/station/bus | P0 | 📋 Planned |
-| 2.5 | Public timeline/feed | P0 | 📋 Planned |
-| 2.6 | Post trips to timeline | P0 | 📋 Planned |
-| 2.7 | Invite collaborators (viewer/editor) | P1 | 📋 Planned |
-| 2.8 | One-time access codes | P1 | 📋 Planned |
+| 2.1 | Day-wise route lines on map | P1 | ✅ Done |
+| 2.2 | AI-powered suggestions (any place) | P1 | ✅ Done |
+| 2.3 | Transportation mode selection | P0 | ✅ Done |
+| 2.4 | Start from airport/station/bus | P0 | ✅ Done |
+| 2.5 | Public timeline/feed | P0 | ✅ Done |
+| 2.6 | Post trips to timeline | P0 | ✅ Done |
+| 2.7 | Invite collaborators (viewer/editor) | P1 | ✅ Done |
+| 2.8 | One-time access codes | P1 | ✅ Done |
 
 ---
 
@@ -48,37 +48,37 @@ Every task must:
 
 **Goal:** User can choose transport mode (flight/train/bus) and trip “starts from” a hub. Uses existing mock transport hubs.
 
-### Task 2.1.1: Trip model – transport preference (planned)
+### Task 2.1.1: Trip model – transport preference ✅
 - Add optional `transportMode?: 'flight' | 'train' | 'bus'` and `startHubId?: string` to trip (or derive from destination + mode).
 - Backend: allow in POST/PUT trip payload; store on trip.
 - Frontend: optional step in plan or trip detail to “Start from: Airport / Train / Bus” using existing hub data.
 
-### Task 2.1.2: UI – transport mode selection (planned)
+### Task 2.1.2: UI – transport mode selection ✅
 - On Home (after plan) or Trip detail: dropdown or chips for “How are you getting there?” (Flight / Train / Bus).
 - Show selected hub (from existing transportHubs.js) and distance in Transportation section.
 
 ---
 
-## Phase 2.2: Day-wise Route Lines on Map (planned)
+## Phase 2.2: Day-wise Route Lines on Map ✅
 
 **Goal:** Show colored polyline(s) per day connecting itinerary stops on the map.
 
-### Task 2.2.1: Map – polyline per day (planned)
-- Use Leaflet Polyline with itinerary marker coordinates (already geocoded).
-- One color per day (e.g. day 1 blue, day 2 green) or single route line.
-- Client-side only; no new backend.
+### Task 2.2.1: Map – polyline per day ✅
+- [x] Use Leaflet Polyline with itinerary marker coordinates (geocoded per day).
+- [x] One color per day (day 1 blue, day 2 green, day 3 amber, etc.).
+- [x] Client-side only; geocode.js collectPlaceNamesByDay + MapView dayRoutes prop.
 
 ---
 
-## Phase 2.3: Public Timeline & Trip Sharing (planned)
+## Phase 2.3: Public Timeline & Trip Sharing ✅
 
 **Goal:** Trips can be made public and appear in a feed.
 
-### Task 2.3.1: Data model – public trips (planned)
+### Task 2.3.1: Data model – public trips ✅
 - Add `isPublic: boolean` (default false) to trip.
 - API: PATCH /trips/:id (allow isPublic); GET /trips/feed (public list, optional filters).
 
-### Task 2.3.2: Frontend – make public + feed (planned)
+### Task 2.3.2: Frontend – make public + feed ✅
 - Trip detail: “Make public” / “Make private” toggle.
 - New route /feed or /discover: list public trips (infinite scroll later).
 
@@ -88,11 +88,11 @@ Every task must:
 
 **Goal:** Invite others with viewer/editor role via short-lived code.
 
-### Task 2.4.1: Backend – invite codes (planned)
+### Task 2.4.1: Backend – invite codes ✅
 - Model: invite code (tripId, role, expiresAt, code).
 - POST /trips/:id/invite (generate code), POST /invite/redeem (consume code, add collaborator).
 
-### Task 2.4.2: Frontend – share dialog + redeem (planned)
+### Task 2.4.2: Frontend – share dialog + redeem ✅
 - Trip detail: “Invite” opens dialog, copy code, expiry countdown.
 - New page or modal: “Have a code?” redeem flow.
 
