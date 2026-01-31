@@ -1,0 +1,176 @@
+---
+description: Enforce zero-cost constraint for MVP phases 1-3
+alwaysApply: true
+---
+
+# Zero-Cost Constraint (MVP1-3)
+
+## Principle
+**All features in MVP1, MVP2, and MVP3 must work without ANY paid services.**
+
+---
+
+## Approved Free Services
+
+### ✅ Allowed
+- **Vercel:** Free tier hosting (100GB bandwidth, serverless functions)
+- **Nominatim:** Free geocoding (OpenStreetMap)
+- **Leaflet.js:** Free map rendering library
+- **OpenStreetMap:** Free map tiles
+- **GitHub:** Free repository hosting
+- **Static data:** Mock/hardcoded data for testing
+
+### ❌ Forbidden (Until MVP4+)
+- **Google Maps API** (paid after free tier)
+- **OpenAI API** (paid)
+- **Skyscanner API** (paid)
+- **Any database service** (use file storage for MVP1-3)
+- **Email services** (SendGrid, Mailgun)
+- **SMS services** (Twilio)
+- **Cloud storage** (S3, Cloudinary)
+
+---
+
+## Implementation Strategies
+
+### For AI Suggestions (MVP1)
+**Problem:** Need trip recommendations  
+**Solution:** Pre-defined destination database
+
+```javascript
+// ✅ GOOD: Mock data
+const DESTINATIONS = {
+  'Paris': {
+    popular: ['Eiffel Tower', 'Louvre', 'Notre Dame'],
+    hidden: ['Canal Saint-Martin', 'Promenade Plantée']
+  }
+};
+
+// ❌ BAD: OpenAI API
+const suggestions = await openai.complete('Suggest Paris attractions');
+```
+
+### For Geocoding (MVP1-3)
+**Problem:** Need lat/lng for destinations  
+**Solution:** Nominatim (free OSM geocoding)
+
+```javascript
+// ✅ GOOD: Nominatim
+const response = await fetch(
+  `https://nominatim.openstreetmap.org/search?` +
+  `q=${destination}&format=json&limit=1`
+);
+
+// ❌ BAD: Google Geocoding API
+const response = await googleMaps.geocode(destination);
+```
+
+### For Map Rendering (MVP1-3)
+**Problem:** Need interactive maps  
+**Solution:** Leaflet.js + OpenStreetMap tiles
+
+```jsx
+// ✅ GOOD: Leaflet + OSM
+<MapContainer>
+  <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+</MapContainer>
+
+// ❌ BAD: Google Maps
+<GoogleMap apiKey="..." />
+```
+
+### For Trip Suggestions (MVP2)
+**Problem:** Need destination recommendations  
+**Solution:** Web scraping or community data
+
+```javascript
+// ✅ GOOD: Scraping or curated lists
+const suggestions = await scrapePopularDestinations();
+// or use static JSON with top 100 cities
+
+// ❌ BAD: Paid travel API
+const suggestions = await travelAdvisorAPI.getRecommendations();
+```
+
+### For Real-time Features (MVP3)
+**Problem:** Need live location, chat  
+**Solution:** Browser Geolocation API + polling/WebSocket
+
+```javascript
+// ✅ GOOD: Browser API + Vercel WebSocket
+navigator.geolocation.getCurrentPosition(pos => {
+  const { latitude, longitude } = pos.coords;
+});
+
+// ❌ BAD: Paid location services
+const location = await geoLocationService.getLocation();
+```
+
+---
+
+## Verification Checklist
+
+Before implementing ANY feature, verify:
+
+- [ ] Does it require an API key?
+- [ ] Does it have usage limits that require payment?
+- [ ] Is there a free tier that could run out?
+- [ ] Are there free alternatives?
+
+If ANY answer is "yes" or "maybe", STOP and discuss.
+
+---
+
+## Cost Phase Transition
+
+### MVP4+ (Marketplace Integration)
+**Only in MVP4 can we introduce paid services:**
+- Skyscanner API (transport pricing)
+- Booking.com API (accommodation)
+- Payment processing (Stripe)
+
+**Requirement:** User must explicitly approve budget and services.
+
+---
+
+## Example Decisions
+
+### ✅ APPROVED
+- Leaflet.js for maps (free, open-source)
+- Nominatim for geocoding (free, OSM)
+- Static JSON for destination database
+- Vercel free tier for hosting
+- Browser Geolocation API
+
+### ❌ REJECTED
+- Google Maps (paid after quota)
+- OpenAI API (paid per request)
+- Firebase (paid features needed)
+- Auth0 (paid for features we need)
+- Cloudinary (paid for storage)
+
+---
+
+## Exception Process
+
+If you believe a paid service is NECESSARY:
+
+1. ✅ Document why free alternatives won't work
+2. ✅ Research exact pricing
+3. ✅ Check if it fits Vercel free tier
+4. ✅ Get explicit user approval
+5. ❌ Do NOT proceed without approval
+
+---
+
+## Red Flags
+
+These phrases should trigger immediate review:
+
+- "API key required"
+- "Free tier limited to 100 requests"
+- "Credit card required"
+- "Pricing starts at $X/month"
+- "Enterprise plan needed"
+
+**If you see these, STOP and verify it's approved.**

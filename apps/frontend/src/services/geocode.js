@@ -79,13 +79,22 @@ export const getDestinationCoordinates = async (destination) => {
 };
 
 export const buildStaticMapUrl = ({ lat, lon }) => {
-  const params = new URLSearchParams({
-    center: `${lat},${lon}`,
-    zoom: "12",
-    size: "640x360",
-    markers: `${lat},${lon},red-pushpin`,
-  });
-  return `https://staticmap.openstreetmap.de/staticmap.php?${params.toString()}`;
+  // Using OpenStreetMap tile preview via OSM's own CDN
+  // This creates a simple tile-based preview without requiring API keys
+  const zoom = 13;
+  const tileSize = 256;
+  
+  // Calculate tile coordinates from lat/lon
+  const latRad = (lat * Math.PI) / 180;
+  const n = Math.pow(2, zoom);
+  const xTile = Math.floor(((lon + 180) / 360) * n);
+  const yTile = Math.floor(
+    ((1 - Math.log(Math.tan(latRad) + 1 / Math.cos(latRad)) / Math.PI) / 2) * n
+  );
+  
+  // Use OSM standard tile server (for development/light usage only)
+  // Note: For production, consider using your own tile server or a paid service
+  return `https://tile.openstreetmap.org/${zoom}/${xTile}/${yTile}.png`;
 };
 
 export const buildOpenStreetMapLink = ({ lat, lon }) =>
