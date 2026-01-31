@@ -1,0 +1,212 @@
+---
+description: MVP development phases and transactional development discipline
+alwaysApply: true
+---
+
+# MVP Development Discipline
+
+## Current Phase: **MVP1 - Trip Planning Foundation**
+
+### Phase Status
+- **Started:** Jan 31, 2026
+- **Target Completion:** TBD
+- **Demo Status:** ✅ Always demo-ready
+
+---
+
+## Core Principles
+
+### 1. Transactional Development
+**Every commit must result in a working application**
+
+- ✅ All features must be complete and functional
+- ✅ No half-implemented features in main branch
+- ✅ Use feature flags for work-in-progress
+- ❌ Never commit broken code
+- ❌ Never commit features that crash the app
+
+### 2. Scope Discipline
+**Stay within current MVP phase unless explicitly told otherwise**
+
+- ✅ Only implement features from current phase
+- ✅ Document any scope expansion requests
+- ❌ Don't add "nice to have" features
+- ❌ Don't jump to future MVP phases
+
+### 3. Zero-Cost Constraint
+**All MVP1-3 features must work without paid services**
+
+- ✅ Use mock data for AI suggestions
+- ✅ Use free geocoding APIs (Nominatim)
+- ✅ Use Vercel free tier
+- ❌ Don't integrate paid AI services yet
+- ❌ Don't use premium APIs
+
+---
+
+## MVP Phase Breakdown
+
+### MVP1: Trip Planning Foundation (CURRENT)
+**Goal:** User can plan, visualize, and manage basic trips
+
+#### Core Features
+1. ✅ Trip plan generation (already implemented)
+2. 🔄 Trip creation and persistence
+3. 🔄 Map visualization with markers
+4. 🔄 Day-wise itinerary view
+5. 🔄 Edit/customize trip
+6. 🔄 Trip status management (archive/complete/delete)
+7. 🔄 Transportation hub integration (mock data)
+
+#### Implementation Tasks
+- [ ] Create trip data model and storage
+- [ ] Build trip creation flow
+- [ ] Integrate map component (Leaflet.js - free)
+- [ ] Build day-wise itinerary component
+- [ ] Add trip editing capabilities
+- [ ] Implement trip status management
+- [ ] Add transportation hub markers (static data)
+
+### MVP2: Collaboration & Discovery
+**Goal:** Users can share trips and collaborate
+
+#### Core Features (DO NOT IMPLEMENT YET)
+1. Multi-day route visualization (colored lines)
+2. Enhanced trip suggestions (scraping/community)
+3. Transportation mode selection
+4. Live location integration
+5. Public timeline/feed
+6. Trip sharing (make public)
+7. Collaborator invitations (temporary codes)
+
+### MVP3: Advanced Features
+**Goal:** Real-time tracking and social features
+
+#### Core Features (DO NOT IMPLEMENT YET)
+1. Timeline preferences/customization
+2. Real-time location tracking on map
+3. In-trip chat and media upload
+4. Social features (like/share/comment)
+
+### MVP4: Marketplace Integration
+**Goal:** Real pricing and booking options
+
+#### Core Features (DO NOT IMPLEMENT YET)
+1. Transport pricing (Skyscanner integration)
+2. Accommodation suggestions
+
+### MVP5: Enterprise Features
+**Goal:** Travel agency templates
+
+#### Core Features (DO NOT IMPLEMENT YET)
+1. Agency-created templates
+2. Template marketplace
+
+---
+
+## Development Workflow
+
+### Before Starting Any Task
+1. ✅ Confirm feature is in current MVP phase
+2. ✅ Check if it can be done without paid services
+3. ✅ Plan how to keep app working during development
+4. ✅ Identify what tests are needed
+
+### During Development
+1. ✅ Use feature branches for complex features
+2. ✅ Test after every significant change
+3. ✅ Keep backend and frontend in sync
+4. ✅ Update API documentation if adding endpoints
+
+### Before Committing
+1. ✅ Test full user flow end-to-end
+2. ✅ Ensure no console errors
+3. ✅ Verify app loads without crashes
+4. ✅ Update relevant documentation
+5. ✅ Run `npm run dev` successfully
+
+---
+
+## Testing Requirements
+
+### Must Test Before Commit
+- [ ] App starts without errors (`npm run dev`)
+- [ ] All existing features still work
+- [ ] New feature works as expected
+- [ ] No console errors or warnings
+- [ ] Authentication flow works
+- [ ] API endpoints return expected data
+
+### Test User
+Always use: `dev@tripmaker.com` / `DevUser123!`
+
+---
+
+## Documentation Updates
+
+### Auto-Update These Files
+- `MVP_ROADMAP.md` - Progress tracking
+- `API_REFERENCE.md` - New endpoints
+- `APP_ARCHITECTURE.md` - Architecture changes
+- `README.md` - Major feature additions
+
+---
+
+## Decision Framework
+
+### Should I Implement This Feature?
+
+```
+Is it in current MVP phase?
+├─ NO → STOP. Document request, wait for explicit approval
+└─ YES
+   │
+   Does it require paid services?
+   ├─ YES → Can it use mock/free alternatives?
+   │  ├─ NO → STOP. Discuss with user first
+   │  └─ YES → Proceed with free alternative
+   └─ NO → Proceed
+      │
+      Will it keep the app working?
+      ├─ NO → Use feature flag or branch strategy
+      └─ YES → Implement fully, test, commit
+```
+
+---
+
+## Example: Good vs Bad Commits
+
+### ✅ GOOD
+```
+feat: add trip creation with map markers (MVP1)
+
+- Add POST /trips endpoint for trip persistence
+- Integrate Leaflet.js for map visualization
+- Display destination marker on map
+- Add trip list view on home page
+- Tests: All existing features work, new trip flow tested
+```
+
+### ❌ BAD
+```
+wip: started adding trip creation
+
+- Added some API code (not finished)
+- Map component broken
+- TODO: Fix markers
+```
+
+---
+
+## Current Phase Checklist
+
+### MVP1 Remaining Tasks
+- [ ] Implement trip data model (User → Trips relationship)
+- [ ] Create trip persistence API endpoints
+- [ ] Add map component to frontend
+- [ ] Build day-wise breakdown view
+- [ ] Implement trip editing
+- [ ] Add trip status management
+- [ ] Create mock data for transportation hubs
+
+**Do NOT proceed to MVP2 until ALL MVP1 tasks are complete and user explicitly approves.**

@@ -1,0 +1,147 @@
+---
+description: Trip planning feature implementation patterns
+globs: "**/{trips,itinerary,map}/**/*.{js,jsx}"
+alwaysApply: false
+---
+
+# Trip Feature Patterns
+
+## Data Model
+
+### Trip Object
+```javascript
+{
+  id: string,              // UUID
+  userId: string,          // Owner UUID
+  destination: string,     // City name
+  days: number,           // 1-10
+  pace: string,           // 'relaxed' | 'balanced' | 'fast'
+  status: string,         // 'planning' | 'active' | 'completed' | 'archived'
+  itinerary: Array,       // Day-wise breakdown
+  startDate: string,      // ISO 8601 (optional)
+  createdAt: string,      // ISO 8601
+  updatedAt: string       // ISO 8601
+}
+```
+
+## API Patterns
+
+### Trip Endpoints (MVP1)
+```javascript
+// Create trip
+POST /api/trips
+Body: { destination, days, pace }
+Auth: Required
+
+// List user trips
+GET /api/trips
+Query: { status, limit }
+Auth: Required
+
+// Get trip details
+GET /api/trips/:id
+Auth: Required
+
+// Update trip
+PUT /api/trips/:id
+Body: { status, itinerary, startDate }
+Auth: Required
+
+// Delete trip
+DELETE /api/trips/:id
+Auth: Required
+```
+
+## Frontend Patterns
+
+### Map Integration (Leaflet.js)
+```jsx
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+
+const TripMap = ({ destination, itinerary }) => {
+  return (
+    <MapContainer center={[lat, lng]} zoom={13}>
+      <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+      {itinerary.map(day => 
+        day.slots.flatMap(slot =>
+          slot.items.map(item => (
+            <Marker key={item.id} position={[item.lat, item.lng]}>
+              <Popup>{item.name}</Popup>
+            </Marker>
+          ))
+        )
+      )}
+    </MapContainer>
+  );
+};
+```
+
+### Day-wise Itinerary View
+```jsx
+const ItineraryView = ({ trip }) => {
+  return trip.itinerary.map((day, idx) => (
+    <div key={idx} className="day-card">
+      <h3>Day {day.day} - {day.area}</h3>
+      <p>{day.totalHours} hours</p>
+      {day.slots.map(slot => (
+        <div key={slot.timeOfDay} className="time-slot">
+          <h4>{slot.timeOfDay}</h4>
+          {slot.items.map(item => (
+            <div key={item.name} className="activity">
+              <span>{item.name}</span>
+              <span>{item.durationHours}h</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  ));
+};
+```
+
+## Storage Pattern
+
+### Backend (File-based, MVP1)
+```javascript
+// api/lib/db.js
+const readTrips = async () => {
+  // Read from /tmp/tripmaker-trips.json
+  // Include user filtering
+};
+
+const writeTrips = async (trips) => {
+  // Write to /tmp/tripmaker-trips.json
+  // Use queue for concurrent writes
+};
+```
+
+## Validation
+
+### Trip Input Validation
+```javascript
+const validateTrip = [
+  body('destination').notEmpty().trim(),
+  body('days').isInt({ min: 1, max: 10 }),
+  body('pace').isIn(['relaxed', 'balanced', 'fast'])
+];
+```
+
+## Testing Pattern
+
+```bash
+# Create trip
+curl -X POST http://localhost:3000/trips \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"destination":"Paris","days":3,"pace":"balanced"}'
+
+# List trips
+curl http://localhost:3000/trips \
+  -H "Authorization: Bearer <token>"
+
+# Update status
+curl -X PUT http://localhost:3000/trips/<id> \
+  -H "Authorization: Bearer <token>" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"completed"}'
+```

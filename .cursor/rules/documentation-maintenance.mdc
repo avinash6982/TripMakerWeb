@@ -1,0 +1,120 @@
+---
+description: Automatic documentation updates during development
+alwaysApply: true
+---
+
+# Documentation Maintenance
+
+## Auto-Update Rules
+
+### When Adding API Endpoints
+**Update:** `API_REFERENCE.md`
+
+Add:
+- Endpoint path and method
+- Authentication requirements
+- Request/response format
+- Example curl commands
+- Error responses
+
+### When Changing Architecture
+**Update:** `APP_ARCHITECTURE.md`
+
+Update:
+- Data flow diagrams
+- Component structure
+- Data models
+- Security considerations
+
+### When Adding Frontend Pages/Components
+**Update:** `APP_ARCHITECTURE.md` → Frontend Architecture section
+
+Add:
+- New page to routing strategy
+- Component hierarchy
+- State management approach
+
+### When Completing MVP Features
+**Update:** `MVP_ROADMAP.md`
+
+Mark:
+- Feature as complete ✅
+- Update progress percentage
+- Add completion date
+
+### When Adding Dependencies
+**Update:** `APP_ARCHITECTURE.md` → Technology Stack
+
+Add:
+- Package name and version
+- Purpose/reason for inclusion
+
+---
+
+## Documentation Standards
+
+### Keep It Current
+- Update docs in the same commit as code changes
+- Don't let docs drift from implementation
+- Add "Last Updated" date when modifying docs
+
+### Be Specific
+- Include concrete examples
+- Show actual code snippets
+- Provide real test commands
+
+### User-Focused
+- Write for developers joining the project
+- Explain WHY, not just WHAT
+- Document gotchas and edge cases
+
+---
+
+## Quick Reference
+
+### Files That Need Updates
+
+| File | Update When | Priority |
+|------|-------------|----------|
+| `API_REFERENCE.md` | New/changed endpoints | HIGH |
+| `APP_ARCHITECTURE.md` | Architecture changes | HIGH |
+| `MVP_ROADMAP.md` | Feature progress | MEDIUM |
+| `README.md` | Major features/setup changes | MEDIUM |
+| `.cursorrules` | New patterns/conventions | LOW |
+
+---
+
+## Examples
+
+### ✅ GOOD Documentation Update
+```markdown
+## Trip Creation
+
+**Endpoint:** `POST /api/trips`
+**Added:** Jan 31, 2026
+**Authentication:** Required (JWT)
+
+Creates a new trip for the authenticated user.
+
+**Request:**
+\`\`\`bash
+curl -X POST https://trip-maker-pink.vercel.app/api/trips \\
+  -H "Authorization: Bearer <token>" \\
+  -H "Content-Type: application/json" \\
+  -d '{"destination": "Paris", "days": 3}'
+\`\`\`
+
+**Response (201):**
+\`\`\`json
+{
+  "id": "trip-uuid",
+  "destination": "Paris",
+  "status": "planning"
+}
+\`\`\`
+```
+
+### ❌ BAD Documentation
+```markdown
+Added trip endpoint. See code for details.
+```
