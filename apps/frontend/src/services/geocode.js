@@ -34,13 +34,13 @@ const STATIC_DESTINATIONS = [
     label: "Manali, Himachal Pradesh, India",
     lat: 32.2396,
     lon: 77.1887,
-    aliases: ["manali", "manali india", "manali himachal"],
+    aliases: ["manali", "manali india", "manali himachal", "ladakh spiti manali", "ladakh spiti & manali"],
   },
   {
     label: "Kaza, Spiti Valley, India",
     lat: 32.2991,
     lon: 78.0182,
-    aliases: ["kaza", "spiti", "spiti valley", "ladakh spiti manali", "ladakh spiti"],
+    aliases: ["kaza", "spiti", "spiti valley", "ladakh spiti"],
   },
 ];
 
@@ -128,16 +128,28 @@ export const buildOpenStreetMapLink = ({ lat, lon }) =>
 const placeCache = new Map();
 
 /**
+ * For Nominatim, use a short region (e.g. "India") when the plan destination is a long
+ * multi-place name like "Ladakh, Spiti & Manali", so queries like "Leh Palace, India" succeed.
+ */
+function getGeocodeRegion(destination) {
+  const key = normalizeKey(destination || "");
+  if (!key) return destination || "";
+  if (key.includes("ladakh") || key.includes("spiti") || key.includes("manali")) return "India";
+  return String(destination || "").trim();
+}
+
+/**
  * Geocode a single place in the context of a destination (e.g. "Eiffel Tower", "Paris").
  * Returns { lat, lng, name } or null. Respects Nominatim usage (use with delay between calls).
  */
 export const geocodePlace = async (placeName, destination) => {
-  const key = `${normalizeKey(placeName)}|${normalizeKey(destination)}`;
+  const region = getGeocodeRegion(destination);
+  const key = `${normalizeKey(placeName)}|${normalizeKey(region)}`;
   if (placeCache.has(key)) {
     return placeCache.get(key);
   }
 
-  const query = `${String(placeName || "").trim()}, ${String(destination || "").trim()}`.trim();
+  const query = `${String(placeName || "").trim()}, ${region}`.trim();
   if (!query || query === ",") {
     return null;
   }

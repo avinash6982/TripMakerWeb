@@ -5,13 +5,14 @@ alwaysApply: true
 
 # MVP Development Discipline
 
-## Current Phase: **MVP2 - Collaboration & Community**
+## Current Phase: **MVP3 - Real-Time Trip Execution**
 
 ### Phase Status
-- **Started:** Jan 31, 2026 (MVP1 complete; unarchive added)
+- **Started:** Jan 31, 2026 (MVP3 unblocked)
 - **Target Completion:** TBD
 - **Demo Status:** ✅ Always demo-ready
-- **MVP1:** 100% complete (trip CRUD, archive, unarchive, map, transport hubs, etc.)
+- **MVP1:** 100% complete
+- **MVP2:** 100% complete (feed, sharing, invite codes, collaborators)
 
 ---
 
@@ -59,26 +60,20 @@ alwaysApply: true
 6. ✅ Trip status management (archive, unarchive, complete, delete)
 7. ✅ Transportation hub integration (mock data)
 
-### MVP2: Collaboration & Discovery (CURRENT)
-**Goal:** Users can share trips and collaborate
+### MVP2: Collaboration & Discovery (COMPLETE)
+**Goal:** Users can share trips and collaborate — ✅ All core features done.
 
-#### Core Features (implement in order)
-1. Multi-day route visualization (colored lines on map)
-2. Enhanced trip suggestions (scraping/community; zero-cost)
-3. Transportation mode selection
-4. Live location integration (browser Geolocation)
-5. Public timeline/feed
-6. Trip sharing (make public)
-7. Collaborator invitations (temporary codes)
-
-### MVP3: Advanced Features
+### MVP3: Real-Time Trip Execution (CURRENT)
 **Goal:** Real-time tracking and social features
 
-#### Core Features (DO NOT IMPLEMENT YET)
+#### Core Features (implement in order)
 1. Timeline preferences/customization
 2. Real-time location tracking on map
-3. In-trip chat and media upload
-4. Social features (like/share/comment)
+3. Live map with current location
+4. ETA, delays, alerts
+5. In-trip chat and media upload
+6. Social features (like/comment on feed)
+7. Share trips externally
 
 ### MVP4: Marketplace Integration
 **Goal:** Real pricing and booking options
@@ -192,13 +187,14 @@ wip: started adding trip creation
 
 ## Current Phase Checklist
 
-### MVP1 Remaining Tasks
-- [ ] Implement trip data model (User → Trips relationship)
-- [ ] Create trip persistence API endpoints
-- [ ] Add map component to frontend
-- [ ] Build day-wise breakdown view
-- [ ] Implement trip editing
-- [ ] Add trip status management
-- [ ] Create mock data for transportation hubs
+### MVP3 Next Tasks
+- [ ] Create MVP3_TASK_BREAKDOWN.md
+- [ ] Timeline/feed preferences (user profile interests, feed customization)
+- [ ] Real-time location tracking (browser Geolocation)
+- [ ] Live map with current location marker
+- [ ] ETA, delays, alerts
+- [ ] In-trip chat (WebSocket or polling; zero-cost)
+- [ ] Like/comment on feed trips
+- [ ] Share trips externally (copy link)
 
-**Do NOT proceed to MVP2 until ALL MVP1 tasks are complete and user explicitly approves.**
+**Do NOT proceed to MVP4 until MVP3 is complete and user explicitly approves.**

@@ -115,12 +115,14 @@ const Home = () => {
     }
   };
 
-  // Geocode itinerary places for markers + day routes (rate-limited: 1 req ~1.2s for Nominatim)
+  // Geocode itinerary places for markers + day routes (rate-limited: 1 req ~1.2s for Nominatim).
+  // Prepend destination to each day's route so polyline always starts at destination (multi-day route visible).
   useEffect(() => {
     if (!plan || mapState.status !== "ready" || !mapState.data) return;
     setItineraryMarkers([]);
     setDayRoutes([]);
     let cancelled = false;
+    const center = [mapState.data.lat, mapState.data.lon];
     const placesByDay = collectPlaceNamesByDay(plan);
     const seenNames = new Set();
     const run = async () => {
@@ -143,14 +145,15 @@ const Home = () => {
               seenNames.add(place.name);
               setItineraryMarkers((prev) => [
                 ...prev,
-                { ...coords, category: place.category },
+                { ...coords, name: place.name, category: place.category },
               ]);
             }
           }
         }
+        // Prepend destination so each day route is destination -> place1 -> place2 (visible polyline)
         setDayRoutes((prev) => {
           const next = prev.slice(0, dayIndex);
-          next[dayIndex] = [...routes[dayIndex]];
+          next[dayIndex] = [center, ...routes[dayIndex]];
           return next;
         });
       }

@@ -8,14 +8,14 @@
 
 ### New to the Project?
 1. **[README.md](README.md)** - Project overview and quick start
-2. **[DEVELOPMENT_QUICKSTART.md](DEVELOPMENT_QUICKSTART.md)** - Daily dev workflow
+2. **[QUICK_START.md](QUICK_START.md)** - 2-minute local setup
 3. **[MVP_ROADMAP.md](MVP_ROADMAP.md)** - Current phase and features
-4. **[QUICK_START.md](QUICK_START.md)** - 2-minute local setup
+4. **[DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)** - Current sprint and progress
 
 ### Starting Development Today?
-1. **[DEVELOPMENT_QUICKSTART.md](DEVELOPMENT_QUICKSTART.md)** - Read FIRST every session
-2. **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** - MVP2 tasks (current phase)
-3. **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** - MVP1 reference (complete)
+1. **[DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)** - Current sprint focus
+2. **[MVP_PLAN.md](MVP_PLAN.md)** - Feature breakdown (MVP1–5)
+3. **[MVP_ROADMAP.md](MVP_ROADMAP.md)** - Phase status and next steps
 4. **[API_REFERENCE.md](API_REFERENCE.md)** - When adding endpoints
 
 ---
@@ -39,7 +39,7 @@
 ### Development Workflow
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
-| **[DEVELOPMENT_QUICKSTART.md](DEVELOPMENT_QUICKSTART.md)** | Daily dev checklist | Daily |
+| **[DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)** | Current sprint, progress, next tasks | Weekly |
 | **[QUICK_START.md](QUICK_START.md)** | Local setup instructions | Rarely |
 | **[CONTRIBUTING.md](CONTRIBUTING.md)** | Git workflow, conventions | Rarely |
 
@@ -51,8 +51,9 @@
 ### Testing & Reference
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
-| **[MVP1_BROWSER_TEST_CHECKLIST.md](MVP1_BROWSER_TEST_CHECKLIST.md)** | ⭐ Browser verification flows after each task | Per task |
-| **[PROFILE_TESTING_RESULTS.md](PROFILE_TESTING_RESULTS.md)** | Testing workflows | Per feature |
+| **[MVP1_BROWSER_TEST_CHECKLIST.md](MVP1_BROWSER_TEST_CHECKLIST.md)** | Browser verification (MVP1 flows) | Per task |
+| **[MVP2_QA_CHECKLIST.md](MVP2_QA_CHECKLIST.md)** | MVP2 verification (map, feed, invite) | Per task |
+| **[MVP2_TEST_RESULTS.md](MVP2_TEST_RESULTS.md)** | MVP2 QA results (API sanity, code checks) | After QA run |
 | **[TEST_USER.md](TEST_USER.md)** | Dev user credentials | Never |
 
 ### Cursor AI Integration
@@ -107,29 +108,29 @@
 #### First Day
 ```
 1. README.md (5 min)
-2. DEVELOPMENT_QUICKSTART.md (10 min)
-3. QUICK_START.md (follow setup - 5 min)
-4. MVP_ROADMAP.md (15 min)
+2. QUICK_START.md (follow setup - 5 min)
+3. MVP_ROADMAP.md (15 min)
+4. DEVELOPMENT_STATUS.md (5 min)
 5. APP_ARCHITECTURE.md (30 min)
 ```
 
 #### Daily Routine
 ```
-1. DEVELOPMENT_QUICKSTART.md (2 min)
-2. MVP1_TASK_BREAKDOWN.md (5 min)
+1. DEVELOPMENT_STATUS.md (2 min) – current sprint
+2. MVP_PLAN.md / MVP_ROADMAP.md (5 min) – scope
 3. [Do work]
-4. Update MVP1_TASK_BREAKDOWN.md (1 min)
+4. Update DEVELOPMENT_STATUS.md and docs as needed
 ```
 
 #### When Adding Features
 ```
 1. Check MVP_ROADMAP.md (is it in scope?)
-2. Check MVP1_TASK_BREAKDOWN.md (task details)
+2. Check MVP_PLAN.md (feature details)
 3. Check APP_ARCHITECTURE.md (patterns)
 4. Check API_REFERENCE.md (existing APIs)
 5. [Implement]
 6. Update API_REFERENCE.md (if API added)
-7. Update MVP1_TASK_BREAKDOWN.md (check off task)
+7. Update MVP_ROADMAP.md / DEVELOPMENT_STATUS.md as needed
 ```
 
 ---
@@ -173,7 +174,7 @@
 → **[PRODUCT_VISION.md](PRODUCT_VISION.md)**
 
 ### "What should I work on today?"
-→ **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)**
+→ **[DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)** and **[MVP_PLAN.md](MVP_PLAN.md)**
 
 ### "How does authentication work?"
 → **[APP_ARCHITECTURE.md](APP_ARCHITECTURE.md)** → Authentication Flow
@@ -185,7 +186,7 @@
 → **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)**
 
 ### "What's the dev user credentials?"
-→ **[TEST_USER.md](TEST_USER.md)** or **[DEVELOPMENT_QUICKSTART.md](DEVELOPMENT_QUICKSTART.md)**
+→ **[TEST_USER.md](TEST_USER.md)**
 
 ### "What are the development rules?"
 → **[.cursorrules](.cursorrules)** and **[.cursor/rules/](.cursor/rules/)**
@@ -265,5 +266,5 @@ Production API:  https://trip-maker-pink.vercel.app/api
 ---
 
 **Maintained By:** TripMaker Development Team  
-**Last Updated:** January 31, 2026 (doc cleanup)  
+**Last Updated:** January 31, 2026 (removed redundant docs; index aligned with kept files)  
 **Next Review:** Weekly (during sprint planning)

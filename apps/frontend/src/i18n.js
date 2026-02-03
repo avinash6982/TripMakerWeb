@@ -140,6 +140,7 @@ const resources = {
         updateSuccess: "Trip updated.",
         showArchived: "Show archived",
         hideArchived: "Hide archived",
+        map: "Map",
         transportation: "Transportation",
         howAreYouGettingThere: "How are you getting there?",
         transportMode: {

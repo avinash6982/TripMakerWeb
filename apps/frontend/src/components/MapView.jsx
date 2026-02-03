@@ -128,7 +128,7 @@ const MapView = ({
             <Polyline
               key={`route-day-${dayIndex}`}
               positions={valid}
-              pathOptions={{ color, weight: 4, opacity: 0.8 }}
+              pathOptions={{ color, weight: 6, opacity: 0.85 }}
             />
           );
         })}

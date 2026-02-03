@@ -3,20 +3,37 @@ import { Link } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { fetchFeed } from "../services/trips";
 
+/** Stable gradient index from destination string for card hero */
+function gradientIndex(str) {
+  let n = 0;
+  for (let i = 0; i < (str || "").length; i++) n = (n * 31 + str.charCodeAt(i)) >>> 0;
+  return n % 6;
+}
+
+const FEED_HERO_GRADIENTS = [
+  "linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%)",
+  "linear-gradient(135deg, #0284c7 0%, #0ea5e9 50%, #38bdf8 100%)",
+  "linear-gradient(135deg, #7c3aed 0%, #8b5cf6 50%, #a78bfa 100%)",
+  "linear-gradient(135deg, #c026d3 0%, #d946ef 50%, #e879f9 100%)",
+  "linear-gradient(135deg, #ea580c 0%, #f97316 50%, #fb923c 100%)",
+  "linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%)",
+];
+
 const Feed = () => {
   const { t } = useTranslation();
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [destinationFilter, setDestinationFilter] = useState("");
+  const [searchInput, setSearchInput] = useState("");
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const params = destinationFilter.trim()
-          ? { destination: destinationFilter.trim(), limit: 20 }
-          : { limit: 20 };
+          ? { destination: destinationFilter.trim(), limit: 24 }
+          : { limit: 24 };
         const data = await fetchFeed(params);
         if (!cancelled) setTrips(data?.trips || []);
       } catch (err) {
@@ -44,43 +61,49 @@ const Feed = () => {
 
   return (
     <main className="feed-page">
-      <section className="container">
-        <div className="feed-header">
-          <h1>{t("feed.title")}</h1>
-          <p className="feed-subtitle muted">{t("feed.subtitle")}</p>
+      <section className="container feed-section">
+        <header className="feed-header">
+          <h1 className="feed-title">{t("feed.title")}</h1>
+          <p className="feed-subtitle">{t("feed.subtitle")}</p>
           <form
-            className="feed-filter"
+            className="feed-search"
             onSubmit={(e) => {
               e.preventDefault();
-              const v = e.currentTarget.destination?.value ?? "";
+              const v = (e.currentTarget.destination?.value ?? "").trim();
               setDestinationFilter(v);
+              setSearchInput(v);
             }}
           >
             <input
-              type="text"
+              type="search"
               name="destination"
               placeholder={t("feed.filterPlaceholder")}
-              className="feed-filter-input"
+              className="feed-search-input"
               aria-label={t("feed.filterPlaceholder")}
-              key="feed-dest"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value)}
             />
-            <button type="submit" className="btn small primary">
+            <button type="submit" className="btn primary feed-search-btn">
               {t("feed.filter")}
             </button>
           </form>
-        </div>
+        </header>
 
-        {loading && <p className="muted">{t("labels.loading")}</p>}
+        {loading && (
+          <div className="feed-loading" aria-live="polite">
+            <p className="muted">{t("labels.loading")}</p>
+          </div>
+        )}
         {error && (
-          <p className="message error" role="alert">
+          <p className="message error feed-message" role="alert">
             {error}
           </p>
         )}
 
         {!loading && !error && trips.length === 0 && (
           <div className="feed-empty">
-            <p className="muted">{t("feed.empty")}</p>
-            <p className="muted small">
+            <p className="feed-empty-title">{t("feed.empty")}</p>
+            <p className="feed-empty-hint">
               Share your own trips by opening a trip and clicking &ldquo;Make public&rdquo;.
             </p>
             <Link className="btn primary" to="/trips">
@@ -90,27 +113,30 @@ const Feed = () => {
         )}
 
         {!loading && !error && trips.length > 0 && (
-          <ul className="feed-list trips-list">
+          <ul className="feed-list" aria-label={t("feed.title")}>
             {trips.map((trip) => (
-              <li key={trip.id} className="trip-card feed-card">
-                <div className="trip-card-main">
-                  <h3 className="trip-card-name">{trip.name}</h3>
-                  <p className="trip-card-destination muted">{trip.destination}</p>
-                  <div className="trip-card-meta">
-                    <span>{t("feed.days", { count: trip.days })}</span>
-                    {trip.ownerEmail && (
-                      <span className="muted">{t("feed.by")} {trip.ownerEmail}</span>
-                    )}
-                    {trip.updatedAt && (
-                      <span className="muted">{formatDate(trip.updatedAt)}</span>
-                    )}
+              <li key={trip.id} className="feed-card">
+                <Link to={`/trips/${trip.id}`} className="feed-card-link">
+                  <div
+                    className="feed-card-hero"
+                    style={{ background: FEED_HERO_GRADIENTS[gradientIndex(trip.destination)] }}
+                    aria-hidden
+                  />
+                  <div className="feed-card-body">
+                    <h3 className="feed-card-title">{trip.name}</h3>
+                    <p className="feed-card-destination">{trip.destination}</p>
+                    <div className="feed-card-meta">
+                      <span className="feed-card-days">{t("feed.days", { count: trip.days })}</span>
+                      {trip.ownerEmail && (
+                        <span className="feed-card-by">{t("feed.by")} {trip.ownerEmail}</span>
+                      )}
+                      {trip.updatedAt && (
+                        <span className="feed-card-date">{formatDate(trip.updatedAt)}</span>
+                      )}
+                    </div>
+                    <span className="feed-card-cta">{t("feed.view")}</span>
                   </div>
-                </div>
-                <div className="trip-card-actions">
-                  <Link className="btn small primary" to={`/trips/${trip.id}`}>
-                    {t("feed.view")}
-                  </Link>
-                </div>
+                </Link>
               </li>
             ))}
           </ul>
