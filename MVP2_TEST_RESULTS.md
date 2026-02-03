@@ -1,120 +1,79 @@
-# MVP2 Sanity & Test Results
+# MVP2 Test Results
 
-**Date:** January 31, 2026  
-**Environment:** Local (backend: localhost:3000, frontend: localhost:5173)
-
----
-
-## API Sanity Tests (Automated)
-
-**Script:** `node test-mvp2-sanity.js`  
-**Run:** `npm run dev` (backend + frontend), then `node test-mvp2-sanity.js`
-
-### Test Coverage
-
-| # | Test | Result |
-|---|------|--------|
-| 1 | Health check | ✅ PASS |
-| 2 | Register User A (inviter) | ✅ PASS |
-| 3 | Register User B (invitee) | ✅ PASS |
-| 4 | User A creates trip | ✅ PASS |
-| 5 | User A creates invite (editor role) | ✅ PASS |
-| 6 | User B trips before redeem (0) | ✅ PASS |
-| 7 | User B redeems invite code | ✅ PASS |
-| 8 | User B sees collaborated trip in list | ✅ PASS |
-| 9 | User B can GET trip by ID (collaborator) | ✅ PASS |
-| 10 | User B (editor) can PUT/update trip | ✅ PASS |
-| 11 | Public feed returns trips (no auth) | ✅ PASS |
-| 12 | Transport mode set on trip | ✅ PASS |
-| 13 | Editor cannot DELETE (returns 403) | ✅ PASS |
-| 14 | Invalid invite code returns error | ✅ PASS |
-| 15 | User C (viewer) redeems invite | ✅ PASS |
-| 16 | Viewer cannot update (returns 403) | ✅ PASS |
-
-**All 16 API sanity tests passed.**
+**Last Updated:** February 3, 2026  
+**Purpose:** Record of MVP2 QA (API sanity, code verification, manual checklist reference).
 
 ---
 
-## Manual Browser Test Checklist
+## 1. API Sanity Test
 
-### Prerequisites
-- `npm run dev` (backend + frontend running)
-- Use unique emails for each user (or logout between tests)
+**Command:** `node test-mvp2-sanity.js` (backend on `http://localhost:3000`)
 
-### 1. Auth & Registration
+**Result:** ✅ **PASSED** (16/16)
 
-- [ ] **Login (dev user):** `dev@tripmaker.com` / `DevUser123!` → redirects to /home
-- [ ] **Register new user:** /register → enter email + password → redirects to /home
-- [ ] **Logout:** Click "Log out" → redirects to /login
+| # | Check |
+|---|--------|
+| 1 | Health check |
+| 2 | Register User A (inviter) |
+| 3 | Register User B (invitee) |
+| 4 | User A creates trip |
+| 5 | User A creates invite (code returned) |
+| 6 | User B trips before redeem |
+| 7 | User B redeems invite |
+| 8 | User B sees trip after redeem |
+| 9 | User B can GET trip (collaborator) |
+| 10 | User B (editor) can update trip |
+| 11 | Public feed returns trips |
+| 12 | Transport mode set (flight) |
+| 13 | Editor cannot DELETE (403) |
+| 14 | Invalid invite code returns error |
+| 15 | User C (viewer) redeems invite |
+| 16 | Viewer cannot update (403) |
 
-### 2. Trip Creation & Planning
-
-- [ ] **Generate plan:** Home → enter "Paris", 3 days, balanced → Generate plan
-- [ ] **Plan appears:** Day-wise itinerary with morning/afternoon/evening slots
-- [ ] **Map loads:** Map preview with destination marker + itinerary markers
-- [ ] **Day routes:** Colored polylines per day (blue day 1, green day 2, etc.)
-- [ ] **Save trip:** Click "Save trip" → enter name → trip saved
-- [ ] **Edit activity:** Edit day → change place name → datalist shows suggestions
-- [ ] **Generic suggestions:** For non-Paris/Tokyo/NYC destination, datalist shows City Center, Old Town, etc.
-
-### 3. Transport Mode & Make Public
-
-- [ ] **My Trips:** Nav → My Trips → see saved trips
-- [ ] **Open trip:** Click View on a trip
-- [ ] **Transport mode:** Click Flight/Train/Bus chip → hub highlighted, persists
-- [ ] **Make public:** Click "Make public" → success message
-- [ ] **Discover:** Nav → Discover → see public trips
-- [ ] **Filter:** Enter destination in filter → Filter → results update
-
-### 4. Invite Flow (Multi-User)
-
-**User A (Inviter):**
-1. [ ] Register or login as User A (e.g. `inviter@test.com`)
-2. [ ] Create a trip or open existing trip
-3. [ ] Click "Invite"
-4. [ ] Select role: Viewer or Editor
-5. [ ] Click "Create invite code"
-6. [ ] Copy the 8-character code
-7. [ ] Click "Copy code" → verify code copied
-
-**User B (Invitee):**
-1. [ ] Logout User A
-2. [ ] Register or login as User B (e.g. `invitee@test.com`)
-3. [ ] Go to My Trips
-4. [ ] Click "Redeem code"
-5. [ ] Enter the code from User A
-6. [ ] Click "Redeem code"
-7. [ ] Verify: trip appears in list, redirects to trip detail
-8. [ ] **If Editor:** Edit, Archive, Make public work; Delete and Invite hidden
-9. [ ] **If Viewer:** No Edit/Archive/Make public/Delete/Invite; can view only
-
-### 5. Public Trip Viewing
-
-- [ ] **View public trip (logged in):** Discover → View on trip → opens trip (read-only if not owner)
-- [ ] **Owner badge:** Non-owner sees "by owner@email.com"
-- [ ] **Owner actions hidden:** Edit, Delete, Invite, etc. not shown for non-owners
-
-### 6. Collaborator Access
-
-- [ ] **Editor:** Can edit trip name, itinerary, transport mode, make public, archive
-- [ ] **Editor cannot:** Delete trip, create invites
-- [ ] **Viewer:** Can only view trip; no edit actions
+**Run date:** February 3, 2026
 
 ---
 
-## Known Limitations
+## 2. Code-Level Verification
 
-1. **File-based storage:** Users and trips stored in JSON file; ephemeral on Vercel /tmp
-2. **Single dev user:** `dev@tripmaker.com` auto-seeded; use registration for multi-user tests
-3. **Nominatim rate limit:** Geocoding ~1 req/sec; map markers load gradually
+### Accessibility
+- **Feed:** Search input has `aria-label`; list has `aria-label`; error message has `role="alert"`. ✅
+- **Trip Detail:** Transport chips have `aria-pressed`; invite modal has `role="dialog"` and `aria-modal="true"`; role select has `aria-label`. ✅
+- **Feed cards:** Rendered as React Router `Link` (keyboard-focusable); focus-visible styles in CSS. ✅
+
+### Responsive
+- **Feed grid:** `.feed-list` — 1 column (default), 2 columns (tablet), 3 columns (wide desktop). ✅
+- **Bottom tab bar:** Fixed at bottom with safe-area and grid layout; content has padding to avoid overlap. ✅
+
+### Edge Cases (API)
+- Invalid invite code: API returns error; script verifies. ✅
+- Public feed with/without trips: script verifies feed response. ✅
 
 ---
 
-## Backend Fix Applied During Testing
+## 3. Manual Browser Checklist
 
-- **DELETE /trips/:id:** Added 403 response when collaborator (editor/viewer) attempts delete. Previously returned 404; now explicitly returns "Only the owner can delete this trip."
+**Full browser QA:** Use **MVP2_QA_CHECKLIST.md** and run manually before MVP3 sign-off.
+
+**Recommended flow:**
+1. Login → Home → Generate plan (e.g. Paris, 3 days) → Confirm map + day routes after geocoding.
+2. Save trip → My Trips → Open trip → Confirm map + day routes on Trip Detail.
+3. Make trip public → Discover → Confirm card in grid → Open trip.
+4. Create invite code → Copy → (as second user) Redeem → Confirm trip visible with correct role (viewer/editor).
+5. Check console for errors on Login, Home, Trips, Trip Detail, Discover, Profile.
+6. Check responsive: Feed 3→2→1 columns; bottom tab does not overlap content.
+
+**Test user:** `dev@tripmaker.com` / `DevUser123!`
 
 ---
 
-**Last run:** January 31, 2026  
-**All automated API tests:** PASS
+## 4. Summary
+
+| Area | Status |
+|------|--------|
+| API sanity (invite, redeem, feed, transport, roles) | ✅ 16/16 |
+| Accessibility (Feed, Trip Detail) | ✅ Verified in code |
+| Responsive (feed grid, tab bar) | ✅ Verified in code |
+| Manual browser checklist | 📋 Run per MVP2_QA_CHECKLIST.md |
+
+**Conclusion:** API and code-level checks pass. Run the manual browser checklist in MVP2_QA_CHECKLIST.md to complete QA before moving to MVP3.

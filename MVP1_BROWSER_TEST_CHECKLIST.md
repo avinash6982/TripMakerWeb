@@ -1,7 +1,8 @@
 # MVP1 Browser Test Checklist
 
 **Last Updated:** January 31, 2026  
-**Purpose:** Manual browser verification of all MVP1 features (1.1–1.13).
+**Purpose:** Manual browser verification of all MVP1 features (1.1–1.13).  
+**MVP2:** See `MVP2_QA_CHECKLIST.md` for Discover feed, multi-day routes, sharing, and invite.
 
 **Prerequisites:** Backend and frontend running (`npm run dev`).  
 **Test user:** `dev@tripmaker.com` / `DevUser123!`

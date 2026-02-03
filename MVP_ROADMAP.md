@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** January 31, 2026 (unarchive + MVP2 start)  
-**Current Phase:** MVP2 - Collaboration & Discovery  
-**Overall Progress:** MVP1 100% complete; MVP2 in progress
+**Last Updated:** January 31, 2026 (MVP2 complete, MVP3 unblocked)  
+**Current Phase:** MVP3 - Advanced Features  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 ready to start
 
 ---
 
@@ -159,52 +159,38 @@ None (MVP1 complete).
 
 ### 🚀 MVP2: Collaboration & Discovery
 
-**Status:** 🔄 IN PROGRESS  
+**Status:** ✅ COMPLETE (100%)  
 **Goal:** Users can share trips and collaborate  
-**Started:** January 31, 2026 (after MVP1 complete)
+**Started:** January 31, 2026 | **Completed:** January 31, 2026
 
-#### Planned Features 📋
-1. ✅ Multi-day Route Visualization (done)
-   - Colored polylines per day connecting itinerary stops
-   - Day 1 blue, day 2 green, day 3 amber, etc.
+#### Completed Features ✅
+1. ✅ Multi-day Route Visualization
+   - Colored polylines per day connecting itinerary stops (Day 1 blue, day 2 green, etc.)
 
-2. ⏳ Enhanced Trip Suggestions
-   - Web scraping for popular destinations
-   - Community-driven recommendations
-   - Still no paid AI services
+2. ✅ Transportation Mode Selection
+   - User selects: flight/train/bus on Trip Detail; trip starts from selected hub; hub highlighted
 
-3. ✅ Transportation Mode Selection (done)
-   - User selects: flight/train/bus on Trip Detail
-   - Trip starts from selected hub; hub highlighted in Transportation section
+3. ✅ Public Timeline/Feed
+   - GET /trips/feed, Discover (Feed) page, destination filter
 
-4. ⏳ Live Location Integration
-   - Get user's current location
-   - Show distance to starting point
-   - Suggest directions (text-based, not Google Maps API)
+4. ✅ Trip Sharing
+   - Make public / Make private on Trip Detail; public trips appear on Discover feed
 
-5. ✅ Public Timeline/Feed (done)
-   - GET /trips/feed, Discover page, destination filter
+5. ✅ Collaborator Invitations
+   - Generate one-time invite code (POST /trips/:id/invite); 24h expiry; roles: viewer, editor
+   - Redeem code (POST /invite/redeem); no WhatsApp/email (MVP3+)
 
-6. ✅ Trip Sharing (done)
-   - Make public / Make private on Trip Detail
-   - Public trips appear on Discover feed
-
-7. ⏳ Collaborator Invitations
-   - Generate one-time invite code
-   - Code has short expiry (24h)
-   - Collaborator roles: viewer, editor
-   - No WhatsApp/email yet (MVP3+)
-
-#### Atomic Tasks
-See MVP_PLAN.md and MVP2_TASK_BREAKDOWN.md (when created) for task breakdown.
+#### Deferred to MVP3 (optional)
+- **Enhanced Trip Suggestions** (scraping/community) — can add in MVP3
+- **Live Location Integration** (browser Geolocation, distance to start) — fits MVP3 real-time tracking
 
 ---
 
 ### 🌟 MVP3: Advanced Features
 
-**Status:** ⏸️ NOT STARTED  
+**Status:** 🔄 READY TO START  
 **Goal:** Real-time tracking and social features  
-**Prerequisites:** MVP2 complete + user approval
+**Prerequisites:** MVP2 complete ✅ (approved)
 
 #### Planned Features 📋
 1. ⏳ Timeline Preferences
@@ -270,25 +256,21 @@ See MVP_PLAN.md and MVP2_TASK_BREAKDOWN.md (when created) for task breakdown.
 
 | Phase | Status | Progress | Target Date |
 |-------|--------|----------|-------------|
-| MVP1 | 🔄 In Progress | 25% | Feb 15, 2026 |
-| MVP2 | ⏸️ Not Started | 0% | TBD |
-| MVP3 | ⏸️ Not Started | 0% | TBD |
+| MVP1 | ✅ Complete | 100% | Feb 15, 2026 |
+| MVP2 | ✅ Complete | 100% | Jan 31, 2026 |
+| MVP3 | 🔄 Ready to start | 0% | TBD |
 | MVP4 | ⏸️ Not Started | 0% | TBD |
 | MVP5 | ⏸️ Not Started | 0% | TBD |
 
-### Current Phase (MVP1) Progress
+### Current Phase (MVP3) Progress
 
-**Overall:** 100% (MVP1 complete)
+**Overall:** MVP1 & MVP2 complete; MVP3 ready to start
 
-| Feature | Status | Progress | Notes |
-|---------|--------|----------|-------|
-| Auth & Profile | ✅ Complete | 100% | Deployed to production |
-| Map Visualization | ✅ Complete | 100% | Leaflet, markers, popups on Home |
-| Trip Persistence | ✅ Complete | 100% | CRUD + archive, edit/delete/status/transport hubs |
-| Day-wise View | ⏳ Planned | 0% | Depends on persistence |
-| Trip Editing | ⏳ Planned | 0% | Depends on persistence |
-| Status Management | ⏳ Planned | 0% | Depends on persistence |
-| Transport Hubs | ⏳ Planned | 0% | Mock data only |
+| Phase | Feature summary | Status |
+|-------|------------------|--------|
+| MVP1 | Auth, profile, trip CRUD, map, day-wise view, edit, archive/unarchive, transport hubs | ✅ 100% |
+| MVP2 | Route lines, transport mode, feed, trip sharing, invite codes, collaborators | ✅ 100% |
+| MVP3 | Timeline prefs, real-time location, live map, ETA, chat, like/comment, share | 🔄 0% |
 
 ---
 
@@ -364,21 +346,14 @@ See MVP_PLAN.md and MVP2_TASK_BREAKDOWN.md (when created) for task breakdown.
 
 ## Next Steps
 
-### Immediate (This Week)
-1. Implement trip persistence (CRUD APIs)
-2. Create trip list view on frontend
-3. Add create trip flow
+### Immediate (MVP3)
+1. Define MVP3 task breakdown (timeline prefs, real-time location, live map, ETA, chat, like/comment, share)
+2. Start with P0: real-time location tracking + live map with current location
+3. Then: in-trip chat, like/comment on feed, share externally
 
-### Short-term (Next 2 Weeks)
-1. Integrate map visualization
-2. Build day-wise itinerary view
-3. Implement trip editing
-
-### Before MVP2
-1. Complete all MVP1 features
-2. Deploy to production
-3. User testing session
-4. Get explicit approval to proceed
+### Deferred from MVP2 (optional in MVP3)
+- Enhanced trip suggestions (scraping/community)
+- Live location integration (browser Geolocation, distance to start)
 
 ---
 

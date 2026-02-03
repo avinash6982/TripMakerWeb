@@ -11,6 +11,12 @@ import {
 } from "../services/trips";
 import { getStoredUser } from "../services/auth";
 import { getTransportHubsForDestination } from "../data/transportHubs";
+import MapView from "../components/MapView";
+import {
+  getDestinationCoordinates,
+  geocodePlace,
+  collectPlaceNamesByDay,
+} from "../services/geocode";
 
 const TripDetail = () => {
   const { t } = useTranslation();
@@ -28,6 +34,10 @@ const TripDetail = () => {
   const [inviteCode, setInviteCode] = useState(null);
   const [inviteRole, setInviteRole] = useState("viewer");
   const [inviteExpiresAt, setInviteExpiresAt] = useState(null);
+  const [mapCenter, setMapCenter] = useState(null);
+  const [itineraryMarkers, setItineraryMarkers] = useState([]);
+  const [dayRoutes, setDayRoutes] = useState([]);
+  const [mapLoading, setMapLoading] = useState(false);
 
   const loadTrip = async () => {
     if (!id) return;
@@ -51,6 +61,65 @@ const TripDetail = () => {
   useEffect(() => {
     loadTrip();
   }, [id]);
+
+  // Load map: geocode destination + itinerary places by day for multi-day route (MVP2)
+  useEffect(() => {
+    if (!trip?.destination || !trip?.itinerary?.length) {
+      setMapCenter(null);
+      setItineraryMarkers([]);
+      setDayRoutes([]);
+      return;
+    }
+    let cancelled = false;
+    setMapLoading(true);
+    setItineraryMarkers([]);
+    setDayRoutes([]);
+    const run = async () => {
+      try {
+        const coords = await getDestinationCoordinates(trip.destination);
+        if (cancelled || !coords) {
+          setMapLoading(false);
+          return;
+        }
+        const center = { lat: coords.lat, lon: coords.lon };
+        setMapCenter(center);
+        const placesByDay = collectPlaceNamesByDay({ itinerary: trip.itinerary });
+        const centerPos = [coords.lat, coords.lon];
+        const routes = placesByDay.map(() => []);
+        let reqIndex = 0;
+        for (let dayIndex = 0; dayIndex < placesByDay.length; dayIndex++) {
+          if (cancelled) return;
+          const dayPlaces = placesByDay[dayIndex];
+          for (let j = 0; j < dayPlaces.length; j++) {
+            if (cancelled) return;
+            await new Promise((r) => setTimeout(r, reqIndex === 0 ? 0 : 1200));
+            if (cancelled) return;
+            const place = dayPlaces[j];
+            const placeCoords = await geocodePlace(place.name, trip.destination);
+            reqIndex++;
+            if (cancelled) return;
+            if (placeCoords?.lat != null && placeCoords?.lng != null) {
+              routes[dayIndex].push([placeCoords.lat, placeCoords.lng]);
+              setItineraryMarkers((prev) =>
+                prev.length < 15
+                  ? [...prev, { ...placeCoords, name: place.name, category: place.category }]
+                  : prev
+              );
+            }
+          }
+          setDayRoutes((prev) => {
+            const next = prev.slice(0, dayIndex);
+            next[dayIndex] = [centerPos, ...routes[dayIndex]];
+            return next;
+          });
+        }
+      } finally {
+        if (!cancelled) setMapLoading(false);
+      }
+    };
+    run();
+    return () => { cancelled = true; };
+  }, [trip?.id, trip?.destination, trip?.itinerary]);
 
   const handleSaveEdit = async (e) => {
     e?.preventDefault();
@@ -363,6 +432,23 @@ const TripDetail = () => {
             </p>
           )}
         </div>
+
+        {!editMode && mapCenter && (
+          <div className="trip-detail-map">
+            <h2>{t("trips.map")}</h2>
+            {mapLoading && (
+              <p className="muted trip-detail-map-loading">{t("labels.loading")}</p>
+            )}
+            {!mapLoading && (
+              <MapView
+                center={mapCenter}
+                destinationLabel={trip.destination}
+                itineraryMarkers={itineraryMarkers}
+                dayRoutes={dayRoutes}
+              />
+            )}
+          </div>
+        )}
 
         {!editMode && (() => {
           const hubs = getTransportHubsForDestination(trip.destination);

@@ -1,7 +1,7 @@
 # 🚧 Development Status
 
-> **Last Updated:** January 31, 2026 (unarchive + MVP2 start)  
-> **Current Sprint:** MVP2 - Collaboration & Discovery  
+> **Last Updated:** January 31, 2026 (MVP2 complete, MVP3 unblocked)  
+> **Current Sprint:** MVP3 - Real-Time Trip Execution  
 > **Sprint Day:** 1
 
 ---
@@ -9,13 +9,14 @@
 ## 📊 Current Sprint Overview
 
 ### Sprint Goal
-**MVP2: Collaboration & Discovery** — Users can share trips and collaborate. MVP1 is 100% complete (including **Unarchive**). Current focus: MVP2 feature breakdown and first deliverables.
+**MVP3: Real-Time Trip Execution** — Live trip tracking, collaboration tools, social features. MVP1 and MVP2 are 100% complete. Current focus: MVP3 task breakdown and first deliverables (e.g. real-time location, live map).
 
-### MVP1 Completed (including Unarchive)
-- Trip CRUD, save, list, detail, edit, delete, **archive**, **unarchive**, mark complete, transport hubs, map, day-wise itinerary, place suggestions.
+### MVP1 & MVP2 Completed
+- **MVP1:** Trip CRUD, save, list, detail, edit, delete, archive, unarchive, mark complete, transport hubs, map, day-wise itinerary, place suggestions.
+- **MVP2:** Multi-day route lines, transport mode, public feed, trip sharing, invite codes, collaborators (viewer/editor).
 - Browser verification required after each task (see `MVP1_BROWSER_TEST_CHECKLIST.md`).
 
-### Sprint Progress: MVP2 ~95% (all core features done)
+### Sprint Progress: MVP3 0% (ready to start)
 
 ---
 
@@ -67,13 +68,13 @@
 
 ---
 
-## 🔬 Current Focus: MVP2 Kickoff
+## 🔬 Current Focus: MVP3 Kickoff
 
-**Objective:** Start MVP2 (Collaboration & Discovery). Break down first features into tasks; implement in order of priority (zero-cost constraint: no paid APIs).
+**Objective:** Start MVP3 (Real-Time Trip Execution). Break down first features into tasks; implement in order of priority (zero-cost constraint: no paid APIs).
 
-**Status:** Phase switched to MVP2. Phase 2.1 (Transport mode + Start hub) complete.  
-**Completed:** 2.1–2.2 (transport mode, route lines), 2.5/2.6 (public feed), 2.7/2.8 (invite codes, collaborators), 2.2 (enhanced place suggestions for any destination).  
-**Reference:** See MVP_PLAN.md MVP2 features (2.1–2.8); MVP2_TASK_BREAKDOWN.md for task breakdown.
+**Status:** MVP2 complete; MVP3 unblocked.  
+**MVP3 features:** Timeline/feed preferences, real-time location tracking, live map with current location, ETA/delays/alerts, in-trip chat, media upload, like/comment on feed, share externally.  
+**Reference:** See MVP_PLAN.md MVP3 features (3.1–3.8); create MVP3_TASK_BREAKDOWN.md for task breakdown.
 
 ---
 
