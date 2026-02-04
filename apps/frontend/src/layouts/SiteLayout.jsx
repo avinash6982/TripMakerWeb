@@ -3,15 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { clearStoredUser, getStoredUser } from "../services/auth";
 import { clearStoredProfile } from "../services/profile";
-
-const languageOptions = [
-  { code: "en", labelKey: "languages.en" },
-  { code: "hi", labelKey: "languages.hi" },
-  { code: "ml", labelKey: "languages.ml" },
-  { code: "ar", labelKey: "languages.ar" },
-  { code: "es", labelKey: "languages.es" },
-  { code: "de", labelKey: "languages.de" },
-];
+import LanguageSwitch from "../components/LanguageSwitch";
 
 /* Paper plane logo icon (teal, matches prototype) */
 const LogoIcon = () => (
@@ -72,10 +64,6 @@ const SiteLayout = () => {
     return () => window.removeEventListener("authchange", handleAuthChange);
   }, []);
 
-  const handleLanguageChange = (event) => {
-    i18n.changeLanguage(event.target.value);
-  };
-
   const handleLogout = () => {
     clearStoredUser();
     clearStoredProfile();
@@ -106,19 +94,7 @@ const SiteLayout = () => {
             })}
           </nav>
           <div className="nav-actions">
-            <label className="language-select" title={t("labels.language")}>
-              <span className="language-select-label">
-                <svg className="language-select-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="18" height="18" />
-                <span className="language-select-text">{t("labels.language")}</span>
-              </span>
-              <select value={i18n.language} onChange={handleLanguageChange} aria-label={t("labels.language")}>
-                {languageOptions.map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {t(option.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <LanguageSwitch />
             {user && (
               <button
                 className="btn secondary nav-logout-btn"

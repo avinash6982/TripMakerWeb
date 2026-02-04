@@ -357,6 +357,61 @@ ul {
   cursor: pointer;
 }
 
+/* Language switch: single globe icon button + dropdown menu */
+.language-switch {
+  position: relative;
+}
+
+.language-switch-btn {
+  padding: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.language-switch-globe {
+  flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.language-switch-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  min-width: 160px;
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.25rem;
+  z-index: 50;
+}
+
+.language-switch-item {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  border: none;
+  background: none;
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.language-switch-item:hover {
+  background: var(--color-bg);
+}
+
+.language-switch-item-active {
+  font-weight: var(--font-semibold);
+  color: var(--color-primary);
+}
+
 .text-link {
   font-weight: 600;
 }
@@ -927,6 +982,60 @@ button.text-link {
     padding: 1.5rem 0;
   }
 
+  .trips-header-actions-secondary .trips-header-redeem-desktop {
+    display: none;
+  }
+
+  .trips-redeem-mobile {
+    display: block;
+    margin-bottom: 1rem;
+  }
+
+  .trips-header-actions-menu-wrap {
+    display: block;
+    position: relative;
+  }
+
+  .trips-header-menu-btn {
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .trips-header-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    margin-top: 0.25rem;
+    min-width: 180px;
+    background: var(--color-bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    padding: 0.25rem;
+    z-index: 50;
+  }
+
+  .trips-header-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border: none;
+    background: none;
+    font-size: var(--text-sm);
+    color: var(--color-text);
+    cursor: pointer;
+    border-radius: var(--radius-sm);
+  }
+
+  .trips-header-dropdown-item:hover {
+    background: var(--color-bg);
+  }
+
   .trips-header h1 {
     font-size: 1.25rem;
   }
@@ -1246,6 +1355,40 @@ button.text-link {
   display: grid;
   gap: 1rem;
   justify-items: center;
+}
+
+.trips-empty-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+}
+
+/* Trips page header: desktop = all buttons; mobile = menu + icon primary */
+.trips-header-actions-menu-wrap {
+  display: none;
+}
+
+.trips-header-actions-secondary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trips-header-archived-btn {
+  padding: 0.5rem;
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trips-header-archived-btn[aria-pressed="true"] {
+  color: var(--color-primary);
+  background: var(--color-primary-muted);
+}
+
+.trips-redeem-mobile {
+  display: none;
 }
 
 /* Feed / Discover page (MVP2) – discovery-style layout */
@@ -2578,11 +2721,6 @@ button.text-link {
 .trip-detail-map-transport-grid .trip-detail-map,
 .trip-detail-map-transport-grid .trip-detail-transport {
   margin-top: 0;
-}
-
-/* At a glance spans full width so no empty cell in row 2 */
-.trip-detail-map-transport-grid .trip-detail-at-a-glance {
-  grid-column: 1 / -1;
 }
 
 @media (max-width: 768px) {
@@ -4277,48 +4415,6 @@ button.text-link {
     padding: 0.5rem;
     min-width: 44px;
     min-height: 44px;
-  }
-
-  /* Language: icon-only on mobile (globe only, tap opens picker) */
-  .language-select-text {
-    display: none;
-  }
-
-  .language-select {
-    position: relative;
-    padding: 0.5rem;
-    min-width: 44px;
-    min-height: 44px;
-    justify-content: center;
-  }
-
-  .language-select-label {
-    display: inline-flex;
-    pointer-events: none;
-  }
-
-  .language-select-globe {
-    width: 22px;
-    height: 22px;
-  }
-
-  .language-select select {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    padding: 0;
-    margin: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-    opacity: 0;
-    cursor: pointer;
-    font-size: 16px;
-  }
-
-  .language-select select:focus {
-    opacity: 0;
   }
 
   .home-page,

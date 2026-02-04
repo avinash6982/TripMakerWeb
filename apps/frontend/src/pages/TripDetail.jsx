@@ -972,36 +972,6 @@ const TripDetail = () => {
                   </ul>
                 </div>
               )}
-              {!editMode && trip.id && (
-                <div className="trip-detail-at-a-glance">
-                  <h2>{t("trips.atAGlance", "At a glance")}</h2>
-                  <dl className="trip-detail-at-a-glance-list">
-                    <div className="trip-detail-at-a-glance-row">
-                      <dt>{t("trips.destination", "Destination")}</dt>
-                      <dd>{trip.destination}</dd>
-                    </div>
-                    <div className="trip-detail-at-a-glance-row">
-                      <dt>{t("trips.duration", "Duration")}</dt>
-                      <dd>{t("trips.days", "{{count}} days", { count: trip.days })}</dd>
-                    </div>
-                    <div className="trip-detail-at-a-glance-row">
-                      <dt>{t("trips.statusLabel", "Status")}</dt>
-                      <dd><span className="trip-status-badge" data-status={trip.status || "upcoming"}>{t(`trips.status.${trip.status || "upcoming"}`)}</span></dd>
-                    </div>
-                  </dl>
-                  <button
-                    type="button"
-                    className="btn ghost btn-sm trip-detail-at-a-glance-comments"
-                    onClick={() => setCommentsPanelOpen(true)}
-                    aria-label={t("feed.comments", "Comments")}
-                  >
-                    <span className="trip-detail-at-a-glance-comments-icon" aria-hidden>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                    </span>
-                    {t("trips.viewComments", "View comments")}
-                  </button>
-                </div>
-              )}
             </div>
           );
         })()}

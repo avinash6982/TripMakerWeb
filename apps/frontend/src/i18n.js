@@ -120,6 +120,7 @@ const resources = {
       trips: {
         title: "My Trips",
         empty: "No trips yet.",
+        emptyHint: "Plan and save a trip from Home.",
         createNew: "Create new trip",
         status: {
           upcoming: "Upcoming",

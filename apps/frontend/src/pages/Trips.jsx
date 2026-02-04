@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { fetchTrips, redeemInvite, getApiBaseUrl } from "../services/trips";
@@ -14,6 +14,19 @@ const Trips = () => {
   const [redeemCode, setRedeemCode] = useState("");
   const [redeemLoading, setRedeemLoading] = useState(false);
   const [redeemError, setRedeemError] = useState("");
+  const [tripsMenuOpen, setTripsMenuOpen] = useState(false);
+  const tripsMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!tripsMenuOpen) return;
+    const handleClickOutside = (e) => {
+      if (tripsMenuRef.current && !tripsMenuRef.current.contains(e.target)) {
+        setTripsMenuOpen(false);
+      }
+    };
+    document.addEventListener("click", handleClickOutside);
+    return () => document.removeEventListener("click", handleClickOutside);
+  }, [tripsMenuOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -97,18 +110,59 @@ const Trips = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </Link>
           <h1 className="page-header-title">{t("trips.title")}</h1>
-          <div className="page-header-actions">
-            <button type="button" className="btn ghost btn-sm" onClick={() => setShowRedeemModal(true)}>
-              {t("trips.redeemCode")}
-            </button>
-            <button type="button" className="btn ghost btn-sm" onClick={() => setShowArchived(!showArchived)}>
-              {showArchived ? t("trips.hideArchived") : t("trips.showArchived")}
-            </button>
-            <Link className="btn primary btn-sm" to="/home">
-              {t("trips.createNew")}
-            </Link>
+          <div className="page-header-actions trips-header-actions" ref={tripsMenuRef}>
+            <div className="trips-header-actions-secondary">
+              <button type="button" className="btn ghost btn-sm trips-header-redeem-desktop" onClick={() => setShowRedeemModal(true)}>
+                {t("trips.redeemCode")}
+              </button>
+              <button
+                type="button"
+                className="btn ghost btn-sm trips-header-archived-btn"
+                onClick={() => setShowArchived(!showArchived)}
+                aria-pressed={showArchived}
+                aria-label={showArchived ? t("trips.hideArchived") : t("trips.showArchived")}
+                title={showArchived ? t("trips.hideArchived") : t("trips.showArchived")}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 8v13H3V8" />
+                  <path d="M1 3h22v5H1z" />
+                  <path d="M10 12h4" />
+                </svg>
+              </button>
+            </div>
+            <div className="trips-header-actions-menu-wrap">
+              <button
+                type="button"
+                className="btn ghost btn-sm trips-header-menu-btn"
+                onClick={(e) => { e.stopPropagation(); setTripsMenuOpen((o) => !o); }}
+                aria-expanded={tripsMenuOpen}
+                aria-haspopup="true"
+                aria-label={t("trips.moreActions", "More actions")}
+                title={t("trips.moreActions", "More actions")}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                </svg>
+              </button>
+              {tripsMenuOpen && (
+                <div className="trips-header-dropdown" role="menu">
+                  <button type="button" className="trips-header-dropdown-item" role="menuitem" onClick={() => { setShowRedeemModal(true); setTripsMenuOpen(false); }}>
+                    {t("trips.redeemCode")}
+                  </button>
+                  <button type="button" className="trips-header-dropdown-item" role="menuitem" onClick={() => { setShowArchived(!showArchived); setTripsMenuOpen(false); }}>
+                    {showArchived ? t("trips.hideArchived") : t("trips.showArchived")}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
+
+        <div className="trips-redeem-mobile">
+          <button type="button" className="btn ghost btn-sm" onClick={() => setShowRedeemModal(true)}>
+            {t("trips.redeemCode")}
+          </button>
+        </div>
 
         {loading && <p className="muted">{t("labels.loading")}</p>}
         {error && (
@@ -120,9 +174,7 @@ const Trips = () => {
         {!loading && !error && displayedTrips.length === 0 && (
           <div className="trips-empty">
             <p className="muted">{t("trips.empty")}</p>
-            <Link className="btn primary" to="/home">
-              {t("trips.createNew")}
-            </Link>
+            <p className="trips-empty-hint muted">{t("trips.emptyHint", "Plan and save a trip from Home.")}</p>
           </div>
         )}
 

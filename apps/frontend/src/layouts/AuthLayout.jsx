@@ -2,15 +2,7 @@ import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-do
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getStoredUser } from "../services/auth";
-
-const languageOptions = [
-  { code: "en", labelKey: "languages.en" },
-  { code: "hi", labelKey: "languages.hi" },
-  { code: "ml", labelKey: "languages.ml" },
-  { code: "ar", labelKey: "languages.ar" },
-  { code: "es", labelKey: "languages.es" },
-  { code: "de", labelKey: "languages.de" },
-];
+import LanguageSwitch from "../components/LanguageSwitch";
 
 const LogoIcon = () => (
   <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -45,10 +37,6 @@ const AuthLayout = () => {
     }
   }, [navigate]);
 
-  const handleLanguageChange = (event) => {
-    i18n.changeLanguage(event.target.value);
-  };
-
   return (
     <div className="auth-shell">
       <header className="auth-header auth-header-full">
@@ -67,19 +55,7 @@ const AuthLayout = () => {
             </NavLink>
           </nav>
           <div className="nav-actions">
-            <label className="language-select" title={t("labels.language")}>
-              <span className="language-select-label">
-                <svg className="language-select-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="18" height="18" />
-                <span className="language-select-text">{t("labels.language")}</span>
-              </span>
-              <select value={i18n.language} onChange={handleLanguageChange} aria-label={t("labels.language")}>
-                {languageOptions.map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {t(option.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </label>
+            <LanguageSwitch />
             {!isLoginPage && (
               <Link className="btn ghost btn-sm auth-header-login" to="/login" aria-label={t("auth.login.button")} title={t("auth.login.button")}>
                 <span className="auth-header-btn-icon" aria-hidden>
