@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** February 3, 2026 (MVP3 media: R2 + 100MB/user limit)  
-**Current Phase:** MVP3 - Advanced Features  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 ready to start
+**Last Updated:** February 2026  
+**Current Phase:** Design Optimization (post-MVP3)  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization active; MVP4 not started
 
 ---
 
@@ -217,11 +217,22 @@ None (MVP1 complete).
 
 ---
 
+### 🎨 Design Optimization (current)
+
+**Status:** 🔄 Active  
+**Goal:** UI/design review and polish before MVP4  
+**Prerequisites:** MVP3 complete  
+**Reference:** [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md), `.cursor/rules/design-optimization-phase.mdc`
+
+This is a **feedback-driven** stage: you review design elements, page structure, styles, and overall UI and provide specific feedback. Each change is applied **in isolation** (one item at a time) to avoid regressions. No new features; no MVP4 work until you acknowledge this phase complete.
+
+---
+
 ### 💼 MVP4: Marketplace Integration
 
 **Status:** ⏸️ NOT STARTED  
 **Goal:** Real pricing and booking options  
-**Prerequisites:** MVP3 complete + user approval  
+**Prerequisites:** Design Optimization acknowledged complete + user approval to start MVP4  
 **Note:** This phase introduces PAID services
 
 #### Planned Features 📋
@@ -259,19 +270,21 @@ None (MVP1 complete).
 |-------|--------|----------|-------------|
 | MVP1 | ✅ Complete | 100% | Feb 15, 2026 |
 | MVP2 | ✅ Complete | 100% | Jan 31, 2026 |
-| MVP3 | 🔄 Ready to start | 0% | TBD |
-| MVP4 | ⏸️ Not Started | 0% | TBD |
+| MVP3 | ✅ Complete | 100% | Feb 2026 |
+| Design Optimization | 🔄 Active | — | User-driven |
+| MVP4 | ⏸️ Not Started | 0% | After design phase |
 | MVP5 | ⏸️ Not Started | 0% | TBD |
 
-### Current Phase (MVP3) Progress
+### Current Phase: Design Optimization
 
-**Overall:** MVP1 & MVP2 complete; MVP3 ready to start
+**Overall:** MVP1–MVP3 complete; Design Optimization active (feedback-driven UI/design polish).
 
-| Phase | Feature summary | Status |
-|-------|------------------|--------|
+| Phase | Summary | Status |
+|-------|---------|--------|
 | MVP1 | Auth, profile, trip CRUD, map, day-wise view, edit, archive/unarchive, transport hubs | ✅ 100% |
 | MVP2 | Route lines, transport mode, feed, trip sharing, invite codes, collaborators | ✅ 100% |
-| MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2 media, 100MB/user), like/comment, share | 🔄 0% |
+| MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2, 100MB/user), like/comment, share, gallery, thumbnails | ✅ 100% |
+| Design Optimization | UI/design review; one change per feedback item; no MVP4 | 🔄 Active |
 
 ---
 

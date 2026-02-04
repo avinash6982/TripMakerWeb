@@ -1,0 +1,73 @@
+---
+description: Design Optimization phase – UI/design feedback only, one change at a time, no MVP4 scope
+alwaysApply: true
+---
+
+# Design Optimization Phase (Post-MVP3)
+
+## Current Phase
+
+**Design Optimization** is the active phase. MVP3 is complete. MVP4 has not started. This phase is **feedback-driven**: the user reviews design elements, page structure, styles, and overall UI and provides specific feedback. Each change is implemented **in isolation** to avoid regressions and repeated issues.
+
+---
+
+## Scope
+
+### In scope
+- **Visual design:** Colors, typography, spacing, borders, shadows, icons.
+- **Page structure:** Layout, section order, header/footer placement, component arrangement.
+- **Component styling:** Buttons, cards, forms, lists, modals, empty states, loading states.
+- **Responsiveness:** Breakpoints, mobile vs desktop layout, touch targets.
+- **Consistency:** Aligning pages with the standard page header, icon buttons, empty states (see `ui-icon-buttons.mdc`).
+- **Accessibility:** Contrast, focus states, aria-labels (no new features; polish only).
+
+### Out of scope
+- **New features** (e.g. new pages, new API endpoints, new user flows).
+- **MVP4 work** (marketplace, paid APIs, booking) — do not start until user explicitly ends Design Optimization and approves MVP4.
+- **Backend logic changes** unless required to support a purely presentational change (e.g. exposing existing data for layout).
+- **New dependencies** unless the user explicitly requests a specific library for design.
+
+---
+
+## Workflow: One change at a time
+
+1. **User provides feedback** — e.g. "Make the trip card title larger on mobile" or "Add more spacing between the gallery thumbnails."
+2. **Implement exactly that change** — Single, isolated edit. Do not refactor unrelated code or "improve" other areas in the same commit.
+3. **Verify** — Run the app, check the changed screen/component, ensure no console errors and no broken layout elsewhere.
+4. **Done** — Wait for the next feedback item. Do not batch multiple design requests into one change unless the user explicitly asks for it.
+
+### Why isolation matters
+- Reduces risk of regressions (e.g. fixing one page and breaking another).
+- Makes it easy to revert a single change if the user doesn’t like it.
+- Keeps diffs and code reviews focused.
+- Avoids "repeated issues" from large, multi-file touch-ups.
+
+---
+
+## Applying feedback
+
+- **Be literal:** Implement what the user asked for. If something is ambiguous, ask once (e.g. "Do you want the same spacing on the Feed cards as on Trip cards?").
+- **Stay scoped:** If the user says "trip detail header," change only the trip detail header (or the shared page-header component if that’s the agreed standard), not every page.
+- **Preserve behavior:** Design-only changes must not change logic, routes, or data flow. Exception: moving a button to a different place is allowed; changing what the button does is not unless the user asks.
+- **Document if needed:** If a design change affects a shared component (e.g. `.page-header`), note it in the commit or in `DESIGN_OPTIMIZATION.md` so later feedback can stay consistent.
+
+---
+
+## When this phase ends
+
+- The user will **acknowledge** when they are done giving design feedback (e.g. "Design optimization is done" or "Ready for MVP4").
+- Do **not** assume the phase is over until then.
+- After acknowledgment, update docs (e.g. `DEVELOPMENT_STATUS.md`, `MVP_ROADMAP.md`) to mark Design Optimization complete and set the next phase to MVP4 (with explicit user approval to start MVP4).
+
+---
+
+## Quick reference
+
+| Do | Don’t |
+|----|--------|
+| One design change per feedback item | Batch many unrelated UI changes |
+| Restrict changes to the requested screen/component | Refactor whole app in one go |
+| Test after each change | Skip verification |
+| Use existing design tokens (variables.css) | Introduce new design systems without asking |
+| Ask if feedback is unclear | Guess and implement something different |
+| Wait for user to signal phase complete | Start MVP4 on your own |
