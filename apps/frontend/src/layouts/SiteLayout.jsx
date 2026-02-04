@@ -106,12 +106,12 @@ const SiteLayout = () => {
             })}
           </nav>
           <div className="nav-actions">
-            <label className="language-select">
+            <label className="language-select" title={t("labels.language")}>
               <span className="language-select-label">
                 <svg className="language-select-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="18" height="18" />
-                {t("labels.language")}
+                <span className="language-select-text">{t("labels.language")}</span>
               </span>
-              <select value={i18n.language} onChange={handleLanguageChange}>
+              <select value={i18n.language} onChange={handleLanguageChange} aria-label={t("labels.language")}>
                 {languageOptions.map((option) => (
                   <option key={option.code} value={option.code}>
                     {t(option.labelKey)}
@@ -120,8 +120,21 @@ const SiteLayout = () => {
               </select>
             </label>
             {user && (
-              <button className="btn secondary" type="button" onClick={handleLogout}>
-                {t("actions.logout")}
+              <button
+                className="btn secondary nav-logout-btn"
+                type="button"
+                onClick={handleLogout}
+                aria-label={t("actions.logout")}
+                title={t("actions.logout")}
+              >
+                <span className="nav-logout-icon" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                  </svg>
+                </span>
+                <span className="nav-logout-text">{t("actions.logout")}</span>
               </button>
             )}
           </div>

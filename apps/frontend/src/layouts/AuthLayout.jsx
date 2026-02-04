@@ -1,4 +1,4 @@
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useNavigate, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { getStoredUser } from "../services/auth";
@@ -34,6 +34,9 @@ const TabIconFeed = () => (
 const AuthLayout = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
+  const isLoginPage = pathname === "/login";
+  const isRegisterPage = pathname === "/register";
 
   useEffect(() => {
     const user = getStoredUser();
@@ -64,12 +67,12 @@ const AuthLayout = () => {
             </NavLink>
           </nav>
           <div className="nav-actions">
-            <label className="language-select">
+            <label className="language-select" title={t("labels.language")}>
               <span className="language-select-label">
                 <svg className="language-select-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="18" height="18" />
-                {t("labels.language")}
+                <span className="language-select-text">{t("labels.language")}</span>
               </span>
-              <select value={i18n.language} onChange={handleLanguageChange}>
+              <select value={i18n.language} onChange={handleLanguageChange} aria-label={t("labels.language")}>
                 {languageOptions.map((option) => (
                   <option key={option.code} value={option.code}>
                     {t(option.labelKey)}
@@ -77,12 +80,31 @@ const AuthLayout = () => {
                 ))}
               </select>
             </label>
-            <Link className="btn ghost btn-sm" to="/login">
-              {t("auth.login.button")}
+            {!isLoginPage && (
+              <Link className="btn ghost btn-sm auth-header-login" to="/login" aria-label={t("auth.login.button")} title={t("auth.login.button")}>
+                <span className="auth-header-btn-icon" aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+                    <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                    <polyline points="10 17 15 12 10 7" />
+                    <line x1="15" y1="12" x2="3" y2="12" />
+                  </svg>
+                </span>
+                <span className="auth-header-btn-text">{t("auth.login.button")}</span>
+              </Link>
+            )}
+            {!isRegisterPage && (
+              <Link className="btn secondary auth-header-register" to="/register" aria-label={t("auth.register.button")} title={t("auth.register.button")}>
+              <span className="auth-header-btn-icon" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                  <circle cx="8.5" cy="7" r="4" />
+                  <line x1="20" y1="8" x2="20" y2="14" />
+                  <line x1="23" y1="11" x2="17" y2="11" />
+                </svg>
+              </span>
+              <span className="auth-header-btn-text">{t("auth.register.button")}</span>
             </Link>
-            <Link className="btn secondary" to="/register">
-              {t("auth.register.button")}
-            </Link>
+            )}
           </div>
         </div>
       </header>

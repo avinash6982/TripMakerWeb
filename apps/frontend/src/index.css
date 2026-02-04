@@ -22,6 +22,7 @@ body {
   background: var(--bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
 }
 
 img {
@@ -44,6 +45,7 @@ ul {
   margin: 0 auto;
   padding-left: var(--space-4);
   padding-right: var(--space-4);
+  min-width: 0;
 }
 
 /* ========== Standard page header (app-wide) ========== */
@@ -197,6 +199,17 @@ ul {
   padding: var(--space-2) 0;
 }
 
+/* Auth header: icon hidden on desktop (text shown), shown on mobile (text hidden) */
+.auth-header .auth-header-btn-icon {
+  display: none;
+}
+
+.auth-header .auth-header-btn-icon svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 /* ========== Desktop: top header ========== */
 .site-header {
   position: sticky;
@@ -288,6 +301,17 @@ ul {
 .nav-actions .btn.secondary {
   padding: 0.5rem 1rem;
   font-size: var(--text-sm);
+}
+
+/* Logout: icon on small screens (prevents truncation), text on larger */
+.nav-logout-icon {
+  display: none;
+}
+
+.nav-logout-btn .nav-logout-icon svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
 }
 
 .sr-only {
@@ -816,6 +840,146 @@ button.text-link {
   background: linear-gradient(135deg, #e0f2fe 0%, #ecfeff 40%, #f0fdfa 70%, #e0f2fe 100%);
   padding: var(--space-10) 0 var(--space-12);
   margin-bottom: 2rem;
+}
+
+@media (max-width: 767px) {
+  .home-hero {
+    padding-bottom: var(--space-6);
+    margin-bottom: 1rem;
+  }
+
+  .home-page .planner-grid {
+    margin-top: 1rem;
+  }
+
+  .home-hero-card {
+    padding: var(--space-5) var(--space-4);
+  }
+
+  .planner-form input,
+  .planner-form select {
+    font-size: 16px;
+  }
+
+  /* Auth: tighter card on mobile */
+  .auth-page {
+    padding: 2rem 0;
+    min-height: 50vh;
+  }
+
+  .auth-card {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .auth-form input {
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  /* Feed: hero and filter bar */
+  .feed-hero {
+    padding: var(--space-8) var(--space-4) var(--space-10);
+    margin-bottom: -1.5rem;
+  }
+
+  .feed-hero-title {
+    font-size: clamp(1.35rem, 4vw, 1.75rem);
+  }
+
+  .feed-hero-subtitle {
+    font-size: var(--text-sm);
+  }
+
+  .feed-section,
+  .feed-filter-bar {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  .feed-filter-bar {
+    padding: var(--space-3);
+    gap: var(--space-2);
+  }
+
+  .feed-filter-bar .feed-search-input {
+    min-width: 0;
+  }
+
+  .feed-card-body {
+    padding: var(--space-4);
+  }
+
+  .feed-card-title {
+    font-size: var(--text-base);
+    word-break: break-word;
+  }
+
+  .feed-card-meta {
+    font-size: 0.8125rem;
+  }
+
+  .feed-list {
+    grid-template-columns: 1fr;
+  }
+
+  /* Trips list */
+  .trips-page {
+    padding: 1.5rem 0;
+  }
+
+  .trips-header h1 {
+    font-size: 1.25rem;
+  }
+
+  .trips-empty {
+    padding: 2rem var(--space-3);
+  }
+
+  .trips-list {
+    grid-template-columns: 1fr;
+  }
+
+  .trip-card-main {
+    padding: var(--space-4) var(--space-4);
+  }
+
+  .trip-card-name,
+  .trip-card-destination {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Trip gallery page */
+  .trip-gallery-page {
+    padding: 1rem 0;
+  }
+
+  .trip-gallery-nav {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .trip-gallery-thumb-btn {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Readability: prevent overflow on long text */
+  .page-header-title,
+  .feed-card-title,
+  .feed-card-destination,
+  .planner-day h3,
+  .trip-day h3 {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  /* Primary buttons: touch target on mobile */
+  .btn.primary,
+  .btn.btn-cta {
+    min-height: 48px;
+    padding: 0.75rem 1.25rem;
+  }
 }
 
 .home-hero .container {
@@ -4081,9 +4245,80 @@ button.text-link {
     gap: var(--space-2);
   }
 
+  .nav-logout-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .nav-logout-text {
+    display: none;
+  }
+
+  .nav-logout-btn {
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Auth header: show icon-only for Log in / Register so they don't clip */
+  .auth-header .auth-header-btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-header .auth-header-btn-text {
+    display: none;
+  }
+
+  .auth-header .auth-header-login,
+  .auth-header .auth-header-register {
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  /* Language: icon-only on mobile (globe only, tap opens picker) */
+  .language-select-text {
+    display: none;
+  }
+
+  .language-select {
+    position: relative;
+    padding: 0.5rem;
+    min-width: 44px;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .language-select-label {
+    display: inline-flex;
+    pointer-events: none;
+  }
+
+  .language-select-globe {
+    width: 22px;
+    height: 22px;
+  }
+
   .language-select select {
-    padding: var(--space-2) var(--space-3);
-    font-size: var(--text-sm);
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    opacity: 0;
+    cursor: pointer;
+    font-size: 16px;
+  }
+
+  .language-select select:focus {
+    opacity: 0;
   }
 
   .home-page,
@@ -4118,6 +4353,16 @@ button.text-link {
 @media (max-width: 600px) {
   .nav {
     align-items: flex-start;
+  }
+
+  .container {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+    width: min(var(--container-max), 96%);
+  }
+
+  .auth-card {
+    padding: var(--space-5) var(--space-3);
   }
 
   .timeline-item {
