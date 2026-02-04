@@ -1,27 +1,26 @@
 # 🚧 Development Status
 
 > **Last Updated:** February 2026  
-> **Current Phase:** Design Optimization (post-MVP3)  
-> **Next phase:** MVP4 (after you acknowledge design feedback complete)
+> **Current Phase:** Design Optimization complete — ready for MVP4  
+> **Next phase:** MVP4 (start when you explicitly approve)
 
 ---
 
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**Design Optimization** — You review design elements, page structure, styles, and overall UI and provide feedback. Each change is applied **in isolation** (one item at a time) to avoid regressions. No new features; no MVP4 work until you say this phase is done.
+**MVP4: Marketplace Integration** is next. Do not start MVP4 until you explicitly approve (paid services; see MVP_ROADMAP.md).
 
-**Reference:** [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md), `.cursor/rules/design-optimization-phase.mdc`
+**Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md)
 
 ### MVP1, MVP2 & MVP3 Completed
 - **MVP1:** Trip CRUD, save, list, detail, edit, delete, archive, unarchive, transport hubs, map, day-wise itinerary, place suggestions.
 - **MVP2:** Multi-day route lines, transport mode, public feed, trip sharing, invite codes, collaborators (viewer/editor).
 - **MVP3:** Timeline/feed preferences, real-time location, live map, ETA/alerts, in-trip chat (R2 media, 100MB/user), like/comment on feed, share trips, trip gallery, thumbnails, comment images, standard page header.
 
-### Design Optimization: feedback-driven
-- You provide specific UI/design feedback (e.g. spacing, typography, layout, empty states).
-- Agent implements **one change per feedback item** and verifies no regressions.
-- When you’re satisfied, acknowledge (e.g. “Design optimization done”) so we can mark the phase complete and prepare for MVP4.
+### Design Optimization: complete
+- UI/design feedback phase finished (February 2026).
+- Design Optimization marked complete; next phase is MVP4 (start only with your explicit approval).
 
 ---
 
@@ -73,13 +72,12 @@
 
 ---
 
-## 🔬 Current Focus: Design Optimization
+## 🔬 Current Focus: Ready for MVP4
 
-**Objective:** Apply your UI/design feedback in small, isolated changes. No new features; no MVP4 until you acknowledge this phase complete.
+**Objective:** MVP4 (Marketplace Integration) is the next phase. It introduces paid services (e.g. Skyscanner, accommodation APIs). Start MVP4 only when you explicitly approve.
 
-**Status:** MVP3 complete. Design Optimization active.  
-**How it works:** You give feedback (e.g. “Trip card: larger title on mobile”, “Gallery empty state: more padding”). Each item is implemented alone, then verified.  
-**Reference:** DESIGN_OPTIMIZATION.md, .cursor/rules/design-optimization-phase.mdc.
+**Status:** MVP1–MVP3 complete. Design Optimization complete. Ready for MVP4.  
+**Reference:** MVP_ROADMAP.md (MVP4 section), DESIGN_OPTIMIZATION.md.
 
 ---
 

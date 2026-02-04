@@ -13,7 +13,15 @@ const languageOptions = [
   { code: "de", labelKey: "languages.de" },
 ];
 
-/* Inline SVG icons for bottom tab bar (no extra dependency) */
+/* Paper plane logo icon (teal, matches prototype) */
+const LogoIcon = () => (
+  <svg className="logo-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+    <path d="M22 2L11 13" />
+    <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+  </svg>
+);
+
+/* Inline SVG icons for header nav and bottom tab bar (no extra dependency) */
 const TabIconHome = () => (
   <svg className="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
     <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -78,23 +86,31 @@ const SiteLayout = () => {
     <div className="app">
       <header className="site-header">
         <div className="container nav">
-          <Link className="logo" to="/">
+          <Link className="logo" to="/home">
+            <LogoIcon />
             {t("appName")}
           </Link>
           <nav className="nav-links" aria-label="Primary">
-            {navLinks.map((link) => (
-              <NavLink
-                key={link.to}
-                to={link.to}
-                className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
-              >
-                {link.label}
-              </NavLink>
-            ))}
+            {navLinks.map((link) => {
+              const Icon = link.icon;
+              return (
+                <NavLink
+                  key={link.to}
+                  to={link.to}
+                  className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+                >
+                  <span className="nav-link-icon"><Icon /></span>
+                  {link.label}
+                </NavLink>
+              );
+            })}
           </nav>
           <div className="nav-actions">
             <label className="language-select">
-              <span className="sr-only">{t("labels.language")}</span>
+              <span className="language-select-label">
+                <svg className="language-select-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="18" height="18" />
+                {t("labels.language")}
+              </span>
               <select value={i18n.language} onChange={handleLanguageChange}>
                 {languageOptions.map((option) => (
                   <option key={option.code} value={option.code}>
@@ -104,7 +120,7 @@ const SiteLayout = () => {
               </select>
             </label>
             {user && (
-              <button className="text-link" type="button" onClick={handleLogout}>
+              <button className="btn secondary" type="button" onClick={handleLogout}>
                 {t("actions.logout")}
               </button>
             )}

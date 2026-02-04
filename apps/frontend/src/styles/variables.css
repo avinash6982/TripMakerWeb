@@ -4,10 +4,14 @@
  */
 
 :root {
-  /* Colors – primary palette */
+  /* Colors – primary palette (teal/green per prototype) */
   --color-primary: #0f766e;
   --color-primary-hover: #0d5c55;
   --color-primary-muted: rgba(15, 118, 110, 0.12);
+  /* Secondary action (e.g. header Log In / Log Out button) */
+  --color-secondary: #7dd3fc;
+  --color-secondary-hover: #38bdf8;
+  --color-secondary-text: #0c4a6e;
   --color-accent: #0284c7;
   --color-accent-muted: rgba(2, 132, 199, 0.15);
 
@@ -40,18 +44,20 @@
   --space-12: 3rem;    /* 48px */
   --space-16: 4rem;    /* 64px */
 
-  /* Radius */
+  /* Radius – cards use large radius per prototype */
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
   --radius-xl: 20px;
+  --radius-card: 24px;
   --radius-full: 9999px;
 
-  /* Shadows */
+  /* Shadows – soft, diffused for floating cards */
   --shadow-sm: 0 1px 2px rgba(15, 23, 42, 0.06);
   --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
   --shadow-lg: 0 12px 28px rgba(15, 23, 42, 0.1);
   --shadow-xl: 0 20px 40px rgba(15, 23, 42, 0.12);
+  --shadow-card: 0 8px 24px rgba(15, 23, 42, 0.08);
 
   /* Typography */
   --font-sans: "Plus Jakarta Sans", "Segoe UI", system-ui, -apple-system, sans-serif;

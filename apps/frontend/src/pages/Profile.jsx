@@ -186,141 +186,176 @@ const Profile = () => {
             </button>
           </div>
         </header>
+        <p className="profile-subtitle">{t("profile.subtitle")}</p>
         <div className="profile-grid">
-        <div className="profile-intro">
-          <p className="lead">{t("profile.subtitle")}</p>
-          <div className="profile-card">
-            <h3>{t("profile.intro")}</h3>
-            <p className="muted">{greeting}</p>
-            <div className="profile-meta">
-              <div>
-                <span>{t("profile.form.currency")}</span>
-                <strong>{formState.currencyType}</strong>
+          <div className="profile-intro">
+            <div className="profile-card">
+              <h3>{t("profile.summaryTitle", "Profile Summary")}</h3>
+              <div className="profile-avatar" aria-hidden>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                  <circle cx="12" cy="7" r="4" />
+                </svg>
               </div>
-              <div>
-                <span>{t("profile.form.language")}</span>
-                <strong>{t(`languages.${formState.language}`)}</strong>
-              </div>
-              {typeof formState.storageUsed === "number" && (
+              <p className="profile-email">{greeting}</p>
+              <div className="profile-meta">
                 <div>
-                  <span>{t("profile.form.storage", "Storage")}</span>
-                  <strong>
-                    {t("profile.storage.used", "{{used}} MB / {{limit}} MB", {
-                      used: (formState.storageUsed / (1024 * 1024)).toFixed(1),
-                      limit: formState.limitBytes != null ? Math.round(formState.limitBytes / (1024 * 1024)) : 100,
-                    })}
-                  </strong>
+                  <span>{t("profile.form.currency")}</span>
+                  <strong>{formState.currencyType}</strong>
                 </div>
-              )}
+                <div>
+                  <span>{t("profile.form.language")}</span>
+                  <strong>{t(`languages.${formState.language}`)}</strong>
+                </div>
+                {typeof formState.storageUsed === "number" && (
+                  <div>
+                    <span>{t("profile.form.storage", "Storage")}</span>
+                    <strong>
+                      {t("profile.storage.used", "{{used}} MB / {{limit}} MB", {
+                        used: (formState.storageUsed / (1024 * 1024)).toFixed(1),
+                        limit: formState.limitBytes != null ? Math.round(formState.limitBytes / (1024 * 1024)) : 100,
+                      })}
+                    </strong>
+                    <div className="profile-storage-bar">
+                      <div
+                        className="profile-storage-bar-fill"
+                        style={{
+                          width: `${formState.limitBytes ? Math.min(100, (formState.storageUsed / formState.limitBytes) * 100) : 0}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
-        <div className="profile-form-card">
-          <form id="profile-form" className="profile-form" onSubmit={handleSubmit}>
-            <div className="field">
-              <label htmlFor="profile-email">{t("profile.form.email")}</label>
-              <input
-                id="profile-email"
-                name="email"
-                type="email"
-                value={formState.email}
-                placeholder={t("profile.placeholders.email")}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="profile-phone">{t("profile.form.phone")}</label>
-              <input
-                id="profile-phone"
-                name="phone"
-                type="tel"
-                value={formState.phone}
-                placeholder={t("profile.placeholders.phone")}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="profile-country">{t("profile.form.country")}</label>
-              <select
-                id="profile-country"
-                name="country"
-                value={formState.country}
-                onChange={handleChange}
-              >
-                <option value="">{t("profile.placeholders.country")}</option>
-                {countryOptions.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="profile-language">{t("profile.form.language")}</label>
-              <select
-                id="profile-language"
-                name="language"
-                value={formState.language}
-                onChange={handleChange}
-              >
-                {languageOptions.map((option) => (
-                  <option key={option.code} value={option.code}>
-                    {t(option.labelKey)}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="profile-currency">{t("profile.form.currency")}</label>
-              <select
-                id="profile-currency"
-                name="currencyType"
-                value={formState.currencyType}
-                onChange={handleChange}
-              >
-                {currencyOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div className="field">
-              <label htmlFor="profile-interests">{t("profile.form.interests")}</label>
-              <input
-                id="profile-interests"
-                name="interests"
-                type="text"
-                value={formState.interests}
-                placeholder={t("profile.placeholders.interests")}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="field">
-              <label htmlFor="profile-preferredDestinations">{t("profile.form.preferredDestinations")}</label>
-              <input
-                id="profile-preferredDestinations"
-                name="preferredDestinations"
-                type="text"
-                value={formState.preferredDestinations}
-                placeholder={t("profile.placeholders.preferredDestinations")}
-                onChange={handleChange}
-              />
-            </div>
-            {message && (
-              <div
-                className={`message ${status === "error" ? "error" : "success"}`}
-                role={status === "error" ? "alert" : "status"}
-              >
-                {message}
+          <div className="profile-form-card">
+            <h3>{t("profile.editTitle", "Edit Profile")}</h3>
+            <form id="profile-form" className="profile-form" onSubmit={handleSubmit}>
+              <div className="profile-form-section">
+                <h4 className="profile-form-section-title">{t("profile.sectionPersonal", "Personal Info")}</h4>
+                <div className="profile-form-fields">
+                  <div className="field">
+                    <label htmlFor="profile-email">{t("profile.form.email")}</label>
+                    <input
+                      id="profile-email"
+                      name="email"
+                      type="email"
+                      value={formState.email}
+                      placeholder={t("profile.placeholders.email")}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="profile-phone">{t("profile.form.phone")}</label>
+                    <input
+                      id="profile-phone"
+                      name="phone"
+                      type="tel"
+                      value={formState.phone}
+                      placeholder={t("profile.placeholders.phone")}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="profile-country">{t("profile.form.country")}</label>
+                    <select
+                      id="profile-country"
+                      name="country"
+                      value={formState.country}
+                      onChange={handleChange}
+                    >
+                      <option value="">{t("profile.placeholders.country")}</option>
+                      {countryOptions.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
-            )}
-            {status === "loading" && (
-              <span className="muted">{t("labels.loading")}</span>
-            )}
-          </form>
-        </div>
+              <div className="profile-form-section">
+                <h4 className="profile-form-section-title">{t("profile.sectionPreferences", "Preferences")}</h4>
+                <div className="profile-form-row">
+                  <div className="field">
+                    <label htmlFor="profile-language">{t("profile.form.language")}</label>
+                    <select
+                      id="profile-language"
+                      name="language"
+                      value={formState.language}
+                      onChange={handleChange}
+                    >
+                      {languageOptions.map((option) => (
+                        <option key={option.code} value={option.code}>
+                          {t(option.labelKey)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="field">
+                    <label htmlFor="profile-currency">{t("profile.form.currency")}</label>
+                    <select
+                      id="profile-currency"
+                      name="currencyType"
+                      value={formState.currencyType}
+                      onChange={handleChange}
+                    >
+                      {currencyOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+              <div className="profile-form-section">
+                <h4 className="profile-form-section-title">{t("profile.sectionInterests", "Interests & Destinations")}</h4>
+                <div className="profile-form-fields">
+                  <div className="field">
+                    <label htmlFor="profile-interests">{t("profile.form.interests")}</label>
+                    <input
+                      id="profile-interests"
+                      name="interests"
+                      type="text"
+                      value={formState.interests}
+                      placeholder={t("profile.placeholders.interests")}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="field">
+                    <label htmlFor="profile-preferredDestinations">{t("profile.form.preferredDestinations")}</label>
+                    <input
+                      id="profile-preferredDestinations"
+                      name="preferredDestinations"
+                      type="text"
+                      value={formState.preferredDestinations}
+                      placeholder={t("profile.placeholders.preferredDestinations")}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              </div>
+              {message && (
+                <div
+                  className={`message ${status === "error" ? "error" : "success"}`}
+                  role={status === "error" ? "alert" : "status"}
+                >
+                  {message}
+                </div>
+              )}
+              {status === "loading" && (
+                <span className="muted">{t("labels.loading")}</span>
+              )}
+              <div className="profile-form-actions">
+                <button type="submit" className="btn primary" disabled={status === "saving"}>
+                  {status === "saving" ? t("profile.actions.saving") : t("profile.actions.save")}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </section>
     </main>
