@@ -18,7 +18,10 @@ const DEFAULT_PROFILE = {
   phone: '',
   country: '',
   language: 'en',
-  currencyType: 'USD'
+  currencyType: 'USD',
+  interests: [],
+  preferredDestinations: [],
+  storageUsed: 0,
 };
 
 // Test user credentials (consistent across all environments)
@@ -31,7 +34,9 @@ const TEST_USER = {
     phone: '+1 555 123 4567',
     country: 'United States',
     language: 'en',
-    currencyType: 'USD'
+    currencyType: 'USD',
+    interests: [],
+    preferredDestinations: []
   }
 };
 

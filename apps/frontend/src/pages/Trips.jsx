@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
-import { fetchTrips, redeemInvite } from "../services/trips";
+import { fetchTrips, redeemInvite, getApiBaseUrl } from "../services/trips";
 
 const Trips = () => {
   const { t } = useTranslation();
@@ -74,31 +74,41 @@ const Trips = () => {
     }
   };
 
+  const tripCardGradient = (str) => {
+    let n = 0;
+    for (let i = 0; i < (str || "").length; i++) n = (n * 31 + str.charCodeAt(i)) >>> 0;
+    const gradients = [
+      "linear-gradient(135deg, #0f766e 0%, #14b8a6 100%)",
+      "linear-gradient(135deg, #0284c7 0%, #38bdf8 100%)",
+      "linear-gradient(135deg, #7c3aed 0%, #a78bfa 100%)",
+      "linear-gradient(135deg, #ea580c 0%, #fb923c 100%)",
+      "linear-gradient(135deg, #059669 0%, #34d399 100%)",
+    ];
+    return gradients[n % gradients.length];
+  };
+
+  const mediaUrl = (key) => `${getApiBaseUrl()}/media/${encodeURIComponent(key)}`;
+
   return (
     <main className="trips-page">
       <section className="container">
-        <div className="trips-header">
-          <h1>{t("trips.title")}</h1>
-          <div className="trips-header-actions">
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => setShowRedeemModal(true)}
-            >
+        <header className="page-header">
+          <Link to="/home" className="page-header-back" aria-label={t("nav.home")} title={t("nav.home")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </Link>
+          <h1 className="page-header-title">{t("trips.title")}</h1>
+          <div className="page-header-actions">
+            <button type="button" className="btn ghost btn-sm" onClick={() => setShowRedeemModal(true)}>
               {t("trips.redeemCode")}
             </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => setShowArchived(!showArchived)}
-            >
+            <button type="button" className="btn ghost btn-sm" onClick={() => setShowArchived(!showArchived)}>
               {showArchived ? t("trips.hideArchived") : t("trips.showArchived")}
             </button>
-            <Link className="btn primary" to="/home">
+            <Link className="btn primary btn-sm" to="/home">
               {t("trips.createNew")}
             </Link>
           </div>
-        </div>
+        </header>
 
         {loading && <p className="muted">{t("labels.loading")}</p>}
         {error && (
@@ -120,6 +130,13 @@ const Trips = () => {
           <ul className="trips-list">
             {displayedTrips.map((trip) => (
               <li key={trip.id} className="trip-card">
+                <div className="trip-card-hero">
+                  {trip.thumbnailKey ? (
+                    <img src={mediaUrl(trip.thumbnailKey)} alt="" className="trip-card-hero-img" />
+                  ) : (
+                    <div className="trip-card-hero-placeholder" style={{ background: tripCardGradient(trip.destination || trip.name) }} aria-hidden />
+                  )}
+                </div>
                 <div className="trip-card-main">
                   <h3 className="trip-card-name">{trip.name}</h3>
                   <p className="trip-card-destination muted">{trip.destination}</p>

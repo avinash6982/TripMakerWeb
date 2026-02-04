@@ -26,7 +26,7 @@ For a complete overview of all documentation, when to use each document, and lea
 
 **Start with these (for current backend):**
 
-1. **[Swagger API Documentation](https://trip-maker-web-be.vercel.app/api-docs)** 🎯 **PRIMARY SOURCE**
+1. **[Swagger API Documentation](http://localhost:3000/api-docs)** (local) or your Render backend URL + `/api-docs` 🎯 **PRIMARY SOURCE**
    - Always up-to-date API contracts
    - Interactive testing
    - Complete schemas and examples
@@ -144,15 +144,15 @@ src/
 
 ### Backend URL
 
-**Production:** `https://trip-maker-web-be.vercel.app`
+**Production:** (your Render backend URL)
 
 ### Swagger API Documentation (Source of Truth)
 
 ⚠️ **IMPORTANT:** The backend now has comprehensive Swagger documentation that should be used as the **single source of truth** for all API contracts:
 
-- **Production Swagger UI:** https://trip-maker-web-be.vercel.app/api-docs
+- **Production Swagger UI:** (your Render backend URL)/api-docs
 - **Local Dev Swagger UI:** http://localhost:3000/api-docs
-- **OpenAPI Spec (JSON):** https://trip-maker-web-be.vercel.app/api-docs.json
+- **OpenAPI Spec (JSON):** (your Render backend URL)/api-docs.json
 
 The Swagger documentation is:
 - ✅ Always up-to-date (generated from backend code)
@@ -174,7 +174,7 @@ The Swagger documentation is:
 
 ### Configure Backend URL for Local Development
 
-Create a `.env` file in the project root:
+Use **`.env.development`** in `apps/frontend/` (no `.env` in project root required):
 
 ```bash
 VITE_API_BASE_URL=http://localhost:3000
@@ -215,7 +215,7 @@ For complete API documentation, see [API_QUICK_REFERENCE.md](./API_QUICK_REFEREN
 ### With Backend Running Locally
 
 1. Start backend server (e.g., on `http://localhost:3000`)
-2. Configure `.env` file with backend URL
+2. Configure `VITE_API_URL` in `apps/frontend/.env.development` with backend URL
 3. Start frontend dev server
 4. Test registration, login, and profile features
 
@@ -288,7 +288,7 @@ The app is deployed on Vercel:
 Set in Vercel dashboard:
 
 ```bash
-VITE_API_BASE_URL=https://trip-maker-web-be.vercel.app
+VITE_API_URL=http://localhost:3000
 ```
 
 ---
@@ -328,8 +328,8 @@ See [MASTER_DOC.md](./MASTER_DOC.md) for product roadmap and evolution.
 
 ## Quick Links
 
-- [Production App](https://trip-maker-web.vercel.app)
-- [Backend API](https://trip-maker-web-be.vercel.app)
+- [Production App](https://tripmaker-63b1.onrender.com) (or your Render URL)
+- [Backend API](your Render backend URL)
 - [GitHub Repository](https://github.com/avinash6982/TripMakerWeb)
 - [Backend Repository](https://github.com/avinash6982/TripMakerWeb-BE)
 

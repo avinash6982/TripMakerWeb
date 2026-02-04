@@ -7,6 +7,7 @@ import Profile from "./pages/Profile";
 import Register from "./pages/Register";
 import Trips from "./pages/Trips";
 import TripDetail from "./pages/TripDetail";
+import TripGallery from "./pages/TripGallery";
 import Feed from "./pages/Feed";
 import { getStoredUser } from "./services/auth";
 
@@ -31,6 +32,7 @@ const App = () => {
         <Route path="trips" element={<RequireAuth><Trips /></RequireAuth>} />
         <Route path="feed" element={<RequireAuth><Feed /></RequireAuth>} />
         <Route path="trips/:id" element={<RequireAuth><TripDetail /></RequireAuth>} />
+        <Route path="trips/:id/gallery" element={<RequireAuth><TripGallery /></RequireAuth>} />
         <Route
           path="profile"
           element={

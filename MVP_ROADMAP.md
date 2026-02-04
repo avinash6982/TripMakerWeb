@@ -1,6 +1,6 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** January 31, 2026 (MVP2 complete, MVP3 unblocked)  
+**Last Updated:** February 3, 2026 (MVP3 media: R2 + 100MB/user limit)  
 **Current Phase:** MVP3 - Advanced Features  
 **Overall Progress:** MVP1 100%; MVP2 100%; MVP3 ready to start
 
@@ -179,6 +179,7 @@ None (MVP1 complete).
 5. ✅ Collaborator Invitations
    - Generate one-time invite code (POST /trips/:id/invite); 24h expiry; roles: viewer, editor
    - Redeem code (POST /invite/redeem); no WhatsApp/email (MVP3+)
+   - **People on trip:** GET /trips/:id returns `collaborators` array (who joined via invite). Trip Detail shows "People on this trip" (owner + collaborators) and **Remove** (owner can remove any; editors can remove viewers only). DELETE /trips/:id/collaborators/:userId to remove a collaborator.
 
 #### Deferred to MVP3 (optional)
 - **Enhanced Trip Suggestions** (scraping/community) — can add in MVP3
@@ -193,10 +194,9 @@ None (MVP1 complete).
 **Prerequisites:** MVP2 complete ✅ (approved)
 
 #### Planned Features 📋
-1. ⏳ Timeline Preferences
-   - User profile interests
-   - Preferred destinations
-   - Feed customization
+1. ✅ Timeline Preferences (MVP3.1)
+   - User profile interests and preferred destinations (Profile/Settings)
+   - Feed filter by destination and interest
 
 2. ⏳ Real-time Location Tracking
    - Live user marker on map
@@ -204,15 +204,16 @@ None (MVP1 complete).
    - Next location ETA
    - Delay alerts
 
-3. ⏳ In-trip Chat
-   - Real-time messaging (WebSocket or polling)
-   - Media upload (images/videos)
-   - Trip-specific chat rooms
+3. ✅ In-trip Chat (MVP3.5 + 3.6)
+   - Real-time messaging (polling)
+   - Media upload (images) via **Cloudflare R2**; **100 MB/user** (enforced server-side)
+   - **Storage: X MB / 100 MB** visible in Profile
+   - Trip chat: attach image → presign → upload to R2 → post message with imageKey; images shown in chat
 
-4. ⏳ Social Features
+4. ✅ Social Features (MVP3.7 + 3.8)
    - Like trips on timeline
    - Comment on public trips
-   - Share trips (copy link)
+   - Share trips (Copy link on Trip Detail)
 
 ---
 
@@ -270,7 +271,7 @@ None (MVP1 complete).
 |-------|------------------|--------|
 | MVP1 | Auth, profile, trip CRUD, map, day-wise view, edit, archive/unarchive, transport hubs | ✅ 100% |
 | MVP2 | Route lines, transport mode, feed, trip sharing, invite codes, collaborators | ✅ 100% |
-| MVP3 | Timeline prefs, real-time location, live map, ETA, chat, like/comment, share | 🔄 0% |
+| MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2 media, 100MB/user), like/comment, share | 🔄 0% |
 
 ---
 
@@ -311,6 +312,11 @@ None (MVP1 complete).
 - 📝 Established transactional development principle
 - 📝 Set up Cursor rules for scope discipline
 - 🧹 Removed redundant documentation summaries and setup/deploy notes
+
+### February 3, 2026
+- 📝 **MVP3 media storage:** Cloudflare R2 approved for in-trip chat media uploads
+- 📝 **Per-user limit:** 100 MB per user (enforced server-side)
+- 📝 **Visibility:** Storage usage (e.g. X MB / 100 MB) shown in Profile or Settings; implement as tasks progress
 
 ---
 

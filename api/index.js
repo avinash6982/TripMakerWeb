@@ -6,6 +6,7 @@ const handleHealth = require('./lib/handlers/health');
 const { handleLogin, handleRegister } = require('./lib/handlers/auth');
 const { handleProfile } = require('./lib/handlers/userProfile');
 const { handleRedeem } = require('./lib/handlers/invite');
+const { handlePresign, handleMediaRedirect } = require('./lib/handlers/upload');
 const {
   handleTripsIndex,
   handleTripsPlan,
@@ -14,6 +15,13 @@ const {
   handleTripArchive,
   handleTripUnarchive,
   handleTripInvite,
+  handleTripMessages,
+  handleTripLike,
+  handleTripComments,
+  handleTripGallery,
+  handleGalleryLike,
+  handleGalleryComments,
+  handleRemoveCollaborator,
 } = require('./lib/handlers/trips');
 
 function setCors(res) {
@@ -50,6 +58,8 @@ module.exports = async (req, res) => {
   if (pathNorm === '/api/auth/register') return handleRegister(req, res);
   if (pathNorm.startsWith('/api/user/profile')) return handleProfile(req, res);
   if (pathNorm === '/api/invite/redeem') return handleRedeem(req, res);
+  if (pathNorm === '/api/upload/presign') return handlePresign(req, res);
+  if (pathNorm.startsWith('/api/media/')) return handleMediaRedirect(req, res);
   if (pathNorm === '/api/trips/plan') return handleTripsPlan(req, res);
   if (pathNorm === '/api/trips/feed') return handleTripsFeed(req, res);
   if (pathNorm === '/api/trips') return handleTripsIndex(req, res);
@@ -60,6 +70,16 @@ module.exports = async (req, res) => {
     if (sub === 'archive') return handleTripArchive(req, res);
     if (sub === 'unarchive') return handleTripUnarchive(req, res);
     if (sub === 'invite') return handleTripInvite(req, res);
+    if (sub === 'messages') return handleTripMessages(req, res);
+    if (sub === 'like') return handleTripLike(req, res);
+    if (sub === 'comments') return handleTripComments(req, res);
+    if (sub === 'gallery') return handleTripGallery(req, res);
+    if (sub && sub.includes('/')) {
+      const [galleryId, rest] = sub.split('/');
+      if (galleryId && rest === 'like') return handleGalleryLike(req, res);
+      if (galleryId && rest === 'comments') return handleGalleryComments(req, res);
+    }
+    if (sub && sub.startsWith('collaborators/') && req.method === 'DELETE') return handleRemoveCollaborator(req, res);
     return handleTripById(req, res);
   }
 

@@ -60,6 +60,16 @@ const HUBS = {
     train: { name: "Jammu Tawi / Joginder Nagar", type: "train", distance: "Connect by road" },
     bus: { name: "Leh / Manali / Kaza bus stands", type: "bus", distance: "Circuit by road" },
   },
+  "abu dhabi": {
+    airport: { name: "Abu Dhabi International (AUH)", type: "airport", distance: "~30 km from center" },
+    train: { name: "Abu Dhabi Central Station (Etihad Rail)", type: "train", distance: "City center" },
+    bus: { name: "Abu Dhabi Central Bus Station", type: "bus", distance: "~2 km from center" },
+  },
+  uae: {
+    airport: { name: "Abu Dhabi International (AUH)", type: "airport", distance: "~30 km from Abu Dhabi" },
+    train: { name: "Abu Dhabi Central Station (Etihad Rail)", type: "train", distance: "City center" },
+    bus: { name: "Abu Dhabi Central Bus Station", type: "bus", distance: "~2 km from center" },
+  },
 };
 
 export function getTransportHubsForDestination(destination) {

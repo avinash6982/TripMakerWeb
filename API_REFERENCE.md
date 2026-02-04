@@ -448,13 +448,14 @@ Trips are sorted by `createdAt` (newest first).
 **Authentication:** None  
 **Rate Limit:** 100 req/15min
 
-Returns public trips from all users. No auth required.
+Returns public trips from all users. No auth required. Each trip in the response may include **`thumbnailKey`** (R2 key for cover image) and **`galleryPreview`** (array of up to 5 gallery image keys) for card display.
 
 #### Query Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `destination` | string | Optional. Filter by destination (partial match). |
+| `interest` | string | Optional. Filter by interest: trips whose destination or name contains this (case-insensitive). |
 | `limit` | integer | Optional. Max trips to return (1-50, default 20). |
 
 #### Response (200 OK)
@@ -487,7 +488,11 @@ Returns public trips from all users. No auth required.
 **Authentication:** Optional (JWT)  
 **Rate Limit:** 100 req/15min
 
-Returns trip if owned by user OR if trip is public. Public trips include `ownerEmail`.
+**Access control:** The trip is returned only if:
+- The requester is the **owner** or a **collaborator** (any visibility), or
+- The trip is **public** (`isPublic === true`).
+
+**Private trips** are never returned to unauthenticated users or to users who are not the owner or a collaborator; the API returns **404 Trip not found** (so existence of private trips is not leaked). Public trips include `ownerEmail`.
 
 #### URL Parameters
 
@@ -497,7 +502,7 @@ Returns trip if owned by user OR if trip is public. Public trips include `ownerE
 
 #### Response (200 OK)
 
-Returns the full trip object (same shape as Create Trip response). Public trips include `ownerEmail`.
+Returns the full trip object (same shape as Create Trip response). Trip may include **`thumbnailKey`** (cover image R2 key) and **`gallery`** (array of gallery items: `{ id, imageKey, userId, createdAt, likes, comments }`). Public trips include `ownerEmail`. When the requester is the owner or a collaborator, the trip includes a **`collaborators`** array: `[{ userId, email, role }]` — users who joined via invite code. Use this to show "People on this trip" and to remove collaborators (see Remove collaborator).
 
 #### Error Responses
 
@@ -533,10 +538,11 @@ curl -X PUT http://localhost:3000/trips/<trip-id> \
 | `itinerary` | array | Full itinerary array |
 | `transportMode` | string \| null | MVP2: flight, train, or bus. Pass null to clear. |
 | `isPublic` | boolean | MVP2: Show trip in public feed. |
+| `thumbnailKey` | string \| null | MVP3.10: R2 key for trip cover image (e.g. `uploads/userId/uuid.jpg`). Must be owned by user and exist in R2. Pass null to clear. |
 
 #### Response (200 OK)
 
-Returns the updated trip object.
+Returns the updated trip object (includes `thumbnailKey`, `gallery` when present).
 
 ---
 
@@ -580,6 +586,112 @@ Generates a one-time invite code (8 chars, 24h expiry). Body: `{ "role": "viewer
 
 ---
 
+### 👥 Remove Collaborator (MVP2)
+
+**Endpoint:** `DELETE /trips/:id/collaborators/:userId` or `DELETE /api/trips/:id/collaborators/:userId`  
+**Authentication:** Required (JWT)
+
+Removes a collaborator from the trip. Only the **trip owner** or an **editor** may call this. Editors can remove **viewers** only; only the **owner** can remove editors. The trip owner cannot be removed.
+
+#### URL Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `id` | string (UUID) | Trip ID |
+| `userId` | string (UUID) | Collaborator's user ID to remove |
+
+#### Response (200 OK)
+
+```json
+{ "message": "Collaborator removed.", "collaborators": [{ "userId": "...", "email": "...", "role": "viewer" }] }
+```
+
+#### Error Responses
+
+**400 Bad Request** - Cannot remove the trip owner.  
+**403 Forbidden** - Only owner or editor can remove; only owner can remove editors.  
+**404 Not Found** - Trip or collaborator not found.  
+**500 Internal Server Error**
+
+---
+
+### 💬 Trip Chat Messages (MVP3)
+
+**List messages:** `GET /trips/:id/messages` or `GET /api/trips/:id/messages`  
+**Authentication:** Required (JWT). User must be trip owner or collaborator.  
+**Query:** `limit` (default 50, max 100), `offset` (default 0).  
+**Response (200):** `{ messages: [{ id, userId, text, imageKey?, createdAt }], total }`. Messages are newest-first. When a message has an image, it includes `imageKey` (R2 object key); use `GET /api/media/:key` to get a redirect URL to the image.
+
+**Post message:** `POST /trips/:id/messages` or `POST /api/trips/:id/messages`  
+**Authentication:** Required (JWT). Only trip owner or editors can post.  
+**Body:** `{ "text": "Hello", "imageKey": "uploads/userId/uuid.jpg" }`. Either `text` or `imageKey` (or both) required. `imageKey` must be from a prior upload via presign; storage is charged when the message is posted.  
+**Response (201):** `{ id, userId, text, imageKey?, createdAt }`.
+
+---
+
+### 📤 Upload presign (MVP3.6 – R2 media)
+
+**Endpoint:** `POST /upload/presign` or `POST /api/upload/presign`  
+**Authentication:** Required (JWT)
+
+Get a presigned PUT URL to upload an image to Cloudflare R2. After uploading, post a chat message with the returned `key` as `imageKey`. User storage is enforced (100 MB limit); over limit returns 413.
+
+**Body:** `{ "size": number, "contentType": "image/jpeg" }` (size in bytes; max 5 MB per file).  
+**Response (200):** `{ uploadUrl, key, expiresIn: 900 }`. PUT the file to `uploadUrl` with `Content-Type` header, then POST message with `imageKey: key`.
+
+**Errors:** 413 (file too large or storage limit exceeded), 503 (R2 not configured).
+
+---
+
+### 🖼️ Media redirect (MVP3.6)
+
+**Endpoint:** `GET /media/:key` or `GET /api/media/:key`  
+**Authentication:** None
+
+Redirects to a short-lived presigned GET URL for an R2 object. Use as `img` src or link for chat images. Key format: `uploads/userId/uuid.ext` (URL-encoded in path).
+
+---
+
+### 👍 Trip Like (MVP3)
+
+**Like:** `POST /trips/:id/like` or `POST /api/trips/:id/like`  
+**Unlike:** `DELETE /trips/:id/like` or `DELETE /api/trips/:id/like`  
+**Authentication:** Required (JWT). Trip must be public.  
+**Response (200):** `{ liked: true|false, likeCount }`.
+
+---
+
+### 💬 Trip Comments (MVP3)
+
+**List:** `GET /trips/:id/comments` or `GET /api/trips/:id/comments`  
+**Query:** `limit`, `offset`. **Response (200):** `{ comments: [{ id, userId, text, createdAt, authorEmail }], total }`. Public trips: no auth required. Private: auth required and user must have access.
+
+**Post:** `POST /trips/:id/comments` or `POST /api/trips/:id/comments`  
+**Authentication:** Required (JWT). **Body:** `{ "text": "Nice trip!", "imageKey": "uploads/userId/uuid.jpg" }`. `imageKey` optional; must be from prior presign upload; storage counted. **Response (201):** `{ id, userId, text, imageKey?, createdAt, authorEmail }`.
+
+---
+
+### 🖼️ Trip Gallery (MVP3.9–3.12)
+
+**List gallery:** `GET /trips/:id/gallery` or `GET /api/trips/:id/gallery`  
+**Authentication:** Same as GET /trips/:id (owner, collaborator, or public trip).  
+**Response (200):** `{ gallery: [{ id, imageKey, userId, createdAt, likes: [userId], comments: [{ id, userId, text, imageKey?, createdAt, authorEmail? }] }] }`.
+
+**Add image:** `POST /trips/:id/gallery` or `POST /api/trips/:id/gallery`  
+**Authentication:** Required (JWT). Owner or editor only. **Body:** `{ "imageKey": "uploads/userId/uuid.jpg" }`. Key must be from prior presign; storage counted. **Response (201):** created gallery item.
+
+**Like image:** `POST /trips/:id/gallery/:imageId/like` or `POST /api/trips/:id/gallery/:imageId/like`  
+**Unlike:** `DELETE /trips/:id/gallery/:imageId/like`  
+**Authentication:** Required (JWT). **Response (200):** `{ liked: true|false, likeCount }`.
+
+**List image comments:** `GET /trips/:id/gallery/:imageId/comments` or `GET /api/trips/:id/gallery/:imageId/comments`  
+**Query:** `limit`, `offset`. **Response (200):** `{ comments: [{ id, userId, text, imageKey?, createdAt, authorEmail }], total }`.
+
+**Post image comment:** `POST /trips/:id/gallery/:imageId/comments` or `POST /api/trips/:id/gallery/:imageId/comments`  
+**Authentication:** Required (JWT). **Body:** `{ "text": "...", "imageKey": "..." }`. `imageKey` optional; storage counted. **Response (201):** created comment.
+
+---
+
 ### 🔓 Redeem Invite Code (MVP2)
 
 **Endpoint:** `POST /invite/redeem` or `POST /api/invite/redeem`  
@@ -618,7 +730,11 @@ curl http://localhost:3000/profile/dev-user-00000000-0000-0000-0000-000000000001
   "country": "United States",
   "language": "en",
   "currencyType": "USD",
-  "createdAt": "2026-01-30T16:00:00.000Z"
+    "interests": ["history", "food"],
+    "preferredDestinations": ["Paris", "Tokyo"],
+    "storageUsed": 0,
+    "limitBytes": 104857600,
+    "createdAt": "2026-01-30T16:00:00.000Z"
 }
 ```
 
@@ -664,7 +780,9 @@ curl -X PUT http://localhost:3000/profile/dev-user-00000000-0000-0000-0000-00000
     "phone": "+1 416 555 1234",
     "country": "Canada",
     "language": "en",
-    "currencyType": "CAD"
+    "currencyType": "CAD",
+    "interests": ["history", "food"],
+    "preferredDestinations": ["Paris", "Tokyo"]
   }'
 ```
 
@@ -685,6 +803,8 @@ All fields are optional:
 | `country` | string | Free text | Country name |
 | `language` | string | `en`, `hi`, `ml`, `ar`, `es`, `de` | UI language |
 | `currencyType` | string | `USD`, `EUR`, `INR`, `AED`, `GBP`, `CAD`, `AUD` | Preferred currency |
+| `interests` | array of strings | Optional. Comma-separated or array; e.g. `["history", "food"]` | Interests for feed preferences (MVP3). |
+| `preferredDestinations` | array of strings | Optional. Comma-separated or array; e.g. `["Paris", "Tokyo"]` | Preferred destinations for feed (MVP3). |
 
 #### Response (200 OK)
 

@@ -8,12 +8,8 @@ Production-ready Node.js authentication backend with JWT tokens, Swagger documen
 # Install dependencies
 npm install
 
-# Copy environment example
-cp .env.example .env
-
-# Generate a secure JWT secret
-node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-# Add the generated secret to .env as JWT_SECRET
+# No .env required: use .env.development (already in repo). Backend loads it when NODE_ENV=development or when .env is missing.
+# For production (Render), set JWT_SECRET and others in Render Dashboard. See RENDER_DEPLOYMENT_GUIDE.md in repo root.
 
 # Start development server
 npm run dev
@@ -26,7 +22,7 @@ npm run dev
 
 ### API Documentation (Single Source of Truth)
 - **Swagger UI:** http://localhost:3000/api-docs (Local)
-- **Swagger UI:** https://trip-maker-web-be.vercel.app/api-docs (Production)
+- **Swagger UI:** (your Render backend URL)/api-docs (Production)
 - **OpenAPI JSON:** http://localhost:3000/api-docs.json
 
 ### Quick Reference
@@ -43,7 +39,7 @@ npm run dev
 - ✅ **CORS Support** - Configurable cross-origin resource sharing
 - ✅ **Password Hashing** - Secure password storage with scrypt
 - ✅ **File-based Storage** - No database required (JSON file storage)
-- ✅ **Production Ready** - Configured for Vercel deployment
+- ✅ **Production Ready** - Deploy on Render (see RENDER_DEPLOYMENT_GUIDE.md in repo root)
 
 ## 📖 API Endpoints
 
@@ -60,22 +56,16 @@ npm run dev
 
 ## 🔧 Configuration
 
-Create a `.env` file with these variables:
+Use **`.env.development`** in this folder for local dev (no `.env` required). Backend loads it when `NODE_ENV=development` or when `.env` is missing. Example variables:
 
 ```bash
-# Server
+# Server (apps/backend/.env.development)
 PORT=3000
 NODE_ENV=development
-
-# Database
 USER_DB_PATH=data/users.json
-
-# CORS (comma-separated origins)
-CORS_ORIGINS=http://localhost:5173,https://trip-maker-web.vercel.app
-
-# JWT Authentication (REQUIRED)
-JWT_SECRET=your-super-secret-jwt-key-min-32-characters
+CORS_ORIGINS=http://localhost:5173,http://localhost:4173
 JWT_EXPIRES_IN=7d
+# JWT_SECRET optional in dev (fixed dev secret used); required in production (Render Dashboard)
 ```
 
 ⚠️ **IMPORTANT:** Generate a secure `JWT_SECRET` for production:
@@ -101,37 +91,19 @@ npm test
 
 ## 🚢 Deployment
 
-### Vercel Deployment
+### Render (no Vercel)
 
-1. **Install Vercel CLI:**
-   ```bash
-   npm i -g vercel
-   ```
+Deploy on Render. See **RENDER_DEPLOYMENT_GUIDE.md** in the repo root. Set environment variables in the Render Dashboard (no `.env` on server).
 
-2. **Create JWT Secret:**
-   ```bash
-   # Generate a secure secret
-   node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-   
-   # Add as Vercel secret
-   vercel secrets add jwt_secret "your-generated-secret"
-   ```
+### Environment Variables on Render
 
-3. **Deploy:**
-   ```bash
-   vercel --prod
-   ```
-
-The `vercel.json` configuration is already set up for deployment.
-
-### Environment Variables in Vercel
-
-Set these in the Vercel Dashboard:
+Set these in the Render Dashboard (no `.env` on server):
 
 ```
 NODE_ENV=production
+JWT_SECRET=<64-char-hex>   # Required in production
 JWT_EXPIRES_IN=7d
-CORS_ORIGINS=https://trip-maker-web.vercel.app
+CORS_ORIGINS=https://your-frontend.onrender.com
 ```
 
 ## 🔒 Security Features
@@ -217,7 +189,7 @@ This guide contains:
 - ✅ Error handling
 - ✅ Migration checklist
 
-**Swagger URL (after deployment):** https://trip-maker-web-be.vercel.app/api-docs
+**Swagger URL (after deployment):** (your Render backend URL)/api-docs
 
 ## 📝 Project Structure
 
@@ -225,8 +197,7 @@ This guide contains:
 TripMakerWeb-BE/
 ├── server.js                      # Main application file
 ├── package.json                   # Dependencies and scripts
-├── .env.example                   # Environment variables template
-├── vercel.json                    # Vercel deployment configuration
+├── .env.example                   # Variable reference (use .env.development for local)
 ├── data/
 │   └── users.json                 # User data storage (auto-created)
 ├── INTEGRATION.md                 # API integration reference
@@ -239,16 +210,16 @@ TripMakerWeb-BE/
 
 ### Issue: "JWT_SECRET is required"
 
-**Solution:** Add `JWT_SECRET` to your `.env` file. Generate a secure one:
+**Solution:** In local dev, JWT is optional (fixed dev secret). In production (Render), add `JWT_SECRET` in the Render Dashboard. Generate:
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
 
 ### Issue: CORS errors
 
-**Solution:** Add your frontend URL to `CORS_ORIGINS` in `.env`:
+**Solution:** Add your frontend URL to `CORS_ORIGINS` in `apps/backend/.env.development` (local) or in the Render Dashboard (production):
 ```bash
-CORS_ORIGINS=http://localhost:5173,https://your-frontend.vercel.app
+CORS_ORIGINS=http://localhost:5173,https://your-frontend.onrender.com
 ```
 
 ### Issue: Rate limit exceeded

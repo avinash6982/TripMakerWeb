@@ -1,8 +1,15 @@
-require("dotenv").config();
+// Load env: .env if present; then .env.development when NODE_ENV=development or when .env is missing (Render-only; no .env required)
+const path = require("path");
+const envPath = path.resolve(__dirname, ".env");
+const envDevPath = path.resolve(__dirname, ".env.development");
+require("dotenv").config({ path: envPath });
+const hasEnv = require("fs").existsSync(envPath);
+if (process.env.NODE_ENV === "development" || !hasEnv) {
+  require("dotenv").config({ path: envDevPath });
+}
 const express = require("express");
 const fs = require("fs/promises");
 const os = require("os");
-const path = require("path");
 const crypto = require("crypto");
 const jwt = require("jsonwebtoken");
 const helmet = require("helmet");
@@ -12,6 +19,8 @@ const morgan = require("morgan");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const { body, param, validationResult } = require("express-validator");
+const { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const app = express();
 
@@ -24,13 +33,13 @@ const DEFAULT_USER_DB_PATH = path.resolve("data/users.json");
 const TMP_USER_DB_PATH = path.join(os.tmpdir(), "tripmaker-users.json");
 let usersFilePath = path.resolve(
   process.env.USER_DB_PATH ||
-    (process.env.VERCEL ? TMP_USER_DB_PATH : DEFAULT_USER_DB_PATH)
+    (process.env.RENDER ? TMP_USER_DB_PATH : DEFAULT_USER_DB_PATH)
 );
 
 // JWT secret: required in production; fixed dev default so tokens survive server restarts
 const DEV_JWT_SECRET = "tripmaker-dev-secret-do-not-use-in-production";
 const JWT_SECRET = process.env.JWT_SECRET || (() => {
-  if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+  if (process.env.NODE_ENV === "production" || process.env.RENDER) {
     const error = "❌ CRITICAL: JWT_SECRET is required in production!";
     console.error(error);
     throw new Error(error);
@@ -54,6 +63,9 @@ const DEFAULT_PROFILE = {
   country: "",
   language: "en",
   currencyType: "USD",
+  interests: [],
+  preferredDestinations: [],
+  storageUsed: 0,
 };
 
 let writeQueue = Promise.resolve();
@@ -434,7 +446,7 @@ const createLimiter = (windowMs, max, message) =>
   });
 
 // Relax limits in development to avoid 429 during local dev (retries, multiple tabs)
-const isDev = process.env.NODE_ENV !== "production" && !process.env.VERCEL;
+const isDev = process.env.NODE_ENV !== "production" && !process.env.RENDER;
 const registerLimiter = createLimiter(
   15 * 60 * 1000,
   isDev ? 50 : 5,
@@ -621,6 +633,7 @@ function ensureProfile(user) {
     ...DEFAULT_PROFILE,
     ...currentProfile,
   };
+  if (typeof user.profile.storageUsed !== "number") user.profile.storageUsed = 0;
   return user.profile;
 }
 
@@ -651,6 +664,30 @@ function ensureCollaborators(trip) {
   if (!Array.isArray(trip.collaborators)) trip.collaborators = [];
   return trip.collaborators;
 }
+function ensureLikes(trip) {
+  if (!Array.isArray(trip.likes)) trip.likes = [];
+  return trip.likes;
+}
+function ensureComments(trip) {
+  if (!Array.isArray(trip.comments)) trip.comments = [];
+  return trip.comments;
+}
+function ensureMessages(trip) {
+  if (!Array.isArray(trip.messages)) trip.messages = [];
+  return trip.messages;
+}
+function ensureGallery(trip) {
+  if (!Array.isArray(trip.gallery)) trip.gallery = [];
+  return trip.gallery;
+}
+function ensureGalleryImageLikes(item) {
+  if (!Array.isArray(item.likes)) item.likes = [];
+  return item.likes;
+}
+function ensureGalleryImageComments(item) {
+  if (!Array.isArray(item.comments)) item.comments = [];
+  return item.comments;
+}
 function ensureTrips(user) {
   if (!Array.isArray(user.trips)) {
     user.trips = [];
@@ -658,8 +695,16 @@ function ensureTrips(user) {
   return user.trips;
 }
 
+function ensureProfileArray(val) {
+  if (Array.isArray(val)) return val.filter((v) => typeof v === "string" && v.trim());
+  if (typeof val === "string" && val.trim()) return val.split(",").map((s) => s.trim()).filter(Boolean);
+  return [];
+}
+
 function buildProfileResponse(user) {
   const profile = ensureProfile(user);
+  const storageUsed = typeof profile.storageUsed === "number" ? profile.storageUsed : 0;
+  const limitBytes = 100 * 1024 * 1024; // 100 MB (MVP3.6)
   return {
     id: user.id,
     email: user.email,
@@ -667,6 +712,10 @@ function buildProfileResponse(user) {
     country: profile.country,
     language: profile.language,
     currencyType: profile.currencyType,
+    interests: ensureProfileArray(profile.interests),
+    preferredDestinations: ensureProfileArray(profile.preferredDestinations),
+    storageUsed,
+    limitBytes,
     createdAt: user.createdAt,
   };
 }
@@ -680,6 +729,64 @@ function generateToken(user) {
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
   );
+}
+
+// ============================================================================
+// R2 / Upload (MVP3.6 – media in chat)
+// ============================================================================
+
+const R2_ACCOUNT_ID = process.env.R2_ACCOUNT_ID;
+const R2_ACCESS_KEY_ID = process.env.R2_ACCESS_KEY_ID;
+const R2_SECRET_ACCESS_KEY = process.env.R2_SECRET_ACCESS_KEY;
+const R2_BUCKET_NAME = process.env.R2_BUCKET_NAME || "tripmaker-media";
+const STORAGE_LIMIT_BYTES = 100 * 1024 * 1024; // 100 MB
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB per file
+
+function getR2Client() {
+  if (!R2_ACCOUNT_ID || !R2_ACCESS_KEY_ID || !R2_SECRET_ACCESS_KEY) return null;
+  return new S3Client({
+    region: "auto",
+    endpoint: `https://${R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: R2_ACCESS_KEY_ID,
+      secretAccessKey: R2_SECRET_ACCESS_KEY,
+    },
+  });
+}
+
+async function getPresignedPutUrl(key, contentType) {
+  const client = getR2Client();
+  if (!client) return null;
+  const command = new PutObjectCommand({
+    Bucket: R2_BUCKET_NAME,
+    Key: key,
+    ContentType: contentType || "application/octet-stream",
+  });
+  const uploadUrl = await getSignedUrl(client, command, { expiresIn: 900 });
+  return { uploadUrl, key };
+}
+
+async function getPresignedGetUrl(key) {
+  const client = getR2Client();
+  if (!client) return null;
+  const command = new GetObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key });
+  return getSignedUrl(client, command, { expiresIn: 3600 });
+}
+
+async function getObjectSizeR2(key) {
+  const client = getR2Client();
+  if (!client) return null;
+  try {
+    const command = new HeadObjectCommand({ Bucket: R2_BUCKET_NAME, Key: key });
+    const response = await client.send(command);
+    return response.ContentLength != null ? Number(response.ContentLength) : null;
+  } catch {
+    return null;
+  }
+}
+
+function isR2Configured() {
+  return Boolean(R2_ACCOUNT_ID && R2_ACCESS_KEY_ID && R2_SECRET_ACCESS_KEY);
 }
 
 // ============================================================================
@@ -844,6 +951,31 @@ const CITY_LIBRARY = [
       { name: "Mall Road Manali", category: "market", area: "Manali", avgTime: 1 },
     ],
   },
+  {
+    key: "abu-dhabi",
+    name: "Abu Dhabi",
+    country: "UAE",
+    places: [
+      { name: "Sheikh Zayed Grand Mosque", category: "landmark", area: "Abu Dhabi Island", avgTime: 2 },
+      { name: "Louvre Abu Dhabi", category: "museum", area: "Saadiyat Island", avgTime: 2.5 },
+      { name: "Ferrari World", category: "experience", area: "Yas Island", avgTime: 3 },
+      { name: "Corniche Beach", category: "relax", area: "Corniche", avgTime: 1.5 },
+      { name: "Emirates Palace", category: "landmark", area: "West Corniche", avgTime: 1.5 },
+      { name: "Qasr Al Hosn", category: "landmark", area: "Downtown", avgTime: 1.5 },
+      { name: "Heritage Village", category: "museum", area: "Breakwater", avgTime: 1.5 },
+      { name: "Saadiyat Island Beach", category: "relax", area: "Saadiyat Island", avgTime: 1.5 },
+      { name: "Yas Marina Circuit", category: "experience", area: "Yas Island", avgTime: 2 },
+      { name: "Warner Bros. World", category: "experience", area: "Yas Island", avgTime: 2.5 },
+      { name: "Marina Mall", category: "market", area: "Breakwater", avgTime: 1.5 },
+      { name: "Mangrove National Park", category: "park", area: "Eastern Mangroves", avgTime: 2 },
+      { name: "Observation Deck at 300", category: "viewpoint", area: "Corniche", avgTime: 1 },
+      { name: "Al Jahili Fort", category: "landmark", area: "Al Ain", avgTime: 1.5 },
+      { name: "Al Ain Oasis", category: "park", area: "Al Ain", avgTime: 1.5 },
+      { name: "Abu Dhabi Falcon Hospital", category: "experience", area: "Sweihan Road", avgTime: 2 },
+      { name: "Abu Dhabi Mall", category: "market", area: "Tourist Club", avgTime: 1.5 },
+      { name: "Yas Island Waterfront", category: "viewpoint", area: "Yas Island", avgTime: 1 },
+    ],
+  },
 ];
 
 const CITY_ALIASES = {
@@ -864,6 +996,9 @@ const CITY_ALIASES = {
   "ladakh spiti": "ladakh-spiti-manali",
   "spiti valley": "ladakh-spiti-manali",
   "himalayas north india": "ladakh-spiti-manali",
+  "abu dhabi": "abu-dhabi",
+  "abu dhabi uae": "abu-dhabi",
+  uae: "abu-dhabi",
 };
 
 const FALLBACK_LABELS = {
@@ -1725,6 +1860,8 @@ app.post(
         itinerary,
         transportMode: transportMode || undefined,
         isPublic,
+        thumbnailKey: undefined,
+        gallery: [],
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -1822,18 +1959,37 @@ app.get("/trips", requireAuth, async (req, res, next) => {
  *       200:
  *         description: Public trips
  */
-app.get("/trips/feed", async (req, res, next) => {
+app.get("/trips/feed", optionalAuth, async (req, res, next) => {
   try {
+    const userId = req.user?.id;
     const users = await readUsers();
     const allTrips = users.flatMap((u) => {
       ensureTrips(u);
-      return (u.trips || []).map((t) => ({ ...t, ownerEmail: u.email }));
+      return (u.trips || []).map((t) => {
+        ensureLikes(t);
+        ensureComments(t);
+        ensureGallery(t);
+        const likeCount = (t.likes || []).length;
+        const commentCount = (t.comments || []).length;
+        const userLiked = userId && (t.likes || []).includes(userId);
+        const galleryPreview = (t.gallery || []).slice(0, 5).map((i) => i.imageKey).filter(Boolean);
+        return { ...t, ownerEmail: u.email, likeCount, commentCount, userLiked, galleryPreview };
+      });
     });
     let trips = allTrips.filter((t) => Boolean(t.isPublic));
     const destFilter = String(req.query?.destination || "").trim();
     if (destFilter) {
       const lower = destFilter.toLowerCase();
       trips = trips.filter((t) => String(t.destination || "").toLowerCase().includes(lower));
+    }
+    const interestFilter = String(req.query?.interest || "").trim();
+    if (interestFilter) {
+      const lower = interestFilter.toLowerCase();
+      trips = trips.filter((t) => {
+        const dest = String(t.destination || "").toLowerCase();
+        const name = String(t.name || "").toLowerCase();
+        return dest.includes(lower) || name.includes(lower);
+      });
     }
     const limit = Math.min(50, Math.max(1, Number(req.query?.limit) || 20));
     trips.sort((a, b) => new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0));
@@ -1879,29 +2035,35 @@ app.get("/trips/:id", optionalAuth, [param("id").notEmpty().withMessage("Trip ID
     const userId = req.user?.id;
     const tripId = String(req.params.id || "");
     const users = await readUsers();
-    if (userId) {
-      const user = users.find((candidate) => candidate.id === userId);
-      if (user) {
-        ensureTrips(user);
-        const trip = (user.trips || []).find((t) => t.id === tripId);
-        if (trip) return res.status(200).json(trip);
-      }
-      for (const u of users) {
-        ensureTrips(u);
-        const trip = (u.trips || []).find((t) => t.id === tripId);
-        if (!trip) continue;
-        ensureCollaborators(trip);
-        if ((trip.collaborators || []).some((c) => c.userId === userId)) {
-          return res.status(200).json({ ...trip, ownerEmail: u.email, isCollaborator: true });
-        }
-      }
-    }
+
+    // Resolve trip and owner (by id only; no access check yet)
+    let resolvedTrip = null;
+    let ownerUser = null;
     for (const u of users) {
       ensureTrips(u);
-      const trip = (u.trips || []).find((t) => t.id === tripId && Boolean(t.isPublic));
-      if (trip) return res.status(200).json({ ...trip, ownerEmail: u.email });
+      const t = (u.trips || []).find((x) => x.id === tripId);
+      if (t) {
+        resolvedTrip = t;
+        ownerUser = u;
+        break;
+      }
     }
-    return res.status(404).json({ error: "Trip not found." });
+    if (!resolvedTrip) return res.status(404).json({ error: "Trip not found." });
+    ensureGallery(resolvedTrip);
+
+    // Access: owner or collaborator may always see the trip (including private)
+    if (userId) {
+      if (resolvedTrip.userId === userId) return res.status(200).json(resolvedTrip);
+      ensureCollaborators(resolvedTrip);
+      if ((resolvedTrip.collaborators || []).some((c) => c.userId === userId)) {
+        return res.status(200).json({ ...resolvedTrip, ownerEmail: ownerUser?.email, isCollaborator: true });
+      }
+    }
+
+    // Private trips: never return to unauthenticated or non-owner/non-collaborator (404, do not leak existence)
+    if (resolvedTrip.isPublic !== true) return res.status(404).json({ error: "Trip not found." });
+
+    return res.status(200).json({ ...resolvedTrip, ownerEmail: ownerUser?.email });
   } catch (error) {
     return next(error);
   }
@@ -1976,7 +2138,7 @@ app.put(
       }
       if (!trip) return res.status(404).json({ error: "Trip not found." });
 
-      const allowed = ["name", "destination", "days", "pace", "status", "itinerary", "transportMode", "isPublic"];
+      const allowed = ["name", "destination", "days", "pace", "status", "itinerary", "transportMode", "isPublic", "thumbnailKey"];
       const statusValues = ["upcoming", "active", "completed", "archived"];
       for (const key of allowed) {
         if (req.body[key] === undefined) continue;
@@ -2008,6 +2170,28 @@ app.put(
           continue;
         }
         if (key === "itinerary" && Array.isArray(req.body[key])) trip.itinerary = req.body[key];
+        if (key === "thumbnailKey") {
+          const val = req.body[key];
+          if (val === null || val === "") {
+            trip.thumbnailKey = undefined;
+            continue;
+          }
+          const str = String(val).trim();
+          if (!str) {
+            trip.thumbnailKey = undefined;
+            continue;
+          }
+          const prefix = `uploads/${user.id}/`;
+          if (!str.startsWith(prefix)) return res.status(400).json({ error: "Invalid thumbnail key." });
+          try {
+            const objectSize = await getObjectSizeR2(str);
+            if (objectSize == null || objectSize <= 0) return res.status(400).json({ error: "Thumbnail image not found. Upload first." });
+          } catch (e) {
+            return res.status(400).json({ error: "Thumbnail image not found." });
+          }
+          trip.thumbnailKey = str;
+          continue;
+        }
       }
       trip.updatedAt = new Date().toISOString();
       await writeUsers(users);
@@ -2212,6 +2396,626 @@ app.post(
     }
   }
 );
+
+// MVP3.6: Upload presign (R2)
+app.post(
+  "/upload/presign",
+  requireAuth,
+  [body("size").isInt({ min: 1 }).withMessage("Valid size (bytes) is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      if (!isR2Configured()) {
+        return res.status(503).json({ error: "Upload service is not configured.", message: "R2 credentials missing." });
+      }
+      const size = Number(req.body?.size) || 0;
+      const contentType = String(req.body?.contentType || "").trim() || "application/octet-stream";
+      if (size > MAX_FILE_BYTES) {
+        return res.status(413).json({ error: "File too large.", message: "Maximum 5 MB per file." });
+      }
+      const users = await readUsers();
+      const user = users.find((u) => u.id === req.user?.id);
+      if (!user) return res.status(404).json({ error: "User not found." });
+      const profile = ensureProfile(user);
+      const used = profile.storageUsed || 0;
+      if (used + size > STORAGE_LIMIT_BYTES) {
+        return res.status(413).json({
+          error: "Storage limit exceeded.",
+          message: `You have used ${Math.round(used / 1024 / 1024)} MB of ${STORAGE_LIMIT_BYTES / 1024 / 1024} MB.`,
+          usedBytes: used,
+          limitBytes: STORAGE_LIMIT_BYTES,
+        });
+      }
+      const ext = contentType === "image/png" ? "png" : contentType === "image/gif" ? "gif" : contentType === "image/webp" ? "webp" : "jpg";
+      const key = `uploads/${user.id}/${crypto.randomUUID()}.${ext}`;
+      const result = await getPresignedPutUrl(key, contentType);
+      if (!result) return res.status(503).json({ error: "Failed to generate upload URL." });
+      return res.status(200).json({ uploadUrl: result.uploadUrl, key: result.key, expiresIn: 900 });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+// MVP3.6: Media redirect (presigned GET for R2 object)
+app.get(/^\/media\/(.+)/, async (req, res, next) => {
+  try {
+    let key = req.params[0];
+    try {
+      key = decodeURIComponent(key);
+    } catch {
+      return res.status(400).json({ error: "Invalid key." });
+    }
+    if (!key || !key.startsWith("uploads/")) return res.status(400).json({ error: "Invalid key." });
+    if (!isR2Configured()) return res.status(503).json({ error: "Media service is not configured." });
+    const url = await getPresignedGetUrl(key);
+    if (!url) return res.status(503).json({ error: "Failed to generate media URL." });
+    res.setHeader("Location", url);
+    res.setHeader("Cache-Control", "private, max-age=3600");
+    return res.status(302).redirect(url);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.delete(
+  "/trips/:id/collaborators/:userId",
+  requireAuth,
+  [
+    param("id").notEmpty().withMessage("Trip ID is required."),
+    param("userId").notEmpty().withMessage("Collaborator user ID is required."),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const authUserId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const collaboratorUserId = String(req.params.userId || "");
+      const users = await readUsers();
+      const authUser = users.find((c) => c.id === authUserId);
+      if (!authUser) return res.status(404).json({ error: "User not found." });
+      ensureTrips(authUser);
+      let trip = (authUser.trips || []).find((t) => t.id === tripId);
+      let ownerUser = authUser;
+      if (!trip) {
+        for (const u of users) {
+          ensureTrips(u);
+          const t = (u.trips || []).find((x) => x.id === tripId);
+          if (!t) continue;
+          ensureCollaborators(t);
+          const collab = (t.collaborators || []).find((c) => c.userId === authUserId);
+          if (collab) {
+            trip = t;
+            ownerUser = u;
+            break;
+          }
+        }
+      }
+      if (!trip || !ownerUser) return res.status(404).json({ error: "Trip not found." });
+      ensureCollaborators(trip);
+      if (trip.userId === collaboratorUserId) return res.status(400).json({ error: "Cannot remove the trip owner." });
+      const isOwner = trip.userId === authUserId;
+      const collab = (trip.collaborators || []).find((c) => c.userId === authUserId);
+      const isEditor = collab && collab.role === "editor";
+      if (!isOwner && !isEditor) return res.status(403).json({ error: "Only the trip owner or an editor can remove collaborators." });
+      const targetCollab = (trip.collaborators || []).find((c) => c.userId === collaboratorUserId);
+      if (!targetCollab) return res.status(404).json({ error: "Collaborator not found on this trip." });
+      if (targetCollab.role === "editor" && !isOwner) return res.status(403).json({ error: "Only the owner can remove editors." });
+      trip.collaborators = trip.collaborators.filter((c) => c.userId !== collaboratorUserId);
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(200).json({ message: "Collaborator removed.", collaborators: trip.collaborators });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.get(
+  "/trips/:id/messages",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const limit = Math.min(100, Math.max(1, Number(req.query?.limit) || 50));
+      const offset = Math.max(0, Number(req.query?.offset) || 0);
+      const users = await readUsers();
+      const authUser = users.find((c) => c.id === userId);
+      if (!authUser) return res.status(404).json({ error: "User not found." });
+      ensureTrips(authUser);
+      let trip = (authUser.trips || []).find((t) => t.id === tripId);
+      if (!trip) {
+        for (const u of users) {
+          ensureTrips(u);
+          const t = (u.trips || []).find((x) => x.id === tripId);
+          if (!t) continue;
+          if ((t.collaborators || []).some((c) => c.userId === userId)) {
+            trip = t;
+            break;
+          }
+        }
+      }
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+      ensureMessages(trip);
+      const sorted = [...trip.messages].sort(
+        (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)
+      );
+      const messages = sorted.slice(offset, offset + limit);
+      return res.status(200).json({ messages, total: trip.messages.length });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.post(
+  "/trips/:id/messages",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const text = String((req.body && req.body.text) || "").trim();
+      const imageKey = typeof req.body?.imageKey === "string" ? req.body.imageKey.trim() : "";
+      if (!text && !imageKey) return res.status(400).json({ error: "Message text or image is required." });
+      const users = await readUsers();
+      const authUser = users.find((c) => c.id === userId);
+      if (!authUser) return res.status(404).json({ error: "User not found." });
+      ensureTrips(authUser);
+      let trip = (authUser.trips || []).find((t) => t.id === tripId);
+      let ownerUser = authUser;
+      if (!trip) {
+        for (const u of users) {
+          ensureTrips(u);
+          const t = (u.trips || []).find((x) => x.id === tripId);
+          if (!t) continue;
+          const collab = (t.collaborators || []).find((c) => c.userId === userId);
+          if (collab) {
+            trip = t;
+            ownerUser = u;
+            break;
+          }
+        }
+      }
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+      ensureMessages(trip);
+      const collab = (trip.collaborators || []).find((c) => c.userId === userId);
+      const canPost = trip.userId === userId || (collab && collab.role === "editor");
+      if (!canPost) return res.status(403).json({ error: "Only trip owner or editors can post messages." });
+
+      let sizeToAdd = 0;
+      if (imageKey) {
+        const prefix = `uploads/${authUser.id}/`;
+        if (!imageKey.startsWith(prefix)) return res.status(400).json({ error: "Invalid image key." });
+        const objectSize = await getObjectSizeR2(imageKey);
+        if (objectSize == null || objectSize <= 0) return res.status(400).json({ error: "Image not found or invalid. Upload first." });
+        const profile = ensureProfile(authUser);
+        const used = profile.storageUsed || 0;
+        if (used + objectSize > STORAGE_LIMIT_BYTES) return res.status(413).json({ error: "Storage limit exceeded." });
+        sizeToAdd = objectSize;
+      }
+
+      const message = {
+        id: crypto.randomUUID(),
+        userId,
+        text: text || "",
+        createdAt: new Date().toISOString(),
+      };
+      if (imageKey) message.imageKey = imageKey;
+      trip.messages.push(message);
+
+      if (sizeToAdd > 0) {
+        const profile = ensureProfile(authUser);
+        profile.storageUsed = (profile.storageUsed || 0) + sizeToAdd;
+      }
+
+      await writeUsers(users);
+      return res.status(201).json(message);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.post(
+  "/trips/:id/like",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const users = await readUsers();
+      let trip = null;
+      for (const u of users) {
+        ensureTrips(u);
+        const t = (u.trips || []).find((x) => x.id === tripId);
+        if (!t || !t.isPublic) continue;
+        trip = t;
+        break;
+      }
+      if (!trip) return res.status(404).json({ error: "Trip not found or not public." });
+      ensureLikes(trip);
+      if (!trip.likes.includes(userId)) trip.likes.push(userId);
+      await writeUsers(users);
+      return res.status(200).json({ liked: true, likeCount: trip.likes.length });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.delete(
+  "/trips/:id/like",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const users = await readUsers();
+      let trip = null;
+      for (const u of users) {
+        ensureTrips(u);
+        const t = (u.trips || []).find((x) => x.id === tripId);
+        if (!t || !t.isPublic) continue;
+        trip = t;
+        break;
+      }
+      if (!trip) return res.status(404).json({ error: "Trip not found or not public." });
+      ensureLikes(trip);
+      const idx = trip.likes.indexOf(userId);
+      if (idx !== -1) trip.likes.splice(idx, 1);
+      await writeUsers(users);
+      return res.status(200).json({ liked: false, likeCount: trip.likes.length });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.get(
+  "/trips/:id/comments",
+  optionalAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const tripId = String(req.params.id || "");
+      const limit = Math.min(100, Math.max(1, Number(req.query?.limit) || 50));
+      const offset = Math.max(0, Number(req.query?.offset) || 0);
+      const users = await readUsers();
+      let trip = null;
+      for (const u of users) {
+        ensureTrips(u);
+        const t = (u.trips || []).find((x) => x.id === tripId);
+        if (!t) continue;
+        trip = t;
+        break;
+      }
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+      if (!trip.isPublic) {
+        const user = req.user;
+        if (!user?.id) return res.status(401).json({ error: "Authentication required." });
+        const hasAccess = trip.userId === user.id || (trip.collaborators || []).some((c) => c.userId === user.id);
+        if (!hasAccess) return res.status(404).json({ error: "Trip not found." });
+      }
+      ensureComments(trip);
+      const sorted = [...trip.comments].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+      const comments = sorted.slice(offset, offset + limit);
+      const withEmails = comments.map((c) => {
+        const author = users.find((u) => u.id === c.userId);
+        return { ...c, authorEmail: author?.email || null };
+      });
+      return res.status(200).json({ comments: withEmails, total: trip.comments.length });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.post(
+  "/trips/:id/comments",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const text = String((req.body && req.body.text) || "").trim();
+      const imageKey = typeof req.body?.imageKey === "string" ? req.body.imageKey.trim() : "";
+      if (!text && !imageKey) return res.status(400).json({ error: "Comment text or image is required." });
+      const users = await readUsers();
+      let trip = null;
+      let ownerUser = null;
+      for (const u of users) {
+        ensureTrips(u);
+        const t = (u.trips || []).find((x) => x.id === tripId);
+        if (!t) continue;
+        trip = t;
+        ownerUser = u;
+        break;
+      }
+      if (!trip) return res.status(404).json({ error: "Trip not found." });
+      if (!trip.isPublic) {
+        const hasAccess = trip.userId === userId || (trip.collaborators || []).some((c) => c.userId === userId);
+        if (!hasAccess) return res.status(403).json({ error: "Cannot comment on this trip." });
+      }
+      ensureComments(trip);
+      const authUser = users.find((c) => c.id === userId);
+      let sizeToAdd = 0;
+      if (imageKey) {
+        const prefix = `uploads/${authUser.id}/`;
+        if (!imageKey.startsWith(prefix)) return res.status(400).json({ error: "Invalid image key." });
+        const objectSize = await getObjectSizeR2(imageKey);
+        if (objectSize == null || objectSize <= 0) return res.status(400).json({ error: "Image not found. Upload first." });
+        const profile = ensureProfile(authUser);
+        const used = profile.storageUsed || 0;
+        if (used + objectSize > STORAGE_LIMIT_BYTES) return res.status(413).json({ error: "Storage limit exceeded." });
+        sizeToAdd = objectSize;
+      }
+      const newComment = {
+        id: crypto.randomUUID(),
+        userId,
+        text: text || "",
+        createdAt: new Date().toISOString(),
+      };
+      if (imageKey) newComment.imageKey = imageKey;
+      trip.comments.push(newComment);
+      if (sizeToAdd > 0) {
+        const profile = ensureProfile(authUser);
+        profile.storageUsed = (profile.storageUsed || 0) + sizeToAdd;
+      }
+      await writeUsers(users);
+      return res.status(201).json({ ...newComment, authorEmail: authUser?.email || null });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+// MVP3.9: Trip gallery – GET list, POST add image
+app.get("/trips/:id/gallery", optionalAuth, [param("id").notEmpty().withMessage("Trip ID is required.")], handleValidationErrors, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const tripId = String(req.params.id || "");
+    const users = await readUsers();
+    let trip = null;
+    for (const u of users) {
+      ensureTrips(u);
+      ensureGallery(u);
+      const t = (u.trips || []).find((x) => x.id === tripId);
+      if (!t) continue;
+      trip = t;
+      break;
+    }
+    if (!trip) return res.status(404).json({ error: "Trip not found." });
+    if (!trip.isPublic) {
+      if (!userId) return res.status(401).json({ error: "Authentication required." });
+      const hasAccess = trip.userId === userId || (trip.collaborators || []).some((c) => c.userId === userId);
+      if (!hasAccess) return res.status(404).json({ error: "Trip not found." });
+    }
+    const withEmails = (trip.gallery || []).map((item) => {
+      const commentsWithEmail = (item.comments || []).map((c) => {
+        const author = users.find((u) => u.id === c.userId);
+        return { ...c, authorEmail: author?.email || null };
+      });
+      return { ...item, comments: commentsWithEmail };
+    });
+    return res.status(200).json({ gallery: withEmails });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.post("/trips/:id/gallery", requireAuth, [param("id").notEmpty().withMessage("Trip ID is required.")], handleValidationErrors, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const tripId = String(req.params.id || "");
+    const imageKey = typeof req.body?.imageKey === "string" ? req.body.imageKey.trim() : "";
+    if (!imageKey) return res.status(400).json({ error: "imageKey is required." });
+    const users = await readUsers();
+    const authUser = users.find((c) => c.id === userId);
+    if (!authUser) return res.status(404).json({ error: "User not found." });
+    ensureTrips(authUser);
+    let trip = (authUser.trips || []).find((t) => t.id === tripId);
+    let ownerUser = authUser;
+    if (!trip) {
+      for (const u of users) {
+        ensureTrips(u);
+        ensureGallery(u);
+        const t = (u.trips || []).find((x) => x.id === tripId);
+        if (!t) continue;
+        const collab = (t.collaborators || []).find((c) => c.userId === userId);
+        if (collab && collab.role === "editor") {
+          trip = t;
+          ownerUser = u;
+          break;
+        }
+      }
+    }
+    if (!trip) return res.status(404).json({ error: "Trip not found." });
+    ensureGallery(trip);
+    const collab = (trip.collaborators || []).find((c) => c.userId === userId);
+    const canPost = trip.userId === userId || (collab && collab.role === "editor");
+    if (!canPost) return res.status(403).json({ error: "Only trip owner or editors can add gallery images." });
+    const prefix = `uploads/${authUser.id}/`;
+    if (!imageKey.startsWith(prefix)) return res.status(400).json({ error: "Invalid image key." });
+    const objectSize = await getObjectSizeR2(imageKey);
+    if (objectSize == null || objectSize <= 0) return res.status(400).json({ error: "Image not found. Upload first." });
+    const profile = ensureProfile(authUser);
+    const used = profile.storageUsed || 0;
+    if (used + objectSize > STORAGE_LIMIT_BYTES) return res.status(413).json({ error: "Storage limit exceeded." });
+    const item = {
+      id: crypto.randomUUID(),
+      imageKey,
+      userId,
+      createdAt: new Date().toISOString(),
+      likes: [],
+      comments: [],
+    };
+    trip.gallery.push(item);
+    profile.storageUsed = (profile.storageUsed || 0) + objectSize;
+    trip.updatedAt = new Date().toISOString();
+    await writeUsers(users);
+    return res.status(201).json(item);
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// MVP3.9: Gallery image like – POST/DELETE
+app.post("/trips/:id/gallery/:imageId/like", requireAuth, [param("id").notEmpty(), param("imageId").notEmpty()], handleValidationErrors, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const tripId = String(req.params.id || "");
+    const imageId = String(req.params.imageId || "");
+    const users = await readUsers();
+    let trip = null;
+    for (const u of users) {
+      ensureTrips(u);
+      ensureGallery(u);
+      const t = (u.trips || []).find((x) => x.id === tripId);
+      if (!t) continue;
+      trip = t;
+      break;
+    }
+    if (!trip) return res.status(404).json({ error: "Trip not found." });
+    const item = (trip.gallery || []).find((i) => i.id === imageId);
+    if (!item) return res.status(404).json({ error: "Gallery image not found." });
+    ensureGalleryImageLikes(item);
+    if (!item.likes.includes(userId)) item.likes.push(userId);
+    await writeUsers(users);
+    return res.status(200).json({ liked: true, likeCount: item.likes.length });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.delete("/trips/:id/gallery/:imageId/like", requireAuth, [param("id").notEmpty(), param("imageId").notEmpty()], handleValidationErrors, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const tripId = String(req.params.id || "");
+    const imageId = String(req.params.imageId || "");
+    const users = await readUsers();
+    let trip = null;
+    for (const u of users) {
+      ensureTrips(u);
+      ensureGallery(u);
+      const t = (u.trips || []).find((x) => x.id === tripId);
+      if (!t) continue;
+      trip = t;
+      break;
+    }
+    if (!trip) return res.status(404).json({ error: "Trip not found." });
+    const item = (trip.gallery || []).find((i) => i.id === imageId);
+    if (!item) return res.status(404).json({ error: "Gallery image not found." });
+    ensureGalleryImageLikes(item);
+    const idx = item.likes.indexOf(userId);
+    if (idx !== -1) item.likes.splice(idx, 1);
+    await writeUsers(users);
+    return res.status(200).json({ liked: false, likeCount: item.likes.length });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+// MVP3.9: Gallery image comments – GET list, POST add (with optional imageKey)
+app.get("/trips/:id/gallery/:imageId/comments", optionalAuth, [param("id").notEmpty(), param("imageId").notEmpty()], handleValidationErrors, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const tripId = String(req.params.id || "");
+    const imageId = String(req.params.imageId || "");
+    const limit = Math.min(100, Math.max(1, Number(req.query?.limit) || 50));
+    const offset = Math.max(0, Number(req.query?.offset) || 0);
+    const users = await readUsers();
+    let trip = null;
+    for (const u of users) {
+      ensureTrips(u);
+      ensureGallery(u);
+      const t = (u.trips || []).find((x) => x.id === tripId);
+      if (!t) continue;
+      trip = t;
+      break;
+    }
+    if (!trip) return res.status(404).json({ error: "Trip not found." });
+    if (!trip.isPublic && !userId) return res.status(401).json({ error: "Authentication required." });
+    if (!trip.isPublic && userId) {
+      const hasAccess = trip.userId === userId || (trip.collaborators || []).some((c) => c.userId === userId);
+      if (!hasAccess) return res.status(404).json({ error: "Trip not found." });
+    }
+    const item = (trip.gallery || []).find((i) => i.id === imageId);
+    if (!item) return res.status(404).json({ error: "Gallery image not found." });
+    ensureGalleryImageComments(item);
+    const sorted = [...(item.comments || [])].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    const comments = sorted.slice(offset, offset + limit);
+    const withEmails = comments.map((c) => {
+      const author = users.find((u) => u.id === c.userId);
+      return { ...c, authorEmail: author?.email || null };
+    });
+    return res.status(200).json({ comments: withEmails, total: item.comments.length });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+app.post("/trips/:id/gallery/:imageId/comments", requireAuth, [param("id").notEmpty(), param("imageId").notEmpty()], handleValidationErrors, async (req, res, next) => {
+  try {
+    const userId = req.user?.id;
+    const tripId = String(req.params.id || "");
+    const imageId = String(req.params.imageId || "");
+    const text = String((req.body && req.body.text) || "").trim();
+    const imageKey = typeof req.body?.imageKey === "string" ? req.body.imageKey.trim() : "";
+    if (!text && !imageKey) return res.status(400).json({ error: "Comment text or image is required." });
+    const users = await readUsers();
+    const authUser = users.find((c) => c.id === userId);
+    if (!authUser) return res.status(404).json({ error: "User not found." });
+    let trip = null;
+    for (const u of users) {
+      ensureTrips(u);
+      ensureGallery(u);
+      const t = (u.trips || []).find((x) => x.id === tripId);
+      if (!t) continue;
+      trip = t;
+      break;
+    }
+    if (!trip) return res.status(404).json({ error: "Trip not found." });
+    const item = (trip.gallery || []).find((i) => i.id === imageId);
+    if (!item) return res.status(404).json({ error: "Gallery image not found." });
+    ensureGalleryImageComments(item);
+    let sizeToAdd = 0;
+    if (imageKey) {
+      const prefix = `uploads/${authUser.id}/`;
+      if (!imageKey.startsWith(prefix)) return res.status(400).json({ error: "Invalid image key." });
+      const objectSize = await getObjectSizeR2(imageKey);
+      if (objectSize == null || objectSize <= 0) return res.status(400).json({ error: "Image not found. Upload first." });
+      const profile = ensureProfile(authUser);
+      const used = profile.storageUsed || 0;
+      if (used + objectSize > STORAGE_LIMIT_BYTES) return res.status(413).json({ error: "Storage limit exceeded." });
+      sizeToAdd = objectSize;
+    }
+    const newComment = { id: crypto.randomUUID(), userId, text: text || "", createdAt: new Date().toISOString() };
+    if (imageKey) newComment.imageKey = imageKey;
+    item.comments.push(newComment);
+    if (sizeToAdd > 0) {
+      const profile = ensureProfile(authUser);
+      profile.storageUsed = (profile.storageUsed || 0) + sizeToAdd;
+    }
+    trip.updatedAt = new Date().toISOString();
+    await writeUsers(users);
+    return res.status(201).json({ ...newComment, authorEmail: authUser.email });
+  } catch (error) {
+    return next(error);
+  }
+});
 
 app.post(
   "/invite/redeem",
@@ -2495,6 +3299,12 @@ app.put(
       ) {
         profile.currencyType = String(req.body.currencyType ?? "");
       }
+      if (req.body && Object.prototype.hasOwnProperty.call(req.body, "interests")) {
+        profile.interests = ensureProfileArray(req.body.interests);
+      }
+      if (req.body && Object.prototype.hasOwnProperty.call(req.body, "preferredDestinations")) {
+        profile.preferredDestinations = ensureProfileArray(req.body.preferredDestinations);
+      }
 
       await writeUsers(users);
       return res.status(200).json(buildProfileResponse(user));
@@ -2555,7 +3365,7 @@ app.use((err, _req, res, _next) => {
 // ============================================================================
 
 // Only start server if not running in Vercel
-if (process.env.VERCEL !== '1') {
+if (!process.env.RENDER) {
   app.listen(PORT, () => {
     console.log(`🚀 Auth server listening on port ${PORT}`);
     console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);

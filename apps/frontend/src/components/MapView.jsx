@@ -28,6 +28,8 @@ function createCustomIcon(color, size = 24) {
 
 const destinationIcon = createCustomIcon("#dc2626"); // red
 const placeIcon = createCustomIcon("#0284c7"); // blue (accent)
+/** MVP3: "You are here" marker (green) */
+const currentLocationIcon = createCustomIcon("#16a34a", 28); // green, slightly larger
 
 /** Colors per day for route polylines (MVP2) */
 const DAY_ROUTE_COLORS = [
@@ -88,12 +90,14 @@ function MapSizeSync() {
  * @param {string} [props.destinationLabel] - Label for destination popup.
  * @param {Array<{ lat: number, lng: number, name: string, category?: string }>} [props.itineraryMarkers] - Blue markers for places.
  * @param {Array<Array<[number, number]>>} [props.dayRoutes] - MVP2: positions per day for polylines.
+ * @param {{ lat: number, lng: number }} [props.currentLocation] - MVP3: user's current position ("You are here" marker).
  */
 const MapView = ({
   center,
   destinationLabel = "",
   itineraryMarkers = [],
   dayRoutes = [],
+  currentLocation = null,
 }) => {
   const lat = center?.lat;
   const lon = center?.lon ?? center?.lng;
@@ -154,6 +158,18 @@ const MapView = ({
             </Marker>
           );
         })}
+        {currentLocation &&
+          Number.isFinite(currentLocation.lat) &&
+          Number.isFinite(currentLocation.lng) && (
+          <Marker
+            position={[currentLocation.lat, currentLocation.lng]}
+            icon={currentLocationIcon}
+          >
+            <Popup>
+              <strong>You are here</strong>
+            </Popup>
+          </Marker>
+        )}
       </MapContainer>
     </div>
   );

@@ -19,6 +19,7 @@ alwaysApply: true
 - **OpenStreetMap:** Free map tiles
 - **GitHub:** Free repository hosting
 - **Static data:** Mock/hardcoded data for testing
+- **Cloudflare R2:** Approved for MVP3 media uploads (in-trip chat); per-user limit 100 MB; usage visible in Profile/Settings
 
 ### ❌ Forbidden (Until MVP4+)
 - **Google Maps API** (paid after free tier)
@@ -27,7 +28,7 @@ alwaysApply: true
 - **Any database service** (use file storage for MVP1-3)
 - **Email services** (SendGrid, Mailgun)
 - **SMS services** (Twilio)
-- **Cloud storage** (S3, Cloudinary)
+- **Other cloud storage** (S3, Cloudinary) — R2 is the approved exception for MVP3 media
 
 ---
 
@@ -106,6 +107,15 @@ navigator.geolocation.getCurrentPosition(pos => {
 const location = await geoLocationService.getLocation();
 ```
 
+### For Media Upload (MVP3)
+**Problem:** In-trip chat needs image/media storage  
+**Solution:** Cloudflare R2 (approved), with user-level limits and visibility
+
+- **Storage:** Cloudflare R2 for media uploads.
+- **Per-user limit:** 100 MB per user (enforced server-side).
+- **Visibility:** Show usage (e.g. "X MB / 100 MB") in Profile or Settings.
+- Implement as MVP3 tasks progress.
+
 ---
 
 ## Verification Checklist
@@ -141,6 +151,7 @@ If ANY answer is "yes" or "maybe", STOP and discuss.
 - Static JSON for destination database
 - Vercel free tier for hosting
 - Browser Geolocation API
+- Cloudflare R2 for MVP3 media (100 MB/user limit; usage in Profile/Settings)
 
 ### ❌ REJECTED
 - Google Maps (paid after quota)

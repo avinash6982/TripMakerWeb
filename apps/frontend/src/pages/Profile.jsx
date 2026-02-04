@@ -48,6 +48,10 @@ const Profile = () => {
     country: "",
     language: "en",
     currencyType: "USD",
+    interests: "",
+    preferredDestinations: "",
+    storageUsed: 0,
+    limitBytes: 100 * 1024 * 1024,
   });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -61,6 +65,10 @@ const Profile = () => {
         country: storedProfile.country || "",
         language: storedProfile.language || i18n.language,
         currencyType: storedProfile.currencyType || "USD",
+        interests: Array.isArray(storedProfile.interests) ? storedProfile.interests.join(", ") : (storedProfile.interests || ""),
+        preferredDestinations: Array.isArray(storedProfile.preferredDestinations) ? storedProfile.preferredDestinations.join(", ") : (storedProfile.preferredDestinations || ""),
+        storageUsed: typeof storedProfile.storageUsed === "number" ? storedProfile.storageUsed : 0,
+        limitBytes: typeof storedProfile.limitBytes === "number" ? storedProfile.limitBytes : 100 * 1024 * 1024,
       });
     }
   }, [i18n.language, user]);
@@ -83,6 +91,10 @@ const Profile = () => {
           country: profile.country || "",
           language: profile.language || i18n.language,
           currencyType: profile.currencyType || "USD",
+          interests: Array.isArray(profile.interests) ? profile.interests.join(", ") : (profile.interests || ""),
+          preferredDestinations: Array.isArray(profile.preferredDestinations) ? profile.preferredDestinations.join(", ") : (profile.preferredDestinations || ""),
+          storageUsed: typeof profile.storageUsed === "number" ? profile.storageUsed : 0,
+          limitBytes: typeof profile.limitBytes === "number" ? profile.limitBytes : 100 * 1024 * 1024,
         });
         if (profile.language) {
           i18n.changeLanguage(profile.language);
@@ -123,6 +135,8 @@ const Profile = () => {
         country: formState.country.trim(),
         language: formState.language,
         currencyType: formState.currencyType,
+        interests: formState.interests.trim() ? formState.interests.split(",").map((s) => s.trim()).filter(Boolean) : [],
+        preferredDestinations: formState.preferredDestinations.trim() ? formState.preferredDestinations.split(",").map((s) => s.trim()).filter(Boolean) : [],
       };
       const profile = await updateProfile(user.id, payload);
       saveProfile(profile);
@@ -160,10 +174,20 @@ const Profile = () => {
 
   return (
     <main className="profile-page">
-      <section className="container profile-grid">
+      <section className="container">
+        <header className="page-header">
+          <Link to="/home" className="page-header-back" aria-label={t("nav.home")} title={t("nav.home")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          </Link>
+          <h1 className="page-header-title">{t("profile.title")}</h1>
+          <div className="page-header-actions">
+            <button type="submit" form="profile-form" className="btn primary btn-sm" disabled={status === "saving"}>
+              {status === "saving" ? t("profile.actions.saving") : t("profile.actions.save")}
+            </button>
+          </div>
+        </header>
+        <div className="profile-grid">
         <div className="profile-intro">
-          <p className="eyebrow">{t("nav.profile")}</p>
-          <h1>{t("profile.title")}</h1>
           <p className="lead">{t("profile.subtitle")}</p>
           <div className="profile-card">
             <h3>{t("profile.intro")}</h3>
@@ -177,11 +201,22 @@ const Profile = () => {
                 <span>{t("profile.form.language")}</span>
                 <strong>{t(`languages.${formState.language}`)}</strong>
               </div>
+              {typeof formState.storageUsed === "number" && (
+                <div>
+                  <span>{t("profile.form.storage", "Storage")}</span>
+                  <strong>
+                    {t("profile.storage.used", "{{used}} MB / {{limit}} MB", {
+                      used: (formState.storageUsed / (1024 * 1024)).toFixed(1),
+                      limit: formState.limitBytes != null ? Math.round(formState.limitBytes / (1024 * 1024)) : 100,
+                    })}
+                  </strong>
+                </div>
+              )}
             </div>
           </div>
         </div>
         <div className="profile-form-card">
-          <form className="profile-form" onSubmit={handleSubmit}>
+          <form id="profile-form" className="profile-form" onSubmit={handleSubmit}>
             <div className="field">
               <label htmlFor="profile-email">{t("profile.form.email")}</label>
               <input
@@ -251,6 +286,28 @@ const Profile = () => {
                 ))}
               </select>
             </div>
+            <div className="field">
+              <label htmlFor="profile-interests">{t("profile.form.interests")}</label>
+              <input
+                id="profile-interests"
+                name="interests"
+                type="text"
+                value={formState.interests}
+                placeholder={t("profile.placeholders.interests")}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="field">
+              <label htmlFor="profile-preferredDestinations">{t("profile.form.preferredDestinations")}</label>
+              <input
+                id="profile-preferredDestinations"
+                name="preferredDestinations"
+                type="text"
+                value={formState.preferredDestinations}
+                placeholder={t("profile.placeholders.preferredDestinations")}
+                onChange={handleChange}
+              />
+            </div>
             {message && (
               <div
                 className={`message ${status === "error" ? "error" : "success"}`}
@@ -259,15 +316,11 @@ const Profile = () => {
                 {message}
               </div>
             )}
-            <div className="profile-actions">
-              <button className="btn primary" type="submit" disabled={status === "saving"}>
-                {status === "saving" ? t("profile.actions.saving") : t("profile.actions.save")}
-              </button>
-              {status === "loading" && (
-                <span className="muted">{t("labels.loading")}</span>
-              )}
-            </div>
+            {status === "loading" && (
+              <span className="muted">{t("labels.loading")}</span>
+            )}
           </form>
+        </div>
         </div>
       </section>
     </main>

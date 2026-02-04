@@ -11,14 +11,27 @@ function verifyToken(token) {
   }
 }
 
+function ensureArray(val) {
+  if (Array.isArray(val)) return val.filter((v) => typeof v === 'string' && v.trim());
+  if (typeof val === 'string' && val.trim()) return val.split(',').map((s) => s.trim()).filter(Boolean);
+  return [];
+}
+
 function buildProfileResponse(user) {
+  const profile = user.profile || {};
+  const storageUsed = typeof profile.storageUsed === 'number' ? profile.storageUsed : 0;
+  const limitBytes = 100 * 1024 * 1024; // 100 MB (MVP3.6)
   return {
     id: user.id,
     email: user.email,
-    phone: user.profile?.phone || '',
-    country: user.profile?.country || '',
-    language: user.profile?.language || 'en',
-    currencyType: user.profile?.currencyType || 'USD',
+    phone: profile.phone || '',
+    country: profile.country || '',
+    language: profile.language || 'en',
+    currencyType: profile.currencyType || 'USD',
+    interests: ensureArray(profile.interests),
+    preferredDestinations: ensureArray(profile.preferredDestinations),
+    storageUsed,
+    limitBytes,
     createdAt: user.createdAt,
   };
 }
@@ -36,7 +49,7 @@ async function handleProfile(req, res) {
     if (!user) return res.status(404).json({ error: 'User not found.' });
     if (req.method === 'GET') return res.status(200).json(buildProfileResponse(user));
     if (req.method === 'PUT') {
-      const { email, phone, country, language, currencyType } = req.body || {};
+      const { email, phone, country, language, currencyType, interests, preferredDestinations } = req.body || {};
       if (email !== undefined) {
         const normalizedEmail = normalizeEmail(email);
         if (!normalizedEmail) return res.status(400).json({ error: 'Email must be provided.' });
@@ -49,6 +62,8 @@ async function handleProfile(req, res) {
       if (country !== undefined) user.profile.country = country;
       if (language !== undefined) user.profile.language = language;
       if (currencyType !== undefined) user.profile.currencyType = currencyType;
+      if (interests !== undefined) user.profile.interests = ensureArray(interests);
+      if (preferredDestinations !== undefined) user.profile.preferredDestinations = ensureArray(preferredDestinations);
       await writeUsers(users);
       return res.status(200).json(buildProfileResponse(user));
     }

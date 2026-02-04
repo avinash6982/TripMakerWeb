@@ -4,7 +4,7 @@
 
 > **Current Phase:** MVP1 - Trip Planning Foundation (25% complete)  
 > **Status:** ✅ Production deployed | 🔄 Active development  
-> **Demo:** https://trip-maker-pink.vercel.app
+> **Demo:** https://tripmaker-63b1.onrender.com (or your Render URL)
 
 ---
 
@@ -41,11 +41,10 @@ TripMaker/
 │   ├── frontend/          # React/Vite frontend application
 │   └── backend/           # Express.js backend API
 ├── package.json           # Root workspace configuration
-├── vercel.json           # Vercel deployment config
 ├── .cursorrules          # Cursor AI integration
 ├── QUICK_START.md        # Quick local setup guide
 ├── CONTRIBUTING.md       # Development guidelines
-└── VERCEL_DEPLOYMENT_GUIDE.md  # Deployment instructions
+└── RENDER_DEPLOYMENT_GUIDE.md  # Deployment (Render only)
 ```
 
 ## Getting Started
@@ -124,18 +123,18 @@ npm run start:backend
 - **[API_REFERENCE.md](API_REFERENCE.md)** - API endpoints and data models
 
 ### 🚀 Deployment & Contributing
-- **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)** - Deploy to production
+- **[RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)** - Deploy to production (Render only)
 - **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development guidelines
 
 ## Deployment
 
-This monorepo is configured for Vercel deployment:
+This monorepo is deployed on **Render only** (no Vercel):
 
 - **Frontend**: Static site from `apps/frontend/dist`
-- **Backend**: Serverless functions at `/api/*` routes
-- **CI/CD**: Push to `main` → automatic deployment
+- **Backend**: Web Service (Node/Express)
+- **Env**: No `.env` file required; use `apps/backend/.env.development` and `apps/frontend/.env.development` for local dev. Production: set variables in Render Dashboard.
 
-See **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)** for detailed deployment instructions.
+See **[RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)** for deployment and env setup.
 
 ## Applications
 

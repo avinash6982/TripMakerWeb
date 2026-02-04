@@ -37,7 +37,7 @@
 ### Production URLs
 - **Frontend**: https://trip-maker-pink.vercel.app
 - **Backend API**: https://trip-maker-pink.vercel.app/api
-- **API Docs**: https://trip-maker-pink.vercel.app/api-docs (local only)
+- **API Docs**: http://localhost:3000/api-docs (local); production: your Render backend URL + /api-docs
 
 ---
 
@@ -45,31 +45,24 @@
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│                         VERCEL                              │
+│                         RENDER                              │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │                   Frontend (Static)                   │  │
-│  │  React + Vite + React Router + i18next               │  │
-│  │  Deployed to: apps/frontend/dist/                    │  │
+│  │  Frontend (Static Site) – apps/frontend/dist/         │  │
+│  │  React + Vite + React Router + i18next                │  │
 │  └──────────────────┬───────────────────────────────────┘  │
 │                     │                                        │
-│                     │ API Calls (/api/*)                   │
+│                     │ API Calls (to Backend URL)             │
 │                     ▼                                        │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │           Backend (Serverless Functions)             │  │
-│  │  Express.js API → Vercel Serverless                  │  │
-│  │  Routes:                                             │  │
-│  │    - /api/health                                     │  │
-│  │    - /api/auth/register                             │  │
-│  │    - /api/auth/login                                │  │
-│  │    - /api/user/profile                              │  │
+│  │  Backend (Web Service) – apps/backend/server.js        │  │
+│  │  Express.js API                                       │  │
+│  │  Routes: /health, /api/*, /api-docs, etc.               │  │
 │  └──────────────────┬───────────────────────────────────┘  │
 │                     │                                        │
-│                     │ File I/O                              │
+│                     │ File I/O (ephemeral on Render)         │
 │                     ▼                                        │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │              Data Storage (Ephemeral)                 │  │
-│  │  /tmp/tripmaker-users.json                           │  │
-│  │  Auto-seeded dev user on every invocation            │  │
+│  │  Data: /tmp/tripmaker-users.json; auto-seeded dev user   │  │
 │  └──────────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────────┘
 
@@ -124,7 +117,7 @@ LOCAL DEVELOPMENT
 ### Infrastructure
 | Technology | Purpose |
 |------------|---------|
-| **Vercel** | Hosting, CI/CD, serverless functions |
+| **Render** | Hosting (Static Site + Web Service); no Vercel |
 | **npm workspaces** | Monorepo management |
 | **Git/GitHub** | Version control |
 
@@ -233,7 +226,9 @@ apps/frontend/
 │   │   ├── Register.jsx
 │   │   ├── Profile.jsx
 │   │   ├── Trips.jsx
-│   │   └── TripDetail.jsx
+│   │   ├── TripDetail.jsx
+│   │   ├── TripGallery.jsx # Trip gallery carousel, likes/comments per image (MVP3)
+│   │   └── Feed.jsx
 │   ├── components/         # Reusable UI components
 │   │   └── MapView.jsx     # Leaflet map with destination + itinerary markers
 │   ├── layouts/            # Layout wrappers
@@ -271,14 +266,17 @@ App (Router)
    ├─ Home (RequireAuth)
    │  └─ MapView (Leaflet: destination marker + itinerary markers, popups)
    ├─ Trips (RequireAuth) – list saved trips, Create New Trip → Home
-   ├─ Feed (RequireAuth) – discover / public trips (MVP2)
-   ├─ TripDetail (RequireAuth) – view single trip by ID
+   ├─ Feed (RequireAuth) – discover / public trips; trip cards show thumbnail + gallery preview; comments support image attach (MVP3)
+   ├─ TripDetail (RequireAuth) – view single trip; cover/gallery row; trip comments with image attach; link to TripGallery
+   ├─ TripGallery (RequireAuth) – /trips/:id/gallery; minimal header (round back + trip name + add icon); empty state; carousel, thumb strip, like/comment per image (MVP3)
    └─ Profile (RequireAuth)
 ```
 
 ### UI Standards & Responsive Layout
 
 **Design system:** `src/styles/variables.css` defines design tokens (colors, spacing, radius, shadows, typography). Global styles in `index.css` use these tokens for consistency.
+
+**Standard page header (app-wide):** Every main page uses a single-row header: round back button (left) + page title (centre, truncate) + primary CTA (right). CSS: `.page-header`, `.page-header-back`, `.page-header-title`, `.page-header-actions`. Back goes to Trips or Home depending on context. Used on Trip Detail, Trips, Feed, Profile, Trip Gallery.
 
 **Breakpoints:**
 - **Desktop (≥768px):** Top header with logo, horizontal nav links (Home, Trips, Feed, Profile), language selector, and logout. Content area full width up to `--container-max` (1120px).

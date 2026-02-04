@@ -1,6 +1,6 @@
 # 🚧 Development Status
 
-> **Last Updated:** January 31, 2026 (MVP2 complete, MVP3 unblocked)  
+> **Last Updated:** February 3, 2026 (MVP3 media: R2 + 100MB/user)  
 > **Current Sprint:** MVP3 - Real-Time Trip Execution  
 > **Sprint Day:** 1
 
@@ -73,8 +73,10 @@
 **Objective:** Start MVP3 (Real-Time Trip Execution). Break down first features into tasks; implement in order of priority (zero-cost constraint: no paid APIs).
 
 **Status:** MVP2 complete; MVP3 unblocked.  
-**MVP3 features:** Timeline/feed preferences, real-time location tracking, live map with current location, ETA/delays/alerts, in-trip chat, media upload, like/comment on feed, share externally.  
+**MVP3 features:** Timeline/feed preferences, real-time location tracking, live map with current location, ETA/delays/alerts, in-trip chat, media upload (Cloudflare R2, 100 MB/user limit, usage in Profile/Settings), like/comment on feed, share externally.  
 **Reference:** See MVP_PLAN.md MVP3 features (3.1–3.8); create MVP3_TASK_BREAKDOWN.md for task breakdown.
+
+**Decision (Feb 3, 2026):** MVP3 media storage will use **Cloudflare R2**. Each user has a **100 MB** upload limit (enforced server-side). Storage usage (e.g. "X MB / 100 MB") will be visible in **Profile** or **Settings**. Implement as tasks progress.
 
 ---
 

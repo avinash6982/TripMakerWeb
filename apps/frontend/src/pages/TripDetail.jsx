@@ -8,6 +8,14 @@ import {
   archiveTrip,
   unarchiveTrip,
   createInvite,
+  removeCollaborator,
+  fetchTripMessages,
+  postTripMessage,
+  getUploadPresign,
+  getApiBaseUrl,
+  fetchTripComments,
+  postTripComment,
+  postGalleryImage,
 } from "../services/trips";
 import { getStoredUser } from "../services/auth";
 import { getTransportHubsForDestination } from "../data/transportHubs";
@@ -17,6 +25,8 @@ import {
   geocodePlace,
   collectPlaceNamesByDay,
 } from "../services/geocode";
+import { useLocation } from "../hooks/useLocation";
+import { getClosestStop } from "../utils/distance";
 
 const TripDetail = () => {
   const { t } = useTranslation();
@@ -38,6 +48,32 @@ const TripDetail = () => {
   const [itineraryMarkers, setItineraryMarkers] = useState([]);
   const [dayRoutes, setDayRoutes] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
+  const [showMyLocation, setShowMyLocation] = useState(false);
+  const {
+    position: currentLocationPosition,
+    error: locationError,
+    loading: locationLoading,
+    isWatching,
+    startWatching,
+    stopWatching,
+    clearError: clearLocationError,
+  } = useLocation();
+  const [messages, setMessages] = useState([]);
+  const [chatInput, setChatInput] = useState("");
+  const [chatImageFile, setChatImageFile] = useState(null);
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatError, setChatError] = useState("");
+  const [comments, setComments] = useState([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentInput, setCommentInput] = useState("");
+  const [commentImageFile, setCommentImageFile] = useState(null);
+  const [commentPosting, setCommentPosting] = useState(false);
+  const [commentError, setCommentError] = useState("");
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
+  const [removingUserId, setRemovingUserId] = useState(null);
+  const [coverLoading, setCoverLoading] = useState(false);
+  const [galleryAddLoading, setGalleryAddLoading] = useState(false);
+  const [chatPanelOpen, setChatPanelOpen] = useState(false);
 
   const loadTrip = async () => {
     if (!id) return;
@@ -83,6 +119,7 @@ const TripDetail = () => {
         }
         const center = { lat: coords.lat, lon: coords.lon };
         setMapCenter(center);
+        setMapLoading(false);
         const placesByDay = collectPlaceNamesByDay({ itinerary: trip.itinerary });
         const centerPos = [coords.lat, coords.lon];
         const routes = placesByDay.map(() => []);
@@ -92,7 +129,7 @@ const TripDetail = () => {
           const dayPlaces = placesByDay[dayIndex];
           for (let j = 0; j < dayPlaces.length; j++) {
             if (cancelled) return;
-            await new Promise((r) => setTimeout(r, reqIndex === 0 ? 0 : 1200));
+            await new Promise((r) => setTimeout(r, reqIndex === 0 ? 0 : 1100));
             if (cancelled) return;
             const place = dayPlaces[j];
             const placeCoords = await geocodePlace(place.name, trip.destination);
@@ -120,6 +157,98 @@ const TripDetail = () => {
     run();
     return () => { cancelled = true; };
   }, [trip?.id, trip?.destination, trip?.itinerary]);
+
+  // MVP3: Load and poll trip chat messages
+  useEffect(() => {
+    if (!trip?.id) return;
+    let cancelled = false;
+    const load = async () => {
+      try {
+        const data = await fetchTripMessages(trip.id, { limit: 50 });
+        if (!cancelled && data?.messages) setMessages(data.messages);
+      } catch {
+        if (!cancelled) setMessages([]);
+      }
+    };
+    load();
+    const interval = setInterval(load, 5000);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [trip?.id]);
+
+  const handleSendMessage = async (e) => {
+    e?.preventDefault();
+    const text = chatInput.trim();
+    if ((!text && !chatImageFile) || !trip?.id || chatLoading) return;
+    setChatError("");
+    setChatLoading(true);
+    try {
+      let imageKey = null;
+      if (chatImageFile) {
+        const { uploadUrl, key } = await getUploadPresign(chatImageFile.size, chatImageFile.type || "image/jpeg");
+        const putRes = await fetch(uploadUrl, {
+          method: "PUT",
+          body: chatImageFile,
+          headers: { "Content-Type": chatImageFile.type || "image/jpeg" },
+        });
+        if (!putRes.ok) throw new Error("Upload failed.");
+        imageKey = key;
+      }
+      await postTripMessage(trip.id, { text, imageKey });
+      setChatInput("");
+      setChatImageFile(null);
+      const data = await fetchTripMessages(trip.id, { limit: 50 });
+      if (data?.messages) setMessages(data.messages);
+    } catch (err) {
+      setChatError(err?.message || "Failed to send.");
+    } finally {
+      setChatLoading(false);
+    }
+  };
+
+  // Load feed comments (same as Discover) when viewing trip
+  useEffect(() => {
+    if (!trip?.id) return;
+    let cancelled = false;
+    setCommentsLoading(true);
+    fetchTripComments(trip.id, { limit: 50 })
+      .then((data) => {
+        if (!cancelled && data?.comments) setComments(data.comments);
+      })
+      .catch(() => {
+        if (!cancelled) setComments([]);
+      })
+      .finally(() => {
+        if (!cancelled) setCommentsLoading(false);
+      });
+    return () => { cancelled = true; };
+  }, [trip?.id]);
+
+  const handlePostComment = async (e) => {
+    e?.preventDefault();
+    const text = commentInput.trim();
+    if ((!text && !commentImageFile) || !trip?.id || commentPosting) return;
+    setCommentError("");
+    setCommentPosting(true);
+    try {
+      let imageKey = null;
+      if (commentImageFile && commentImageFile.size <= 5 * 1024 * 1024) {
+        const { uploadUrl, key } = await getUploadPresign(commentImageFile.size, commentImageFile.type || "image/jpeg");
+        await fetch(uploadUrl, { method: "PUT", body: commentImageFile, headers: { "Content-Type": commentImageFile.type || "image/jpeg" } });
+        imageKey = key;
+      }
+      const newComment = await postTripComment(trip.id, { text, imageKey });
+      setCommentInput("");
+      setCommentImageFile(null);
+      setComments((prev) => [{ ...newComment, authorEmail: newComment.authorEmail || currentUser?.email }, ...prev]);
+    } catch (err) {
+      setCommentError(err?.message || "Failed to post comment.");
+    } finally {
+      setCommentPosting(false);
+    }
+  };
 
   const handleSaveEdit = async (e) => {
     e?.preventDefault();
@@ -242,13 +371,33 @@ const TripDetail = () => {
   return (
     <main className="trip-detail-page">
       <section className="container">
-        <div className="trip-detail-header">
-          <Link className="btn ghost back-link" to="/trips">
-            ← {t("trips.title")}
+        <header className="page-header">
+          <Link to="/trips" className="page-header-back" aria-label={t("trips.title")} title={t("trips.title")}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </Link>
+          <h1 className="page-header-title">{editMode ? t("trips.editTrip", "Edit trip") : trip.name}</h1>
+          {isOwner && editMode ? (
+            <div className="page-header-actions">
+              <button type="button" className="btn ghost btn-sm" onClick={() => { setEditMode(false); setEditForm({ name: trip.name, destination: trip.destination, days: trip.days }); }} disabled={actionLoading}>
+                {t("trips.cancel")}
+              </button>
+              <button type="submit" form="trip-detail-edit-form" className="btn primary btn-sm" disabled={actionLoading}>
+                {actionLoading ? t("labels.loading") : t("trips.saveChanges")}
+              </button>
+            </div>
+          ) : (
+            (isOwner || isEditor) && (
+              <div className="page-header-actions">
+                <button type="button" className="btn ghost btn-sm" onClick={() => setEditMode(true)} disabled={actionLoading}>
+                  {t("trips.edit")}
+                </button>
+              </div>
+            )
+          )}
+        </header>
 
           {isOwner && editMode ? (
-            <form onSubmit={handleSaveEdit} className="trip-detail-edit-form">
+            <form id="trip-detail-edit-form" onSubmit={handleSaveEdit} className="trip-detail-edit-form">
               <div className="field">
                 <label>{t("tripPlanner.saveTrip.nameLabel")}</label>
                 <input
@@ -284,34 +433,10 @@ const TripDetail = () => {
                   }
                 />
               </div>
-              <div className="trip-detail-actions">
-                <button
-                  type="submit"
-                  className="btn primary"
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? t("labels.loading") : t("trips.saveChanges")}
-                </button>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => {
-                    setEditMode(false);
-                    setEditForm({
-                      name: trip.name,
-                      destination: trip.destination,
-                      days: trip.days,
-                    });
-                  }}
-                  disabled={actionLoading}
-                >
-                  {t("trips.cancel")}
-                </button>
-              </div>
             </form>
           ) : (
             <>
-              <h1>{trip.name}</h1>
+              <div className="trip-detail-meta-row">
               <p className="muted">{trip.destination}</p>
               <div className="trip-detail-meta">
                 <span>{t("trips.days", { count: trip.days })}</span>
@@ -321,18 +446,27 @@ const TripDetail = () => {
                 >
                   {t(`trips.status.${trip.status || "upcoming"}`)}
                 </span>
+                <button
+                  type="button"
+                  className="btn small ghost trip-detail-copy-link"
+                  onClick={async () => {
+                    const url = `${window.location.origin}/trips/${trip.id}`;
+                    try {
+                      await navigator.clipboard.writeText(url);
+                      setShareLinkCopied(true);
+                      setTimeout(() => setShareLinkCopied(false), 2000);
+                    } catch {
+                      setMessage(t("trips.copyLinkFailed"));
+                    }
+                  }}
+                  aria-live="polite"
+                >
+                  {shareLinkCopied ? t("trips.linkCopied") : t("trips.copyLink")}
+                </button>
               </div>
 
               {(isOwner || isEditor) && (
               <div className="trip-detail-action-bar">
-                <button
-                  type="button"
-                  className="btn small ghost"
-                  onClick={() => setEditMode(true)}
-                  disabled={actionLoading}
-                >
-                  {t("trips.edit")}
-                </button>
                 {trip.status !== "completed" && (
                   <button
                     type="button"
@@ -413,8 +547,52 @@ const TripDetail = () => {
                 )}
               </div>
               )}
+              </div>
               {!isOwner && trip.ownerEmail && (
                 <p className="muted trip-detail-owner">{t("feed.by")} {trip.ownerEmail}</p>
+              )}
+
+              {(isOwner || (trip.collaborators?.length > 0)) && (
+                <div className="trip-detail-people">
+                  <h3 className="trip-detail-people-title">{t("trips.peopleOnTrip", "People on this trip")}</h3>
+                  <ul className="trip-detail-people-list" aria-label={t("trips.peopleOnTrip", "People on this trip")}>
+                    <li className="trip-detail-people-item trip-detail-people-owner">
+                      <span className="trip-detail-people-email">{trip.ownerEmail || (isOwner && currentUser?.email) || t("trips.owner", "Owner")}</span>
+                      <span className="trip-detail-people-role">{t("trips.role.owner", "Owner")}</span>
+                    </li>
+                    {(trip.collaborators || []).map((c) => (
+                      <li key={c.userId} className="trip-detail-people-item">
+                        <span className="trip-detail-people-email">{c.email || c.userId}</span>
+                        <span className="trip-detail-people-role">{t(`trips.role.${c.role}`, c.role)}</span>
+                        {canEdit && (isOwner || c.role === "viewer") && (
+                            <button
+                              type="button"
+                              className="btn ghost btn-sm trip-detail-people-remove"
+                              onClick={async () => {
+                                if (removingUserId) return;
+                                setRemovingUserId(c.userId);
+                                setMessage("");
+                                try {
+                                  await removeCollaborator(trip.id, c.userId);
+                                  const updated = await fetchTrip(trip.id);
+                                  setTrip(updated);
+                                  setMessage(t("trips.collaboratorRemoved", "Collaborator removed."));
+                                } catch (err) {
+                                  setMessage(err?.message || t("trips.removeCollaboratorFailed", "Could not remove."));
+                                } finally {
+                                  setRemovingUserId(null);
+                                }
+                              }}
+                              disabled={removingUserId === c.userId}
+                              aria-label={t("trips.removeCollaborator", "Remove from trip")}
+                            >
+                              {removingUserId === c.userId ? t("labels.loading") : t("trips.remove", "Remove")}
+                            </button>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
             </>
           )}
@@ -431,11 +609,154 @@ const TripDetail = () => {
               {message}
             </p>
           )}
-        </div>
+
+        {!editMode && trip.id && (
+          <div className="trip-detail-gallery-section">
+            <h2>{t("trips.galleryTitle", "Gallery")}</h2>
+            {trip.thumbnailKey && (
+              <div className="trip-detail-cover">
+                <img
+                  src={`${getApiBaseUrl()}/media/${encodeURIComponent(trip.thumbnailKey)}`}
+                  alt=""
+                  className="trip-detail-cover-img"
+                />
+              </div>
+            )}
+            {(isOwner || isEditor) && (
+              <div className="trip-detail-cover-actions">
+                <label className="btn ghost btn-sm">
+                  <span>{trip.thumbnailKey ? t("trips.changeCover", "Change cover") : t("trips.addCover", "Add cover")}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    className="sr-only"
+                    disabled={coverLoading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || file.size > 5 * 1024 * 1024) return;
+                      e.target.value = "";
+                      setCoverLoading(true);
+                      setMessage("");
+                      try {
+                        const { uploadUrl, key } = await getUploadPresign(file.size, file.type || "image/jpeg");
+                        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type || "image/jpeg" } });
+                        const updated = await updateTrip(trip.id, { thumbnailKey: key });
+                        setTrip(updated);
+                        setMessage(t("trips.coverUpdated", "Cover updated."));
+                      } catch (err) {
+                        setMessage(err?.message || "Failed to update cover.");
+                      } finally {
+                        setCoverLoading(false);
+                      }
+                    }}
+                  />
+                </label>
+                <label className="btn ghost btn-sm">
+                  <span>{t("trips.addToGallery", "Add to gallery")}</span>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    className="sr-only"
+                    disabled={galleryAddLoading}
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file || file.size > 5 * 1024 * 1024) return;
+                      e.target.value = "";
+                      setGalleryAddLoading(true);
+                      setMessage("");
+                      try {
+                        const { uploadUrl, key } = await getUploadPresign(file.size, file.type || "image/jpeg");
+                        await fetch(uploadUrl, { method: "PUT", body: file, headers: { "Content-Type": file.type || "image/jpeg" } });
+                        await postGalleryImage(trip.id, { imageKey: key });
+                        const updated = await fetchTrip(trip.id);
+                        setTrip(updated);
+                        setMessage(t("trips.addedToGallery", "Added to gallery."));
+                      } catch (err) {
+                        setMessage(err?.message || "Failed to add to gallery.");
+                      } finally {
+                        setGalleryAddLoading(false);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+            <div className="trip-detail-gallery-row">
+              {(trip.gallery || []).slice(0, 6).map((item) => (
+                <a
+                  key={item.id}
+                  href={`${getApiBaseUrl()}/media/${encodeURIComponent(item.imageKey)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="trip-detail-gallery-thumb"
+                >
+                  <img src={`${getApiBaseUrl()}/media/${encodeURIComponent(item.imageKey)}`} alt="" />
+                </a>
+              ))}
+            </div>
+            <Link to={`/trips/${trip.id}/gallery`} className="btn ghost btn-sm trip-detail-gallery-link">
+              {t("trips.viewGallery", "View gallery")} ({(trip.gallery || []).length})
+            </Link>
+          </div>
+        )}
 
         {!editMode && mapCenter && (
           <div className="trip-detail-map">
-            <h2>{t("trips.map")}</h2>
+            <div className="trip-detail-map-header">
+              <h2>{t("trips.map")}</h2>
+              <button
+                type="button"
+                className="btn ghost btn-sm"
+                onClick={() => {
+                  if (showMyLocation) {
+                    stopWatching();
+                    setShowMyLocation(false);
+                  } else {
+                    clearLocationError();
+                    startWatching();
+                    setShowMyLocation(true);
+                  }
+                }}
+                disabled={locationLoading}
+                aria-pressed={showMyLocation}
+              >
+                {locationLoading
+                  ? t("trips.locationLoading")
+                  : showMyLocation
+                    ? t("trips.hideMyLocation")
+                    : t("trips.showMyLocation")}
+              </button>
+            </div>
+            {locationError && (
+              <p className="message error trip-detail-location-error" role="alert">
+                {locationError}
+              </p>
+            )}
+            {showMyLocation && currentLocationPosition && itineraryMarkers.length > 0 && (() => {
+              const closest = getClosestStop(currentLocationPosition, itineraryMarkers);
+              if (!closest) return null;
+              const { distanceKm, marker, estimatedMinutes } = closest;
+              const name = marker?.name || t("trips.nextStop", "Next stop");
+              if (distanceKm < 0.2) {
+                return (
+                  <p className="trip-detail-eta trip-detail-eta-close" role="status">
+                    {t("trips.youAreCloseTo", { name }, "Very close to {{name}}")}
+                  </p>
+                );
+              }
+              return (
+                <>
+                  <p className="trip-detail-eta" role="status">
+                    {t("trips.etaToNext", { km: distanceKm, name, min: estimatedMinutes }, "~{{km}} km to {{name}} · ~{{min}} min")}
+                  </p>
+                  {distanceKm > 15 && (
+                    <p className="trip-detail-eta-alert" role="status">
+                      {t("trips.farFromNextStop", "Far from next stop — consider adjusting your schedule.")}
+                    </p>
+                  )}
+                </>
+              );
+            })()}
             {mapLoading && (
               <p className="muted trip-detail-map-loading">{t("labels.loading")}</p>
             )}
@@ -445,6 +766,7 @@ const TripDetail = () => {
                 destinationLabel={trip.destination}
                 itineraryMarkers={itineraryMarkers}
                 dayRoutes={dayRoutes}
+                currentLocation={showMyLocation ? currentLocationPosition : null}
               />
             )}
           </div>
@@ -518,6 +840,87 @@ const TripDetail = () => {
             </div>
           );
         })()}
+
+        {!editMode && trip.id && (
+          <div className="trip-detail-comments">
+            <h2>{t("feed.comments", "Comments")}</h2>
+            {commentsLoading ? (
+              <p className="muted">{t("labels.loading")}</p>
+            ) : comments.length === 0 ? (
+              <p className="muted">{t("feed.noComments", "No comments yet.")}</p>
+            ) : (
+              <ul className="trip-detail-comments-list">
+                {comments.map((c) => (
+                  <li key={c.id} className="trip-detail-comment">
+                    <strong>{c.authorEmail || t("feed.commentAuthor", "Someone")}:</strong> {c.text}
+                    {c.imageKey && (
+                      <a href={`${getApiBaseUrl()}/media/${encodeURIComponent(c.imageKey)}`} target="_blank" rel="noopener noreferrer" className="trip-detail-comment-img-wrap">
+                        <img src={`${getApiBaseUrl()}/media/${encodeURIComponent(c.imageKey)}`} alt="" className="trip-detail-comment-img" loading="lazy" />
+                      </a>
+                    )}
+                    <span className="trip-detail-comment-time">
+                      {c.createdAt
+                        ? new Date(c.createdAt).toLocaleString(undefined, {
+                            month: "short",
+                            day: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })
+                        : ""}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {currentUser && (
+              <form className="trip-detail-comment-form" onSubmit={handlePostComment}>
+                {commentImageFile && (
+                  <div className="trip-detail-comment-attach-preview">
+                    <span>{commentImageFile.name}</span>
+                    <button type="button" className="btn ghost btn-sm" onClick={() => setCommentImageFile(null)} aria-label={t("trips.removeImage", "Remove image")}>×</button>
+                  </div>
+                )}
+                <div className="trip-detail-comment-form-row">
+                  <input
+                    type="text"
+                    className="trip-detail-comment-input"
+                    value={commentInput}
+                    onChange={(e) => setCommentInput(e.target.value)}
+                    placeholder={t("feed.addComment", "Add a comment...")}
+                    maxLength={500}
+                    disabled={commentPosting}
+                    aria-label={t("feed.addComment", "Add a comment...")}
+                  />
+                  <label className="btn ghost btn-sm">
+                    <span>{t("trips.attachImage", "Attach image")}</span>
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="sr-only"
+                      onChange={(e) => {
+                        const f = e.target.files?.[0];
+                        if (f && f.size <= 5 * 1024 * 1024) setCommentImageFile(f);
+                        e.target.value = "";
+                      }}
+                    />
+                  </label>
+                  <button
+                    type="submit"
+                    className="btn primary btn-sm"
+                    disabled={commentPosting || (!commentInput.trim() && !commentImageFile)}
+                  >
+                    {commentPosting ? t("labels.loading") : t("feed.postComment", "Post")}
+                  </button>
+                </div>
+              </form>
+            )}
+            {commentError && (
+              <p className="message error trip-detail-comment-error" role="alert">
+                {commentError}
+              </p>
+            )}
+          </div>
+        )}
 
         {!editMode && trip.itinerary && trip.itinerary.length > 0 && (
           <div className="trip-detail-itinerary">
@@ -652,6 +1055,126 @@ const TripDetail = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {!editMode && trip?.id && (
+        <>
+          <button
+            type="button"
+            className="trip-detail-chat-fab"
+            onClick={() => setChatPanelOpen((open) => !open)}
+            aria-label={t("trips.chat", "Trip chat")}
+            aria-expanded={chatPanelOpen}
+          >
+            <span className="trip-detail-chat-fab-icon" aria-hidden>💬</span>
+            {messages.length > 0 && (
+              <span className="trip-detail-chat-fab-badge">{messages.length > 99 ? "99+" : messages.length}</span>
+            )}
+          </button>
+          {chatPanelOpen && (
+            <div className="trip-detail-chat-panel" role="dialog" aria-label={t("trips.chat", "Trip chat")}>
+              <div className="trip-detail-chat-panel-inner">
+                <div className="trip-detail-chat-panel-header">
+                  <h2 className="trip-detail-chat-panel-title">{t("trips.chat", "Trip chat")}</h2>
+                  <button
+                    type="button"
+                    className="btn ghost btn-sm trip-detail-chat-panel-close"
+                    onClick={() => setChatPanelOpen(false)}
+                    aria-label={t("trips.close", "Close")}
+                  >
+                    ×
+                  </button>
+                </div>
+                <div className="trip-detail-chat-messages">
+                  {messages.length === 0 ? (
+                    <p className="muted">{t("trips.chatEmpty", "No messages yet. Say something!")}</p>
+                  ) : (
+                    [...messages].reverse().map((msg) => (
+                      <div key={msg.id} className="trip-detail-chat-message">
+                        <span className="trip-detail-chat-sender">
+                          {msg.userId === currentUser?.id ? t("trips.chatYou", "You") : t("trips.chatMember", "Trip member")}:
+                        </span>{" "}
+                        {msg.imageKey && (
+                          <a
+                            href={`${getApiBaseUrl()}/media/${encodeURIComponent(msg.imageKey)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="trip-detail-chat-image-wrap"
+                          >
+                            <img
+                              src={`${getApiBaseUrl()}/media/${encodeURIComponent(msg.imageKey)}`}
+                              alt=""
+                              className="trip-detail-chat-image"
+                              loading="lazy"
+                            />
+                          </a>
+                        )}
+                        {msg.text && <span className="trip-detail-chat-text">{msg.text}</span>}
+                        <span className="trip-detail-chat-time">
+                          {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : ""}
+                        </span>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {canEdit && (
+                  <form className="trip-detail-chat-form" onSubmit={handleSendMessage}>
+                    {chatImageFile && (
+                      <div className="trip-detail-chat-attach-preview">
+                        <span>{chatImageFile.name}</span>
+                        <button type="button" className="btn ghost btn-sm" onClick={() => setChatImageFile(null)} aria-label={t("trips.removeImage", "Remove image")}>
+                          ×
+                        </button>
+                      </div>
+                    )}
+                    <div className="trip-detail-chat-form-row">
+                      <input
+                        type="text"
+                        className="trip-detail-chat-input"
+                        value={chatInput}
+                        onChange={(e) => setChatInput(e.target.value)}
+                        placeholder={t("trips.chatPlaceholder", "Type a message...")}
+                        maxLength={500}
+                        disabled={chatLoading}
+                        aria-label={t("trips.chatPlaceholder", "Type a message...")}
+                      />
+                      <label className="trip-detail-chat-icon-btn trip-detail-chat-attach" title={t("trips.attachImage", "Attach image")}>
+                        <span className="trip-detail-chat-icon" aria-hidden>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                        </span>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          className="sr-only"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file && file.size <= 5 * 1024 * 1024) setChatImageFile(file);
+                            else if (file) setChatError(t("trips.imageTooLarge", "Image must be 5 MB or less."));
+                            e.target.value = "";
+                          }}
+                        />
+                      </label>
+                      <button type="submit" className="trip-detail-chat-icon-btn trip-detail-chat-send" disabled={chatLoading || (!chatInput.trim() && !chatImageFile)} aria-label={t("trips.chatSend", "Send")} title={t("trips.chatSend", "Send")}>
+                        <span className="trip-detail-chat-icon" aria-hidden>
+                          {chatLoading ? (
+                            <span className="trip-detail-chat-loading">⋯</span>
+                          ) : (
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                          )}
+                        </span>
+                      </button>
+                    </div>
+                  </form>
+                )}
+                {chatError && (
+                  <p className="message error trip-detail-chat-error" role="alert">
+                    {chatError}
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+        </>
       )}
     </main>
   );

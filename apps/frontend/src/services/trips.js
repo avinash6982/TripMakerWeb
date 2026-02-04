@@ -1,6 +1,9 @@
 const DEFAULT_API_BASE = "/api";
 const API_BASE_URL = (import.meta.env.VITE_API_URL || DEFAULT_API_BASE).replace(/\/$/, "");
 
+/** Base URL for API (used for media redirects). */
+export const getApiBaseUrl = () => API_BASE_URL;
+
 const getAuthHeaders = () => {
   try {
     const raw = typeof window !== "undefined" && window.localStorage?.getItem("waypoint.user");
@@ -47,16 +50,17 @@ export const createTrip = (payload) =>
   );
 
 /**
- * Fetch public trip feed (MVP2). No auth required.
- * @param {{ destination?: string, limit?: number }} [params]
+ * Fetch public trip feed (MVP2). Auth optional; when sent, feed includes userLiked per trip (MVP3).
+ * @param {{ destination?: string, interest?: string, limit?: number }} [params]
  */
 export const fetchFeed = async (params) => {
   const search = new URLSearchParams();
   if (params?.destination) search.set("destination", params.destination);
+  if (params?.interest) search.set("interest", params.interest);
   if (params?.limit) search.set("limit", String(params.limit));
   const qs = search.toString();
   const path = `/trips/feed${qs ? `?${qs}` : ""}`;
-  const res = await fetch(`${API_BASE_URL}${path}`);
+  const res = await fetch(`${API_BASE_URL}${path}`, { headers: getAuthHeaders() });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data?.error || "Unable to load feed.");
   return data;
@@ -137,3 +141,168 @@ export const redeemInvite = (code) =>
     { method: "POST", body: JSON.stringify({ code }) },
     "Invalid or expired invite code."
   );
+
+/**
+ * Remove a collaborator from a trip (owner or editor; only owner can remove editors).
+ * @param {string} tripId
+ * @param {string} userId - Collaborator's user ID to remove
+ */
+export const removeCollaborator = (tripId, userId) =>
+  requestJson(
+    `/trips/${tripId}/collaborators/${encodeURIComponent(userId)}`,
+    { method: "DELETE" },
+    "Unable to remove collaborator."
+  );
+
+/**
+ * Fetch chat messages for a trip (MVP3). Paginated.
+ * @param {string} tripId
+ * @param {{ limit?: number, offset?: number }} [params]
+ */
+export const fetchTripMessages = (tripId, params = {}) => {
+  const search = new URLSearchParams();
+  if (params?.limit != null) search.set("limit", String(params.limit));
+  if (params?.offset != null) search.set("offset", String(params.offset));
+  const qs = search.toString();
+  const path = `/trips/${tripId}/messages${qs ? `?${qs}` : ""}`;
+  return requestJson(path, { method: "GET" }, "Unable to load messages.");
+};
+
+/**
+ * Get presigned upload URL for R2 (MVP3.6). Call PUT to uploadUrl with file body, then post message with imageKey.
+ * @param {number} size - File size in bytes
+ * @param {string} contentType - e.g. image/jpeg
+ */
+export const getUploadPresign = (size, contentType) =>
+  requestJson(
+    "/upload/presign",
+    {
+      method: "POST",
+      body: JSON.stringify({ size: Number(size), contentType: String(contentType || "image/jpeg") }),
+    },
+    "Unable to get upload URL."
+  );
+
+/**
+ * Post a chat message to a trip (MVP3). Optional imageKey after uploading via presign.
+ * @param {string} tripId
+ * @param {{ text: string, imageKey?: string }} payload
+ */
+export const postTripMessage = (tripId, payload) => {
+  const body = { text: String(payload?.text ?? "").trim() };
+  if (payload?.imageKey) body.imageKey = String(payload.imageKey).trim();
+  return requestJson(
+    `/trips/${tripId}/messages`,
+    { method: "POST", body: JSON.stringify(body) },
+    "Unable to send message."
+  );
+};
+
+/**
+ * Like a public trip (MVP3).
+ * @param {string} tripId
+ */
+export const likeTrip = (tripId) =>
+  requestJson(`/trips/${tripId}/like`, { method: "POST" }, "Unable to like trip.");
+
+/**
+ * Unlike a public trip (MVP3).
+ * @param {string} tripId
+ */
+export const unlikeTrip = (tripId) =>
+  requestJson(`/trips/${tripId}/like`, { method: "DELETE" }, "Unable to unlike trip.");
+
+/**
+ * Get comments for a trip (MVP3).
+ * @param {string} tripId
+ * @param {{ limit?: number, offset?: number }} [params]
+ */
+export const fetchTripComments = (tripId, params = {}) => {
+  const search = new URLSearchParams();
+  if (params?.limit != null) search.set("limit", String(params.limit));
+  if (params?.offset != null) search.set("offset", String(params.offset));
+  const qs = search.toString();
+  const path = `/trips/${tripId}/comments${qs ? `?${qs}` : ""}`;
+  return requestJson(path, { method: "GET" }, "Unable to load comments.");
+};
+
+/**
+ * Post a comment on a trip (MVP3). Optional imageKey (MVP3.11).
+ * @param {string} tripId
+ * @param {{ text: string, imageKey?: string }} payload
+ */
+export const postTripComment = (tripId, payload) => {
+  const body = { text: String(payload?.text ?? "").trim() };
+  if (payload?.imageKey) body.imageKey = String(payload.imageKey).trim();
+  return requestJson(
+    `/trips/${tripId}/comments`,
+    { method: "POST", body: JSON.stringify(body) },
+    "Unable to post comment."
+  );
+};
+
+/**
+ * Fetch trip gallery (MVP3.9).
+ * @param {string} tripId
+ */
+export const fetchGallery = (tripId) =>
+  requestJson(`/trips/${tripId}/gallery`, { method: "GET" }, "Unable to load gallery.");
+
+/**
+ * Add image to trip gallery (MVP3.9).
+ * @param {string} tripId
+ * @param {{ imageKey: string }} payload
+ */
+export const postGalleryImage = (tripId, payload) =>
+  requestJson(
+    `/trips/${tripId}/gallery`,
+    { method: "POST", body: JSON.stringify({ imageKey: String(payload?.imageKey ?? "").trim() }) },
+    "Unable to add image."
+  );
+
+/**
+ * Like a gallery image (MVP3.9).
+ * @param {string} tripId
+ * @param {string} imageId
+ */
+export const likeGalleryImage = (tripId, imageId) =>
+  requestJson(`/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/like`, { method: "POST" }, "Unable to like.");
+
+/**
+ * Unlike a gallery image (MVP3.9).
+ * @param {string} tripId
+ * @param {string} imageId
+ */
+export const unlikeGalleryImage = (tripId, imageId) =>
+  requestJson(`/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/like`, { method: "DELETE" }, "Unable to unlike.");
+
+/**
+ * Fetch comments for a gallery image (MVP3.9).
+ * @param {string} tripId
+ * @param {string} imageId
+ * @param {{ limit?: number, offset?: number }} [params]
+ */
+export const fetchGalleryImageComments = (tripId, imageId, params = {}) => {
+  const search = new URLSearchParams();
+  if (params?.limit != null) search.set("limit", String(params.limit));
+  if (params?.offset != null) search.set("offset", String(params.offset));
+  const qs = search.toString();
+  const path = `/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/comments${qs ? `?${qs}` : ""}`;
+  return requestJson(path, { method: "GET" }, "Unable to load comments.");
+};
+
+/**
+ * Post a comment on a gallery image (MVP3.9). Optional imageKey (MVP3.11).
+ * @param {string} tripId
+ * @param {string} imageId
+ * @param {{ text: string, imageKey?: string }} payload
+ */
+export const postGalleryImageComment = (tripId, imageId, payload) => {
+  const body = { text: String(payload?.text ?? "").trim() };
+  if (payload?.imageKey) body.imageKey = String(payload.imageKey).trim();
+  return requestJson(
+    `/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/comments`,
+    { method: "POST", body: JSON.stringify(body) },
+    "Unable to post comment."
+  );
+};

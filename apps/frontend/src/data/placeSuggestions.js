@@ -131,6 +131,26 @@ const PLACES_BY_DESTINATION = {
     "Rohtang Pass",
     "Solang Valley",
   ],
+  "abu dhabi": [
+    "Sheikh Zayed Grand Mosque",
+    "Louvre Abu Dhabi",
+    "Ferrari World",
+    "Yas Island",
+    "Corniche Beach",
+    "Emirates Palace",
+    "Qasr Al Hosn",
+    "Heritage Village",
+    "Saadiyat Island",
+    "Marina Mall",
+    "Yas Marina Circuit",
+    "Warner Bros. World",
+    "Abu Dhabi Mall",
+    "Mangrove National Park",
+    "Observation Deck at 300",
+    "Al Jahili Fort",
+    "Al Ain Oasis",
+    "Abu Dhabi Falcon Hospital",
+  ],
 };
 
 /** Aliases that map to "new york" list */

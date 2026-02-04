@@ -27,7 +27,8 @@
 |----------|---------|------------------|
 | **[PRODUCT_VISION.md](PRODUCT_VISION.md)** | Long-term vision, business model | Quarterly |
 | **[MVP_ROADMAP.md](MVP_ROADMAP.md)** | Phase breakdown, progress tracking | Weekly |
-| **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** | MVP2 atomic tasks (current phase) | Daily |
+| **[MVP3_TASK_BREAKDOWN.md](MVP3_TASK_BREAKDOWN.md)** | MVP3 atomic tasks and verification | Per task |
+| **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** | MVP2 reference (complete) | Rarely |
 | **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** | MVP1 reference (complete) | Rarely |
 
 ### Architecture & Technical
@@ -46,14 +47,13 @@
 ### Deployment
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
-| **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)** | Deploy to production | Rarely |
+| **[RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)** | Deploy to production (Render only) | Rarely |
 
 ### Testing & Reference
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
 | **[MVP1_BROWSER_TEST_CHECKLIST.md](MVP1_BROWSER_TEST_CHECKLIST.md)** | Browser verification (MVP1 flows) | Per task |
 | **[MVP2_QA_CHECKLIST.md](MVP2_QA_CHECKLIST.md)** | MVP2 verification (map, feed, invite) | Per task |
-| **[MVP2_TEST_RESULTS.md](MVP2_TEST_RESULTS.md)** | MVP2 QA results (API sanity, code checks) | After QA run |
 | **[TEST_USER.md](TEST_USER.md)** | Dev user credentials | Never |
 
 ### Cursor AI Integration
@@ -183,7 +183,7 @@
 → **[API_REFERENCE.md](API_REFERENCE.md)**
 
 ### "How do I deploy?"
-→ **[VERCEL_DEPLOYMENT_GUIDE.md](VERCEL_DEPLOYMENT_GUIDE.md)**
+→ **[RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)** (Render only)
 
 ### "What's the dev user credentials?"
 → **[TEST_USER.md](TEST_USER.md)**
@@ -239,8 +239,8 @@ ID: dev-user-00000000-0000-0000-0000-000000000001
 Local Frontend:  http://localhost:5173
 Local Backend:   http://localhost:3000
 API Docs:        http://localhost:3000/api-docs
-Production:      https://trip-maker-pink.vercel.app
-Production API:  https://trip-maker-pink.vercel.app/api
+Production:      https://tripmaker-63b1.onrender.com (or your Render URL)
+Production API:  (your Render backend URL)
 ```
 
 ---

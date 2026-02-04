@@ -1,0 +1,76 @@
+---
+description: Use icon buttons for generic actionable items (attach, send, close, etc.) instead of text-only buttons
+alwaysApply: true
+---
+
+# UI: Icon Buttons for Generic Actions
+
+## Principle
+
+**For generic, repeatable actions (attach, send, close, delete, edit, etc.), use icon-only buttons instead of text buttons.** This keeps the UI clean, avoids overflow in tight layouts (e.g. chat panels, toolbars), and is consistent across the app.
+
+---
+
+## When to Use Icon Buttons
+
+- **Attach / upload** – paperclip or image icon, not "Attach image" text
+- **Send / submit** – send arrow icon, not "Send" text (when context is clear, e.g. chat)
+- **Close** – × or close icon
+- **Delete / remove** – trash or × icon
+- **Edit** – pencil icon (when in a row of actions)
+- **Like / favourite** – heart icon (already used in feed)
+- **Back** – arrow-left icon in a **round button** for minimal subpages (e.g. Gallery, Trip Detail); avoid "← Back to trip" text in a rectangular button when a single row header is desired.
+
+Use **text buttons** when:
+- The action is primary and needs emphasis (e.g. "Save", "Create trip")
+- The screen has space and the label adds clarity (e.g. "Back to trips")
+- It's a standalone CTA, not a toolbar action
+
+---
+
+## Implementation
+
+1. **Icon source:** Use inline SVG (no extra dependency) or a shared icon set. Keep icons ~20px in 36–40px tap targets.
+2. **Accessibility:** Always set `aria-label` or `title` on icon-only buttons so screen readers and hover show the action name.
+3. **Consistency:** Use the same icon for the same action (e.g. paperclip for attach everywhere).
+4. **Layout:** Give icon buttons fixed size and `flex-shrink: 0`; give the adjacent input `min-width: 0` so the row doesn’t overflow and cut off the button.
+
+---
+
+## Example (chat form)
+
+```jsx
+{/* Icon-only attach – label wraps file input, title/aria-label for a11y */}
+<label className="trip-detail-chat-icon-btn" title={t("trips.attachImage")}>
+  <span className="trip-detail-chat-icon" aria-hidden>
+    <svg>...</svg>
+  </span>
+  <input type="file" className="sr-only" ... />
+</label>
+<button type="submit" className="trip-detail-chat-icon-btn trip-detail-chat-send" aria-label={t("trips.chatSend")}>
+  <span className="trip-detail-chat-icon"><svg>...</svg></span>
+</button>
+```
+
+---
+
+## Standard page header (app-wide)
+
+**Use the same header pattern on every page:** one row with round back button (left) + page title (centre, truncate) + primary CTA (right).
+
+- **CSS classes:** `.page-header`, `.page-header-back`, `.page-header-title`, `.page-header-actions`. Round back uses `.page-header-back` (circle, arrow icon). Primary action can be a round icon (e.g. `.page-header-action-round.primary`) or a regular `.btn` in `.page-header-actions`.
+- **Back target:** Trip Detail and Gallery → back to Trips list; Trips, Feed, Profile → back to Home.
+- **Applied on:** Trip Detail, Trips (My Trips), Feed (Discover), Profile, Trip Gallery. Home is the hub and has no back.
+- Do not repeat the primary action in both the header and the empty state – keep one instance in the header.
+
+## Empty states and loading
+
+- **Empty state:** Use a dedicated empty-state component: icon/illustration, short heading, one line of copy. No duplicate CTAs; the header action is enough.
+- **Loading for uploads:** Show a loading state (spinner in the add button or inline "Uploading...") so the user knows the action is in progress.
+
+## Red Flags
+
+- Text like "Attach image" or "Send" as the only content of a button in a compact toolbar or chat form → Prefer an icon + `aria-label`/`title`.
+- Send or action button getting cut off at the edge of a panel → Add `min-width: 0` on the flex child (input) and `flex-shrink: 0` on icon buttons; ensure the form row has `min-width: 0` and `max-width: 100%`.
+- Rectangular "← Back to trip" next to a title and another button → Prefer round back icon button + title + action icon in one row.
+- Same action button in header and in empty state → Keep one (header); empty state = message + optional inline upload status only.

@@ -135,9 +135,9 @@
 3. **API_REFERENCE.md** - Update for new endpoints (immediately)
 4. **APP_ARCHITECTURE.md** - Update for data changes (immediately)
 
-### Production URLs
-- **Frontend**: https://trip-maker-pink.vercel.app
-- **API**: https://trip-maker-pink.vercel.app/api
+### Production URLs (Render)
+- **Frontend**: your Render static site or web service URL
+- **API**: your Render backend service URL (e.g. https://your-backend.onrender.com)
 - **Repository**: https://github.com/avinash6982/TripMakerWeb
 
 ---
@@ -172,7 +172,7 @@ ID:       dev-user-00000000-0000-0000-0000-000000000001
 | **Frontend** | React 19.2.3 + Vite 7.3.1 + React Router 7.12.0 |
 | **Backend** | Express.js 5.2.1 + JWT + Swagger |
 | **i18n** | i18next (6 languages: en, hi, ml, ar, es, de) |
-| **Deployment** | Vercel (serverless functions + static hosting) |
+| **Deployment** | Render (backend + static frontend) |
 | **Monorepo** | npm workspaces |
 
 ### Architecture Pattern
@@ -180,7 +180,7 @@ ID:       dev-user-00000000-0000-0000-0000-000000000001
 Monorepo (npm workspaces)
 ├── apps/frontend/     → React/Vite SPA
 ├── apps/backend/      → Express.js API (local dev)
-└── api/               → Vercel serverless functions (production)
+└── api/               → Optional serverless entry (project uses Render; backend = apps/backend)
 ```
 
 ## 📁 MONOREPO STRUCTURE
@@ -213,10 +213,10 @@ TripMaker/                                   # Root (monorepo workspace)
 │       ├── server.js                        # Monolithic Express app (local dev)
 │       │                                    # Contains: all routes, middleware, logic
 │       ├── data/users.json                  # Local user storage (persistent)
-│       ├── .env.development                 # Local dev config (PORT, JWT_SECRET)
+│       ├── .env.development                 # Local dev config (loaded when NODE_ENV=development or .env missing; no .env required)
 │       └── package.json                     # Backend dependencies
 │
-├── api/                                     # Vercel serverless functions (production)
+├── api/                                     # Optional serverless (project deploys on Render)
 │   ├── index.js                            # API root
 │   ├── health.js                           # Health check endpoint
 │   ├── auth/
@@ -237,12 +237,12 @@ TripMaker/                                   # Root (monorepo workspace)
 ├── DEV_USER_GUIDE.md                       # Dev user documentation
 ├── TEST_USER.md                            # Test user credentials
 ├── DOCUMENTATION_INDEX.md                  # Documentation map
-└── VERCEL_DEPLOYMENT_GUIDE.md              # Deployment instructions
+└── RENDER_DEPLOYMENT_GUIDE.md              # Deployment (Render only)
 │
 ├── .cursorrules                             # ⭐ THIS FILE (Cursor AI guide)
 ├── .gitignore                              # Git ignore patterns
 ├── package.json                            # Root workspace config
-└── vercel.json                             # Vercel deployment config
+# (vercel.json removed; we use Render only)
 ```
 
 ## ⚡ CRITICAL RULES (READ ON EVERY PROMPT)
@@ -263,7 +263,7 @@ Documentation?   → top-level .md files
 - Mix frontend and backend code
 - Install backend deps in frontend (or vice versa)
 - Hardcode URLs or secrets
-- Modify `vercel.json` without consulting this file
+- Modify deployment config without consulting this file
 
 ### 2. Development User (Auto-Seeded)
 
@@ -277,7 +277,7 @@ const DEV_USER = {
 
 // Backend: Auto-seeded in readUsers()
 // Frontend: Use for all testing
-// Vercel: Recreated on every function invocation
+// Render: Backend persists; dev user from seed when needed
 ```
 
 ### 3. API Integration Pattern
@@ -298,7 +298,7 @@ fetch('http://localhost:3000/login', { ... })
 ```bash
 # Frontend (.env.development)
 VITE_API_URL=http://localhost:3000  # Local dev
-VITE_API_URL=/api                    # Production (Vercel)
+VITE_API_URL=https://your-backend.onrender.com   # Production (Render backend URL)
 
 # Backend (.env.development)
 PORT=3000
@@ -321,7 +321,7 @@ open http://localhost:3000/api-docs
 
 # Build & Deploy
 npm run build            # Build frontend
-git push origin main     # Auto-deploy to Vercel
+git push origin main     # Deploy (Render auto-deploys on push if connected)
 ```
 
 ## 🎨 FRONTEND PATTERNS (apps/frontend/)
@@ -482,7 +482,7 @@ swagger-ui-express 5.0.0 (API docs)
 // 5. Auth Middleware (requireAuth, optionalAuth)
 // 6. API Routes (/, /health, /register, /login, /profile/:id)
 // 7. Error Handlers (404, global error handler)
-// 8. Server Start (local only, Vercel doesn't need it)
+// 8. Server Start (local only; on Render the process runs the same server)
 ```
 
 ### Adding New Endpoints
@@ -605,7 +605,7 @@ app.post('/login', loginLimiter, ...);
 app.use(generalLimiter);  // Apply to all
 ```
 
-### Vercel Serverless Functions (api/)
+### API handlers (api/ – used when adapting to serverless; production is Render Web Service running apps/backend)
 
 ```javascript
 // api/user/profile.js example
@@ -648,9 +648,9 @@ module.exports = async (req, res) => {
 };
 ```
 
-## 🚀 DEPLOYMENT (Vercel)
+## 🚀 DEPLOYMENT (Render)
 
-### Current vercel.json
+### Render
 
 ```json
 {
@@ -678,7 +678,7 @@ module.exports = async (req, res) => {
 ```
 1. git push origin main
    ↓
-2. Vercel detects push
+2. Render detects push (or manual deploy)
    ↓
 3. Build Phase
    ├─ npm install (all workspaces)
@@ -689,41 +689,41 @@ module.exports = async (req, res) => {
 4. Deploy Phase
    ├─ Static files → CDN (from apps/frontend/dist/)
    ├─ Serverless functions → api/*.js
-   └─ Configure rewrites (vercel.json)
+   └─ Configure SPA rewrites on Render (see RENDER_SPA_RELOAD_FIX.md)
    ↓
 5. Live URLs
-   ├─ Frontend: https://trip-maker-pink.vercel.app
-   ├─ API: https://trip-maker-pink.vercel.app/api
-   └─ Preview: https://trip-maker-<hash>.vercel.app
+   ├─ Frontend: https://tripmaker-63b1.onrender.com (or your Render URL)
+   ├─ API: (your Render backend URL)
+   └─ See RENDER_DEPLOYMENT_GUIDE.md
 ```
 
-### Required Environment Variables (Vercel Dashboard)
+### Required Environment Variables (Render Dashboard)
 
 ```bash
 JWT_SECRET=<64-char-hex>  # Generate: node -e "console.log(crypto.randomBytes(32).toString('hex'))"
 NODE_ENV=production
 VITE_API_URL=/api
-CORS_ORIGINS=https://trip-maker-pink.vercel.app
+CORS_ORIGINS=https://your-frontend.onrender.com
 ```
 
 ### Post-Deployment Checklist
 
 ```bash
 # 1. Health check
-curl https://trip-maker-pink.vercel.app/api/health
+curl https://your-backend.onrender.com/health
 # Expected: {"status":"ok"}
 
 # 2. Frontend loads
-open https://trip-maker-pink.vercel.app
+open https://your-frontend.onrender.com
 # Expected: Login page
 
 # 3. Test login
-curl -X POST https://trip-maker-pink.vercel.app/api/auth/login \
+curl -X POST https://your-backend.onrender.com/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"dev@tripmaker.com","password":"DevUser123!"}'
 # Expected: JWT token + user data
 
-# 4. Check Vercel function logs
+# 4. Check Render service logs
 # Dashboard → Deployments → [Latest] → Functions tab
 ```
 
@@ -749,7 +749,7 @@ curl -X POST https://trip-maker-pink.vercel.app/api/auth/login \
 
 ### Environment Security
 - ✅ `.env` files in .gitignore
-- ✅ `.env.example` and `.env.development` safe to commit (no secrets)
+- ✅ `.env.example` and `.env.development` safe to commit (no secrets). Backend loads `.env.development` when NODE_ENV=development; no `.env` required in backend folder.
 - ✅ JWT_SECRET auto-generated in development
 - ✅ JWT_SECRET required in production
 - ❌ Never commit real JWT_SECRET
@@ -804,7 +804,7 @@ chore: update dependencies
 ### When to Update Docs
 - **README.md**: Project structure or overview changes
 - **QUICK_START.md**: Setup process changes
-- **VERCEL_DEPLOYMENT_GUIDE.md**: Deployment process changes
+- **RENDER_DEPLOYMENT_GUIDE.md**: Deployment process changes (Render only)
 - **CONTRIBUTING.md**: Development workflow changes
 - **APP_ARCHITECTURE.md**: Major configuration changes
 
@@ -906,13 +906,13 @@ app.get(
 curl http://localhost:3000/trips \
   -H "Authorization: Bearer <token>"
 
-// 4. Create serverless function (for Vercel)
+// 4. API route (production: Render runs apps/backend; api/ is for reference/adaptation)
 // api/trips.js
 module.exports = async (req, res) => {
   // Same logic as above
 };
 
-// 5. Update vercel.json if needed
+// 5. Update Render config if needed (see RENDER_DEPLOYMENT_GUIDE.md)
 // (No change needed, /api/:path* catches it)
 ```
 
@@ -1072,10 +1072,10 @@ npm install
 **"JWT_SECRET required" error:**
 ```bash
 # Development: Auto-generated (ignore warning)
-# Production: Set in Vercel environment variables
+# Production: Set in Render Dashboard (backend service Environment)
 ```
 
-**"User not found" after Vercel deployment:**
+**"User not found" after Render deployment:**
 ```bash
 # Use dev user (auto-seeded):
 # dev@tripmaker.com / DevUser123!
@@ -1089,18 +1089,17 @@ npm install
 
 #### Deployment Issues
 
-**Vercel build fails:**
+**Render build fails:**
 ```bash
-# Check vercel.json is correct
+# Check Render service config (see RENDER_DEPLOYMENT_GUIDE.md)
 # Test build locally: npm run build
 # Check all dependencies are in package.json
 ```
 
 **API endpoints return 404:**
 ```bash
-# Check rewrites in vercel.json
-# Verify serverless functions deployed
-# Check Vercel function logs
+# Check Render service env vars and start command
+# Check Render service logs
 ```
 
 **Frontend loads but API fails:**
@@ -1127,7 +1126,7 @@ Is it UI/React?
   └─ NO ↓
 
 Is it deployment config?
-  ├─ YES → vercel.json or .env.example
+  ├─ YES → Render Dashboard or .env.development (no .env required)
   └─ NO ↓
 
 Is it documentation?
@@ -1150,7 +1149,7 @@ Integration?
   └─ YES → Full user flow in browser
 
 Deployment?
-  └─ YES → Vercel preview deployment first
+  └─ YES → Render preview deployment first
 ```
 
 ## 🎓 LEARNING RESOURCES
@@ -1159,11 +1158,11 @@ Deployment?
 - **React**: https://react.dev
 - **Vite**: https://vitejs.dev
 - **Express**: https://expressjs.com
-- **Vercel**: https://vercel.com/docs
+- **Render**: https://render.com/docs
 
 ### Project-Specific
 - See `QUICK_START.md` for local setup
-- See `VERCEL_DEPLOYMENT_GUIDE.md` for deployment
+- See `RENDER_DEPLOYMENT_GUIDE.md` for deployment (Render only)
 - See `CONTRIBUTING.md` for workflow
 - See `DOCUMENTATION_INDEX.md` for documentation map
 
@@ -1217,15 +1216,15 @@ Deployment?
 Question: Where does this code go?
 ├─ User interface/React? → apps/frontend/src/
 ├─ API logic? → apps/backend/server.js (local)
-│             → api/*.js (Vercel production)
-├─ Configuration? → Root (package.json, vercel.json)
+│             → apps/backend (Render)
+├─ Configuration? → Root (package.json), apps/backend, apps/frontend
 └─ Documentation? → Root .md files
 
 Question: How do I test this?
 ├─ Backend API? → curl or Swagger UI
 ├─ Frontend UI? → Browser + React DevTools
 ├─ Full flow? → Browser end-to-end
-└─ Deployment? → Vercel preview URL
+└─ Deployment? → Render dashboard
 
 Question: Where is this documented?
 ├─ Architecture? → APP_ARCHITECTURE.md
@@ -1263,11 +1262,11 @@ npm run build            # Build frontend
 # === DEPLOYMENT ===
 git add .
 git commit -m "feat: add feature"
-git push origin main     # Auto-deploy to Vercel
+git push origin main     # Deploy (Render auto-deploys on push if connected)
 
-# === VERCEL URLS ===
-# Frontend: https://trip-maker-pink.vercel.app
-# API: https://trip-maker-pink.vercel.app/api
+# === RENDER URLS ===
+# Frontend: your Render frontend URL
+# API: your Render backend URL
 ```
 
 ## 📚 Documentation Index

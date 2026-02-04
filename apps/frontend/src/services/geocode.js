@@ -42,6 +42,12 @@ const STATIC_DESTINATIONS = [
     lon: 78.0182,
     aliases: ["kaza", "spiti", "spiti valley", "ladakh spiti"],
   },
+  {
+    label: "Abu Dhabi, UAE",
+    lat: 24.4539,
+    lon: 54.3773,
+    aliases: ["abu dhabi", "abu dhabi uae", "abu dhabi, uae", "uae"],
+  },
 ];
 
 const normalizeKey = (value) =>

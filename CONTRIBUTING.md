@@ -23,11 +23,8 @@ Thank you for considering contributing to TripMaker! This document provides guid
    npm install
    ```
 
-3. **Set up environment variables**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your local configuration
-   ```
+3. **Environment (no `.env` required)**  
+   Local dev uses `.env.development` only. Backend: `apps/backend/.env.development`. Frontend: `apps/frontend/.env.development`. See root `.env.example` and **RENDER_DEPLOYMENT_GUIDE.md** for variable names.
 
 4. **Start development servers**
    ```bash
@@ -53,7 +50,7 @@ TripMaker/
 │       └── package.json
 ├── .cursorrules          # Cursor AI guidelines
 ├── package.json          # Root workspace config
-├── vercel.json          # Vercel deployment config
+├── RENDER_DEPLOYMENT_GUIDE.md  # Render deployment (no Vercel)
 └── README.md
 ```
 
@@ -227,8 +224,8 @@ app.get('/api/endpoint', (req, res) => {
 
 ### Local Development
 
-- Create `.env` file (never commit this)
-- Use `.env.example` as template
+- Use `.env.development` for local dev (no `.env` required; see `.env.example` for variable names)
+- Never commit real secrets; `.env.development` is safe if it has no secrets
 - Frontend env vars must be prefixed with `VITE_`
 
 ### Production (Vercel)
@@ -265,7 +262,7 @@ npm test
 
 ### CORS Errors
 
-- Check `CORS_ORIGINS` in backend `.env`
+- Check `CORS_ORIGINS` in backend `apps/backend/.env.development`
 - Verify frontend is using correct API URL
 - Check network tab in browser dev tools
 
@@ -319,13 +316,14 @@ Include:
 
 ```bash
 # Install Vercel CLI
-npm install -g vercel
+# Deploy via Render Dashboard; see RENDER_DEPLOYMENT_GUIDE.md
+# (Optional: npm install -g vercel — we use Render only)
 
-# Deploy preview
-vercel
+# Deploy preview (Render: use Render Dashboard)
+# vercel  # Not used; we use Render
 
 # Deploy production
-vercel --prod
+# vercel --prod  # Not used; deploy via Render
 ```
 
 ## Resources
@@ -333,14 +331,14 @@ vercel --prod
 - [React Documentation](https://react.dev)
 - [Vite Documentation](https://vitejs.dev)
 - [Express.js Documentation](https://expressjs.com)
-- [Vercel Documentation](https://vercel.com/docs)
+- [Render Documentation](https://render.com/docs)
 - [Swagger Documentation](https://swagger.io/docs)
 
 ## Getting Help
 
 - Check existing issues on GitHub
 - Read documentation in `/docs` folder
-- Review `VERCEL_DEPLOYMENT_GUIDE.md` for deployment help
+- Review `RENDER_DEPLOYMENT_GUIDE.md` for deployment (Render only)
 - Create a new issue with detailed description
 
 ## Code of Conduct

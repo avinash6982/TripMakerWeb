@@ -60,7 +60,7 @@ NODE_ENV=development
 CORS_ORIGINS=http://localhost:5173,http://localhost:4173
 ```
 
-No additional configuration needed for local development!
+**No `.env` file is required.** The repo uses only `.env.development` for local dev; production uses the Render Dashboard.
 
 ## Available Scripts
 
@@ -133,7 +133,7 @@ npm install
 
 - Read `README.md` for full documentation
 - Read `CONTRIBUTING.md` for development guidelines
-- Read `VERCEL_DEPLOYMENT_GUIDE.md` for deployment instructions
+- Read `RENDER_DEPLOYMENT_GUIDE.md` for deployment (Render only)
 - Explore the code in `apps/frontend/` and `apps/backend/`
 
 ## Development Tips
@@ -158,4 +158,4 @@ Both frontend and backend support hot reload. Changes are reflected automaticall
 
 For detailed information, see:
 - `README.md` - Full documentation
-- `VERCEL_DEPLOYMENT_GUIDE.md` - Deployment guide
+- `RENDER_DEPLOYMENT_GUIDE.md` - Deployment guide (Render only)

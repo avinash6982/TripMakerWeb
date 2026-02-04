@@ -161,6 +161,31 @@ const CITY_LIBRARY = [
       { name: 'Mall Road Manali', category: 'market', area: 'Manali', avgTime: 1 },
     ],
   },
+  {
+    key: 'abu-dhabi',
+    name: 'Abu Dhabi',
+    country: 'UAE',
+    places: [
+      { name: 'Sheikh Zayed Grand Mosque', category: 'landmark', area: 'Abu Dhabi Island', avgTime: 2 },
+      { name: 'Louvre Abu Dhabi', category: 'museum', area: 'Saadiyat Island', avgTime: 2.5 },
+      { name: 'Ferrari World', category: 'experience', area: 'Yas Island', avgTime: 3 },
+      { name: 'Corniche Beach', category: 'relax', area: 'Corniche', avgTime: 1.5 },
+      { name: 'Emirates Palace', category: 'landmark', area: 'West Corniche', avgTime: 1.5 },
+      { name: 'Qasr Al Hosn', category: 'landmark', area: 'Downtown', avgTime: 1.5 },
+      { name: 'Heritage Village', category: 'museum', area: 'Breakwater', avgTime: 1.5 },
+      { name: 'Saadiyat Island Beach', category: 'relax', area: 'Saadiyat Island', avgTime: 1.5 },
+      { name: 'Yas Marina Circuit', category: 'experience', area: 'Yas Island', avgTime: 2 },
+      { name: 'Warner Bros. World', category: 'experience', area: 'Yas Island', avgTime: 2.5 },
+      { name: 'Marina Mall', category: 'market', area: 'Breakwater', avgTime: 1.5 },
+      { name: 'Mangrove National Park', category: 'park', area: 'Eastern Mangroves', avgTime: 2 },
+      { name: 'Observation Deck at 300', category: 'viewpoint', area: 'Corniche', avgTime: 1 },
+      { name: 'Al Jahili Fort', category: 'landmark', area: 'Al Ain', avgTime: 1.5 },
+      { name: 'Al Ain Oasis', category: 'park', area: 'Al Ain', avgTime: 1.5 },
+      { name: 'Abu Dhabi Falcon Hospital', category: 'experience', area: 'Sweihan Road', avgTime: 2 },
+      { name: 'Abu Dhabi Mall', category: 'market', area: 'Tourist Club', avgTime: 1.5 },
+      { name: 'Yas Island Waterfront', category: 'viewpoint', area: 'Yas Island', avgTime: 1 },
+    ],
+  },
 ];
 
 const CITY_ALIASES = {
@@ -181,6 +206,9 @@ const CITY_ALIASES = {
   'ladakh spiti': 'ladakh-spiti-manali',
   'spiti valley': 'ladakh-spiti-manali',
   'himalayas north india': 'ladakh-spiti-manali',
+  'abu dhabi': 'abu-dhabi',
+  'abu dhabi uae': 'abu-dhabi',
+  uae: 'abu-dhabi',
 };
 
 const FALLBACK_LABELS = {

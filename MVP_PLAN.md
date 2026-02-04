@@ -1,6 +1,6 @@
 # 🎯 TripMaker MVP Plan & Feature Breakdown
 
-> **Last Updated:** January 31, 2026 (MVP2 complete, MVP3 unblocked)  
+> **Last Updated:** February 3, 2026 (MVP3 media storage: R2 + limits)  
 > **Current Phase:** MVP3 (Real-Time Trip Execution)  
 > **Status:** MVP1 100%; MVP2 100%; MVP3 ready to start
 
@@ -109,8 +109,28 @@
 | 3.6 | Media upload in chat | 📋 Planned | P2 |
 | 3.7 | Like/comment on feed trips | 📋 Planned | P1 |
 | 3.8 | Share trips externally | 📋 Planned | P2 |
+| 3.9 | Trip gallery (per-trip images, not chat) | 📋 Planned | P1 |
+| 3.10 | Trip thumbnail (cover image) | 📋 Planned | P1 |
+| 3.11 | Comments support images (trip + gallery image) | 📋 Planned | P2 |
+| 3.12 | Gallery page (carousel, prev/next, likes/comments per image) | 📋 Planned | P1 |
+| 3.13 | Listings: trip thumbnail + gallery preview (Discover) | 📋 Planned | P1 |
 
 **MVP3 Start Date:** January 31, 2026 (ready to start)
+
+#### MVP3 Gallery & Thumbnail (Feb 2026)
+
+- **Trip gallery:** Each trip has a dedicated gallery (not chat images). Trip Detail shows a row of images + "Gallery" button opening full gallery. Gallery items support likes and comments (with optional image).
+- **Trip thumbnail:** Each trip can have a cover/thumbnail image; add or update after creation. Used in My Trips and Discover cards.
+- **Discover:** Cards show trip thumbnail and, when available, other gallery images (strip or preview).
+
+#### MVP3 Media Storage (Feature 3.6 + Profile/Settings)
+
+Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level limits and visibility are part of the plan:
+
+- **Storage:** Cloudflare R2 (approved for MVP3 media; use free tier where applicable).
+- **Per-user upload limit:** **100 MB** total per user (enforced server-side).
+- **Visibility:** Each user’s storage usage (e.g. “X MB used / 100 MB”) is shown in **Profile** or **Settings**, so users can see how much of their quota they’ve used.
+- **Implementation:** Add storage backend and usage tracking as MVP3 tasks progress; profile/settings UI for usage display can be implemented when media upload is built or shortly after.
 
 ---
 
@@ -512,6 +532,11 @@
 - ✅ Implemented backend POST /trips create endpoint
 - 🧹 Removed redundant documentation summaries and setup/deploy notes
 
+### February 3, 2026
+- 📝 **MVP3 media storage:** Cloudflare R2 approved for in-trip chat media (feature 3.6)
+- 📝 **Per-user limit:** 100 MB per user, enforced server-side
+- 📝 **Visibility:** Storage usage (e.g. X MB / 100 MB) shown in Profile or Settings; implement as tasks progress
+
 ---
 
 ## 📞 Contact & Support
@@ -524,6 +549,6 @@
 
 ---
 
-**Last Updated:** January 31, 2026 (trip create API)  
-**Next Review:** After completing Phase 1.1 (Save Trip)  
+**Last Updated:** February 3, 2026 (MVP3 media: R2 + 100MB/user)  
+**Next Review:** After MVP3 task breakdown  
 **Maintained By:** Development Team
