@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
 **Last Updated:** February 2026  
-**Current Phase:** Design Optimization (post-MVP3)  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization active; MVP4 not started
+**Current Phase:** Design Optimization complete — ready for MVP4  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; MVP4 not started (awaiting approval)
 
 ---
 
@@ -217,14 +217,14 @@ None (MVP1 complete).
 
 ---
 
-### 🎨 Design Optimization (current)
+### 🎨 Design Optimization
 
-**Status:** 🔄 Active  
+**Status:** ✅ Complete (February 2026)  
 **Goal:** UI/design review and polish before MVP4  
 **Prerequisites:** MVP3 complete  
-**Reference:** [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md), `.cursor/rules/design-optimization-phase.mdc`
+**Reference:** [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md)
 
-This is a **feedback-driven** stage: you review design elements, page structure, styles, and overall UI and provide specific feedback. Each change is applied **in isolation** (one item at a time) to avoid regressions. No new features; no MVP4 work until you acknowledge this phase complete.
+Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integration); start only with explicit user approval (MVP4 introduces paid services).
 
 ---
 
@@ -271,20 +271,20 @@ This is a **feedback-driven** stage: you review design elements, page structure,
 | MVP1 | ✅ Complete | 100% | Feb 15, 2026 |
 | MVP2 | ✅ Complete | 100% | Jan 31, 2026 |
 | MVP3 | ✅ Complete | 100% | Feb 2026 |
-| Design Optimization | 🔄 Active | — | User-driven |
-| MVP4 | ⏸️ Not Started | 0% | After design phase |
+| Design Optimization | ✅ Complete | — | Feb 2026 |
+| MVP4 | ⏸️ Not Started | 0% | After approval |
 | MVP5 | ⏸️ Not Started | 0% | TBD |
 
-### Current Phase: Design Optimization
+### Current Phase: Ready for MVP4
 
-**Overall:** MVP1–MVP3 complete; Design Optimization active (feedback-driven UI/design polish).
+**Overall:** MVP1–MVP3 and Design Optimization complete. MVP4 (Marketplace Integration) is next; start only with explicit approval.
 
 | Phase | Summary | Status |
 |-------|---------|--------|
 | MVP1 | Auth, profile, trip CRUD, map, day-wise view, edit, archive/unarchive, transport hubs | ✅ 100% |
 | MVP2 | Route lines, transport mode, feed, trip sharing, invite codes, collaborators | ✅ 100% |
 | MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2, 100MB/user), like/comment, share, gallery, thumbnails | ✅ 100% |
-| Design Optimization | UI/design review; one change per feedback item; no MVP4 | 🔄 Active |
+| Design Optimization | UI/design review; one change per feedback item | ✅ Complete |
 
 ---
 
@@ -365,14 +365,13 @@ This is a **feedback-driven** stage: you review design elements, page structure,
 
 ## Next Steps
 
-### Immediate (MVP3)
-1. Define MVP3 task breakdown (timeline prefs, real-time location, live map, ETA, chat, like/comment, share)
-2. Start with P0: real-time location tracking + live map with current location
-3. Then: in-trip chat, like/comment on feed, share externally
+### Immediate (when you approve MVP4)
+1. Create MVP4 task breakdown (transport pricing, accommodation suggestions)
+2. Confirm budget and paid services (Skyscanner, accommodation APIs)
+3. Start MVP4 only after explicit approval
 
-### Deferred from MVP2 (optional in MVP3)
-- Enhanced trip suggestions (scraping/community)
-- Live location integration (browser Geolocation, distance to start)
+### Design Optimization complete
+- UI redesign phase finished (February 2026). No MVP4 work until you approve.
 
 ---
 

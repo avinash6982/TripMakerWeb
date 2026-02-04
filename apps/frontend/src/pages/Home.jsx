@@ -275,75 +275,93 @@ const Home = () => {
 
   return (
     <main className="home-page">
-      <section className="container home-card planner-hero">
-        <p className="eyebrow">{t("tripPlanner.eyebrow")}</p>
-        <h1>{t("tripPlanner.title")}</h1>
-        <p className="lead">{t("tripPlanner.subtitle")}</p>
+      <section className="home-hero">
+        <div className="container">
+          <div className="home-hero-card">
+            <h2>{t("tripPlanner.heroTitle")}</h2>
+            <form className="planner-form" onSubmit={handleSubmit}>
+              <div className="field planner-field-with-icon">
+                <label htmlFor="trip-destination">{t("tripPlanner.form.destinationLabel")}</label>
+                <span className="field-icon-wrap">
+                  <svg className="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="20" height="20"><path d="M4 6h16M4 12h16M4 18h7" /></svg>
+                  <input
+                    id="trip-destination"
+                    name="destination"
+                    type="text"
+                    value={formState.destination}
+                    placeholder={t("tripPlanner.form.destinationPlaceholder")}
+                    onChange={handleChange}
+                    list="trip-destination-suggestions"
+                    required
+                  />
+                </span>
+                <datalist id="trip-destination-suggestions">
+                  {DESTINATION_SUGGESTIONS.map((option) => (
+                    <option key={option} value={option} />
+                  ))}
+                </datalist>
+              </div>
+              <div className="planner-row">
+                <div className="field planner-field-with-icon">
+                  <label htmlFor="trip-days">{t("tripPlanner.form.daysLabel")}</label>
+                  <span className="field-icon-wrap">
+                    <svg className="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="20" height="20"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    <input
+                      id="trip-days"
+                      name="days"
+                      type="number"
+                      min="1"
+                      max="10"
+                      value={formState.days}
+                      onChange={handleChange}
+                    />
+                  </span>
+                </div>
+                <div className="field planner-field-with-icon">
+                  <label htmlFor="trip-pace">{t("tripPlanner.form.paceLabel")}</label>
+                  <span className="field-icon-wrap">
+                    <svg className="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden width="20" height="20"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <select id="trip-pace" name="pace" value={formState.pace} onChange={handleChange}>
+                      {paceOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {t(option.labelKey)}
+                        </option>
+                      ))}
+                    </select>
+                  </span>
+                </div>
+              </div>
+              {message && (
+                <div
+                  className={`message ${status === "error" ? "error" : "success"}`}
+                  role={status === "error" ? "alert" : "status"}
+                >
+                  {message}
+                </div>
+              )}
+              <button className="btn btn-cta full" type="submit" disabled={status === "loading"}>
+                {status === "loading"
+                  ? t("tripPlanner.actions.generating")
+                  : plan
+                    ? t("tripPlanner.actions.regenerate")
+                    : t("tripPlanner.actions.generate")}
+              </button>
+              <p className="form-helper">{t("tripPlanner.helper")}</p>
+            </form>
+          </div>
+          <div className="home-hero-copy">
+            <h2>{t("tripPlanner.heroCopyTitle")}</h2>
+            <p>{t("tripPlanner.heroCopyBody")}</p>
+            <div className="home-hero-illus" aria-hidden>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+              <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
+            </div>
+          </div>
+        </div>
       </section>
       <section className="container planner-grid">
-        <div className="planner-form-card">
-          <form className="planner-form" onSubmit={handleSubmit}>
-            <div className="field">
-              <label htmlFor="trip-destination">{t("tripPlanner.form.destinationLabel")}</label>
-              <input
-                id="trip-destination"
-                name="destination"
-                type="text"
-                value={formState.destination}
-                placeholder={t("tripPlanner.form.destinationPlaceholder")}
-                onChange={handleChange}
-                list="trip-destination-suggestions"
-                required
-              />
-              <datalist id="trip-destination-suggestions">
-                {DESTINATION_SUGGESTIONS.map((option) => (
-                  <option key={option} value={option} />
-                ))}
-              </datalist>
-            </div>
-            <div className="planner-row">
-              <div className="field">
-                <label htmlFor="trip-days">{t("tripPlanner.form.daysLabel")}</label>
-                <input
-                  id="trip-days"
-                  name="days"
-                  type="number"
-                  min="1"
-                  max="10"
-                  value={formState.days}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="field">
-                <label htmlFor="trip-pace">{t("tripPlanner.form.paceLabel")}</label>
-                <select id="trip-pace" name="pace" value={formState.pace} onChange={handleChange}>
-                  {paceOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {t(option.labelKey)}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            {message && (
-              <div
-                className={`message ${status === "error" ? "error" : "success"}`}
-                role={status === "error" ? "alert" : "status"}
-              >
-                {message}
-              </div>
-            )}
-            <button className="btn primary full" type="submit" disabled={status === "loading"}>
-              {status === "loading"
-                ? t("tripPlanner.actions.generating")
-                : plan
-                  ? t("tripPlanner.actions.regenerate")
-                  : t("tripPlanner.actions.generate")}
-            </button>
-            <p className="form-helper">{t("tripPlanner.helper")}</p>
-          </form>
-        </div>
-        <div className="planner-output">
+        <div className="planner-output" style={{ gridColumn: "1 / -1" }}>
           {plan && summary ? (
             <>
               <div className="planner-summary">

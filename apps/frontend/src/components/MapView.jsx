@@ -31,19 +31,7 @@ const placeIcon = createCustomIcon("#0284c7"); // blue (accent)
 /** MVP3: "You are here" marker (green) */
 const currentLocationIcon = createCustomIcon("#16a34a", 28); // green, slightly larger
 
-/** Colors per day for route polylines (MVP2) */
-const DAY_ROUTE_COLORS = [
-  "#0284c7", // day 1: blue
-  "#059669", // day 2: green
-  "#d97706", // day 3: amber
-  "#7c3aed", // day 4: violet
-  "#dc2626", // day 5: red
-  "#0891b2", // day 6: cyan
-  "#65a30d", // day 7: lime
-  "#c026d3", // day 8: fuchsia
-  "#ea580c", // day 9: orange
-  "#0d9488", // day 10: teal
-];
+import { getDayRouteColor } from "../constants/dayRouteColors";
 
 /** Calls invalidateSize when container is visible or resized so the map doesn't clip on scroll. */
 function MapSizeSync() {
@@ -127,7 +115,7 @@ const MapView = ({
             (p) => Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1])
           );
           if (valid.length < 2) return null;
-          const color = DAY_ROUTE_COLORS[dayIndex % DAY_ROUTE_COLORS.length];
+          const color = getDayRouteColor(dayIndex);
           return (
             <Polyline
               key={`route-day-${dayIndex}`}

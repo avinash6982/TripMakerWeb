@@ -19,18 +19,32 @@ const RequireAuth = ({ children }) => {
   return children;
 };
 
+/** When logged out: Discover is home. Redirect / to /feed. When logged in: redirect / to /home. */
+const IndexRedirect = () => {
+  const user = getStoredUser();
+  return <Navigate to={user ? "/home" : "/feed"} replace />;
+};
+
+/** Discover (/feed): use AuthLayout when logged out, SiteLayout when logged in. */
+const FeedLayoutSwitch = () => {
+  const user = getStoredUser();
+  return user ? <SiteLayout /> : <AuthLayout />;
+};
+
 const App = () => {
   return (
     <Routes>
       <Route element={<AuthLayout />}>
-        <Route index element={<Login />} />
+        <Route index element={<IndexRedirect />} />
         <Route path="login" element={<Login />} />
         <Route path="register" element={<Register />} />
+      </Route>
+      <Route path="feed" element={<FeedLayoutSwitch />}>
+        <Route index element={<Feed />} />
       </Route>
       <Route element={<SiteLayout />}>
         <Route path="home" element={<RequireAuth><Home /></RequireAuth>} />
         <Route path="trips" element={<RequireAuth><Trips /></RequireAuth>} />
-        <Route path="feed" element={<RequireAuth><Feed /></RequireAuth>} />
         <Route path="trips/:id" element={<RequireAuth><TripDetail /></RequireAuth>} />
         <Route path="trips/:id/gallery" element={<RequireAuth><TripGallery /></RequireAuth>} />
         <Route

@@ -223,7 +223,7 @@ const TripGallery = () => {
           <h1 className="page-header-title">{trip.name}</h1>
           {canEdit ? (
             <div className="page-header-actions">
-            <label className={`page-header-action-round primary ${galleryAddLoading ? "is-loading" : ""}`} title={t("trips.addToGallery", "Add to gallery")}>
+            <label className={`page-header-action-round primary ${galleryAddLoading ? "is-loading" : ""}`} title={t("trips.addToGallery", "Add to gallery")} aria-label={t("trips.addToGallery", "Add to gallery")}>
               <span className="page-header-action-round-icon" aria-hidden>
                 {galleryAddLoading ? (
                   <span className="page-header-action-round-spinner" aria-hidden />
