@@ -3067,10 +3067,28 @@ button.text-link {
   justify-content: center;
 }
 
+/* FAB wrapper: desktop = no box (contents); mobile = fixed stack */
+.trip-detail-fabs {
+  display: contents;
+}
+
 @media (max-width: 767px) {
-  .trip-detail-chat-fab {
+  .trip-detail-fabs {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    position: fixed;
     bottom: calc(var(--tabbar-height-safe, 64px) + 0.75rem);
     right: 1rem;
+    z-index: 40;
+    align-items: flex-end;
+  }
+
+  .trip-detail-fabs .trip-detail-chat-fab,
+  .trip-detail-fabs .trip-detail-comments-fab {
+    position: static;
+    bottom: auto;
+    right: auto;
   }
 }
 
@@ -3366,8 +3384,8 @@ button.text-link {
     position: fixed;
     bottom: calc(var(--tabbar-height-safe, 64px) + 4rem);
     right: 1rem;
-    width: 3rem;
-    height: 3rem;
+    width: 56px;
+    height: 56px;
     border-radius: 50%;
     border: none;
     background: var(--color-primary);

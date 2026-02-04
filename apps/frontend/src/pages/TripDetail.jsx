@@ -1003,19 +1003,36 @@ const TripDetail = () => {
 
         {!editMode && trip?.id && (
           <>
-            <button
-              type="button"
-              className="trip-detail-chat-fab"
-              onClick={() => setChatPanelOpen((open) => !open)}
-              title={t("trips.chat", "Trip chat")}
-              aria-label={t("trips.chat", "Trip chat")}
-              aria-expanded={chatPanelOpen}
-            >
-              <span className="trip-detail-chat-fab-icon" aria-hidden>💬</span>
-              {messages.length > 0 && (
-                <span className="trip-detail-chat-fab-badge">{messages.length > 99 ? "99+" : messages.length}</span>
-              )}
-            </button>
+            <div className="trip-detail-fabs">
+              <button
+                type="button"
+                className="trip-detail-comments-fab"
+                onClick={() => setCommentsPanelOpen((open) => !open)}
+                title={t("feed.comments", "Comments")}
+                aria-label={t("feed.comments", "Comments")}
+                aria-expanded={commentsPanelOpen}
+              >
+                <span className="trip-detail-comments-fab-icon" aria-hidden>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                </span>
+                {comments.length > 0 && (
+                  <span className="trip-detail-comments-fab-badge" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
+                )}
+              </button>
+              <button
+                type="button"
+                className="trip-detail-chat-fab"
+                onClick={() => setChatPanelOpen((open) => !open)}
+                title={t("trips.chat", "Trip chat")}
+                aria-label={t("trips.chat", "Trip chat")}
+                aria-expanded={chatPanelOpen}
+              >
+                <span className="trip-detail-chat-fab-icon" aria-hidden>💬</span>
+                {messages.length > 0 && (
+                  <span className="trip-detail-chat-fab-badge">{messages.length > 99 ? "99+" : messages.length}</span>
+                )}
+              </button>
+            </div>
             {chatPanelOpen && (
               <div className="trip-detail-chat-panel" role="dialog" aria-label={t("trips.chat", "Trip chat")}>
                 <div className="trip-detail-chat-panel-inner">
@@ -1293,24 +1310,7 @@ const TripDetail = () => {
         </div>
       )}
 
-      {!editMode && trip?.id && (
-        <>
-          <button
-            type="button"
-            className="trip-detail-comments-fab"
-            onClick={() => setCommentsPanelOpen((open) => !open)}
-            title={t("feed.comments", "Comments")}
-            aria-label={t("feed.comments", "Comments")}
-            aria-expanded={commentsPanelOpen}
-          >
-            <span className="trip-detail-comments-fab-icon" aria-hidden>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            </span>
-            {comments.length > 0 && (
-              <span className="trip-detail-comments-fab-badge" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
-            )}
-          </button>
-          {commentsPanelOpen && (
+      {!editMode && trip?.id && commentsPanelOpen && (
             <div className="trip-detail-comments-panel-mobile" ref={commentsPanelRef} role="dialog" aria-modal="true" aria-label={t("feed.comments", "Comments")}>
               <div className="trip-detail-comments-panel-inner">
                 <div className="trip-detail-comments-panel-header">
@@ -1333,8 +1333,6 @@ const TripDetail = () => {
                 </div>
               </div>
             </div>
-          )}
-        </>
       )}
     </main>
   );
