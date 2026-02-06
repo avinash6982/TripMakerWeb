@@ -1391,6 +1391,13 @@ button.text-link {
   display: none;
 }
 
+@media (max-width: 767px) {
+  .trips-redeem-mobile {
+    display: block;
+    margin-bottom: 1rem;
+  }
+}
+
 /* Feed / Discover page (MVP2) – discovery-style layout */
 .feed-page {
   padding: 0 0 var(--space-8);
