@@ -16,7 +16,7 @@
 ### MVP1, MVP2 & MVP3 Completed
 - **MVP1:** Trip CRUD, save, list, detail, edit, delete, archive, unarchive, transport hubs, map, day-wise itinerary, place suggestions.
 - **MVP2:** Multi-day route lines, transport mode, public feed, trip sharing, invite codes, collaborators (viewer/editor).
-- **MVP3:** Timeline/feed preferences, real-time location, live map, ETA/alerts, in-trip chat (R2 media, 100MB/user), like/comment on feed, share trips, trip gallery, thumbnails, comment images, standard page header.
+- **MVP3:** Timeline/feed preferences, real-time location, live map, ETA/alerts, in-trip chat (R2 media, 100MB/user), like/comment on feed, share trips, trip gallery, thumbnails, comment images, standard page header. **MVP3 fixes (Feb 6):** Gallery comment section as toggleable sidebar (consistent with Trip Detail), image viewer full height, thumb strip fixed to bottom, zoom/pan.
 
 ### Design Optimization: complete
 - UI/design feedback phase finished (February 2026).
@@ -25,6 +25,12 @@
 ---
 
 ## ✅ Today's Completed Tasks
+
+### February 6, 2026 (MVP3 fixes)
+- Gallery: comments as toggleable sidebar (same UI as Trip Detail).
+- Gallery: full-height layout; viewer fills remaining height; thumb strip fixed to bottom.
+- Gallery: zoom + pan on image when zoomed.
+- Docs: MVP_ROADMAP and DEVELOPMENT_STATUS updated.
 
 ### January 31, 2026
 

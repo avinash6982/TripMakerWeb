@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { Link, NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { clearStoredUser, getStoredUser } from "../services/auth";
 import { clearStoredProfile } from "../services/profile";
@@ -45,7 +45,7 @@ const TabIconProfile = () => (
 
 const navConfig = (t) => [
   { to: "/home", label: t("nav.home"), icon: TabIconHome },
-  { to: "/trips", label: t("nav.trips"), icon: TabIconTrips },
+  { to: "/trips", label: t("nav.trips"), icon: TabIconTrips, end: true }, /* end: true so trip detail (/trips/:id) doesn't highlight My Trips */
   { to: "/feed", label: t("nav.feed"), icon: TabIconFeed },
   { to: "/profile", label: t("nav.profile"), icon: TabIconProfile },
 ];
@@ -53,8 +53,20 @@ const navConfig = (t) => [
 const SiteLayout = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const location = useLocation();
   const [user, setUser] = useState(getStoredUser());
   const navLinks = navConfig(t);
+
+  /* Discover is active when on /feed or when on trip detail opened from Discover */
+  const isDiscoverActive = (link) => {
+    if (link.to !== "/feed") return null;
+    const onTripDetail = /^\/trips\/[^/]+$/.test(location.pathname);
+    const fromFeed = location.state?.from === "feed";
+    return onTripDetail && fromFeed;
+  };
+
+  /* Trip detail/gallery: use split layout, no page scroll (only main content scrolls) */
+  const isTripSplitLayout = /^\/trips\/[^/]+(\/gallery)?$/.test(location.pathname);
 
   useEffect(() => {
     const handleAuthChange = () => {
@@ -71,7 +83,7 @@ const SiteLayout = () => {
   };
 
   return (
-    <div className="app">
+    <div className={`app${isTripSplitLayout ? " app--trip-split" : ""}`}>
       <header className="site-header">
         <div className="container nav">
           <Link className="logo" to="/home">
@@ -81,11 +93,13 @@ const SiteLayout = () => {
           <nav className="nav-links" aria-label="Primary">
             {navLinks.map((link) => {
               const Icon = link.icon;
+              const discoverActive = isDiscoverActive(link);
               return (
                 <NavLink
                   key={link.to}
                   to={link.to}
-                  className={({ isActive }) => (isActive ? "nav-link active" : "nav-link")}
+                  end={link.end ?? false}
+                  className={({ isActive }) => (isActive || discoverActive ? "nav-link active" : "nav-link")}
                 >
                   <span className="nav-link-icon"><Icon /></span>
                   {link.label}
@@ -123,12 +137,14 @@ const SiteLayout = () => {
       <nav className="mobile-nav" aria-label="Primary navigation">
         {navLinks.map((link) => {
           const Icon = link.icon;
+          const discoverActive = isDiscoverActive(link);
           return (
             <NavLink
               key={link.to}
               to={link.to}
+              end={link.end ?? false}
               className={({ isActive }) =>
-                isActive ? "mobile-nav-link active" : "mobile-nav-link"
+                isActive || discoverActive ? "mobile-nav-link active" : "mobile-nav-link"
               }
             >
               <Icon />

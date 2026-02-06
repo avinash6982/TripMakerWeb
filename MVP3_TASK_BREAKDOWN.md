@@ -250,12 +250,12 @@ After each task:
 - [ ] No console errors.
 
 ### MVP3 Gallery, Thumbnail & Comment Images (3.9–3.13)
-- [ ] **Trip Detail:** Gallery section shows cover (if set), “Add cover” / “Change cover”, “Add to gallery”, row of gallery thumbs, “View gallery (N)” link.
-- [ ] **Trip Gallery page:** Minimal header (round back + trip name + add icon, no duplicate add). Empty state: icon, “No photos yet”, copy; upload shows “Uploading image...” loading. Carousel with prev/next, counter, thumb strip; click thumb or arrow or keyboard ←/→ to change image; like and comments (with image attach) per image.
-- [ ] **Trip comments (Detail + Feed):** Comment form has “Attach image”; post comment with image → image appears in comment list; comment list shows inline image thumbnails.
-- [ ] **My Trips list:** Trip cards show thumbnail image (or gradient placeholder) as hero.
-- [ ] **Discover (Feed):** Cards show trip thumbnail as hero (or gradient); if gallery preview exists, small gallery row below hero.
-- [ ] No console errors.
+- [x] **Trip Detail:** Gallery section shows cover (if set), “Add cover” / “Change cover”, “Add to gallery”, row of gallery thumbs, “View gallery (N)” link.
+- [x] **Trip Gallery page:** Minimal header (round back + trip name + add icon, no duplicate add). Empty state: icon, “No photos yet”, copy; upload shows “Uploading image...” loading. Carousel with prev/next, counter, thumb strip; click thumb or arrow or keyboard ←/→ to change image; like and comments (with image attach) per image.
+- [x] **Trip comments (Detail + Feed):** Comment form has “Attach image”; post comment with image → image appears in comment list; comment list shows inline image thumbnails.
+- [x] **My Trips list:** Trip cards show thumbnail image (or gradient placeholder) as hero.
+- [x] **Discover (Feed):** Cards show trip thumbnail as hero (or gradient); if gallery preview exists, small gallery row below hero.
+- [x] No console errors (build verified).
 
 ---
 

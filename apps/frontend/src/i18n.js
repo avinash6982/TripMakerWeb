@@ -224,6 +224,7 @@ const resources = {
         coverUpdated: "Cover updated.",
         addedToGallery: "Added to gallery.",
         backToTrip: "Back to trip",
+        openInMaps: "Open in Google Maps",
         comments: "Comments",
         addComment: "Add a comment...",
         post: "Post",

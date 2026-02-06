@@ -8,7 +8,7 @@
   ],
   "scripts": {
     "test:sanity": "node test-mvp2-sanity.js",
-    "dev": "npm run dev --workspace=apps/backend & npm run dev --workspace=apps/frontend",
+    "dev": "concurrently \"npm run dev --workspace=apps/backend\" \"npm run dev --workspace=apps/frontend\"",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",
     "build": "cd apps/frontend && npm run build",
@@ -40,6 +40,8 @@
     "@aws-sdk/s3-request-presigner": "^3.700.0"
   },
   "devDependencies": {
-    "@vercel/node": "^5.5.28"
+    "@rollup/rollup-darwin-arm64": "^4.57.1",
+    "@vercel/node": "^5.5.28",
+    "concurrently": "^9.2.1"
   }
 }
