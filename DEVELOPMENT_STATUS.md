@@ -1,17 +1,17 @@
 # 🚧 Development Status
 
 > **Last Updated:** February 2026  
-> **Current Phase:** Additional feature (Prerequisites) complete — ready for MVP4  
-> **Next phase:** MVP4 (start when you explicitly approve)
+> **Current Phase:** Database migration (MongoDB) — before MVP4  
+> **Next phase:** MVP4 (start when you explicitly approve, after DB migration is done)
 
 ---
 
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**Additional features** between MVP3 and MVP4 are tracked in [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md). **Prerequisites** (trip checklist: add/assign/mark done) is implemented on branch `feature_prerequisites`. **MVP4: Marketplace Integration** is next; do not start MVP4 until you explicitly approve (paid services; see MVP_ROADMAP.md).
+**Database migration (MongoDB):** Replace file-based storage with MongoDB so the app has persistent, scalable data before MVP4. Backend uses MongoDB when `MONGODB_URI` is set; otherwise falls back to file-based JSON. **Your part:** Create Atlas cluster, get connection string, set `MONGODB_URI` locally and on Render. See [MONGODB_SETUP.md](MONGODB_SETUP.md).
 
-**Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md)
+**Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
 ### MVP1, MVP2 & MVP3 Completed
 - **MVP1:** Trip CRUD, save, list, detail, edit, delete, archive, unarchive, transport hubs, map, day-wise itinerary, place suggestions.
@@ -78,12 +78,12 @@
 
 ---
 
-## 🔬 Current Focus: Ready for MVP4
+## 🔬 Current Focus: Database Migration (MongoDB)
 
-**Objective:** MVP4 (Marketplace Integration) is the next phase. It introduces paid services (e.g. Skyscanner, accommodation APIs). Start MVP4 only when you explicitly approve.
+**Objective:** Use MongoDB for persistence before MVP4. Backend implementation is done; you need to create an Atlas cluster, set `MONGODB_URI`, and optionally run the migration script (see MONGODB_SETUP.md).
 
-**Status:** MVP1–MVP3 complete. Design Optimization complete. Ready for MVP4.  
-**Reference:** MVP_ROADMAP.md (MVP4 section), DESIGN_OPTIMIZATION.md.
+**Status:** MVP1–MVP3 complete. Design Optimization complete. DB migration in progress (MongoDB implemented; your setup required). MVP4 next after DB migration.  
+**Reference:** MVP_ROADMAP.md (DB migration section), MONGODB_SETUP.md.
 
 ---
 

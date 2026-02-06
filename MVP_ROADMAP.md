@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
 **Last Updated:** February 2026  
-**Current Phase:** Design Optimization complete — ready for MVP4  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; MVP4 not started (awaiting approval)
+**Current Phase:** Database migration (MongoDB) — before MVP4  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Prerequisites 100%; Design Optimization complete; **DB migration in progress**; MVP4 not started (awaiting approval)
 
 ---
 
@@ -65,84 +65,9 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
 - Trip edit, delete, archive, **unarchive** (CRUD + status)
 
 #### Remaining Features 📋
-None (MVP1 complete).
-1. ✅ **Trip Creation & Persistence** (complete)
-   - Data model: Trip → User relationship
-   - API: POST /trips (create), GET /trips (list), GET /trips/:id (get)
-   - Vercel: api/trips/index.js (GET + POST), api/trips/[id].js (GET)
-   - Frontend: Save Trip UI on Home, Trips list page, Trip detail page
-   - Tasks:
-     - [x] Define Trip data model
-     - [x] POST /trips (backend + Vercel)
-     - [x] GET /trips (backend + Vercel)
-     - [x] GET /trips/:id (backend + Vercel)
-     - [x] PUT /trips/:id (update)
-     - [x] DELETE /trips/:id (delete)
-     - [x] PATCH /trips/:id/archive
-     - [x] PATCH /trips/:id/unarchive
-     - [x] API_REFERENCE.md updated
 
-2. ✅ **Map Visualization** (complete)
-   - Integrate Leaflet.js (free, open-source)
-   - Display destination as center marker (red)
-   - Show itinerary locations as markers (blue, geocoded with Nominatim)
-   - Tasks:
-     - [x] Install react-leaflet dependencies
-     - [x] Create MapView component
-     - [x] Fetch destination coordinates (Nominatim API)
-     - [x] Render destination marker
-     - [x] Render itinerary item markers
-     - [x] Add marker popups with location details
-     - [x] Style map container
-
-3. ⏳ **Day-wise Itinerary View**
-   - Timeline-style day breakdown
-   - Show activities per time slot (morning/afternoon/evening)
-   - Display duration and category
-   - Tasks:
-     - [ ] Create ItineraryView component
-     - [ ] Create DayCard component
-     - [ ] Create TimeSlot component
-     - [ ] Create ActivityItem component
-     - [ ] Add responsive styling
-     - [ ] Add expand/collapse functionality
-
-4. ⏳ **Trip Editing**
-   - Modify trip name, dates
-   - Add/remove itinerary items
-   - Reorder activities
-   - Regenerate itinerary (call /trips/plan again)
-   - Tasks:
-     - [ ] Create TripEditor component
-     - [ ] Add inline editing for trip fields
-     - [ ] Add drag-and-drop for reordering (optional: use simple up/down buttons)
-     - [ ] Add "Add activity" button
-     - [ ] Add "Remove activity" button
-     - [ ] Add "Regenerate itinerary" button
-     - [ ] Update PUT /api/trips/:id to handle changes
-
-5. ⏳ **Trip Status Management**
-   - Status: planning → active → completed → archived
-   - Status badges and filters
-   - Archive/delete trip actions
-   - Tasks:
-     - [ ] Add status field to Trip model
-     - [ ] Create status update UI (dropdown/buttons)
-     - [ ] Implement status filter on trip list
-     - [ ] Add "Archive" button
-     - [ ] Add "Mark as complete" button
-     - [ ] Add "Delete" confirmation dialog
-     - [ ] Add status badges with colors
-
-6. ⏳ **Transportation Hub Integration (Mock)**
-   - Show nearest bus/train/airport to destination
-   - Display distances from city center
-   - Use static/mock data (no API calls)
-   - Tasks:
-     - [ ] Create mock data for major city hubs
-     - [ ] Add hub markers to map (different icon)
-     - [ ] Show hub distances in UI
-     - [ ] Add "Transportation" section to trip view
+None — **MVP1 is fully complete.**  
+The detailed task breakdown for MVP1 now lives in `MVP1_TASK_BREAKDOWN.md` and is kept **only for historical reference** so this roadmap can stay high-level and current.
 
 #### Definition of Done (MVP1)
 - [ ] User can create a trip from plan
@@ -187,18 +112,18 @@ None (MVP1 complete).
 
 ---
 
-### 🌟 MVP3: Advanced Features
+### 🌟 MVP3: Real-Time Trip Execution
 
-**Status:** 🔄 READY TO START  
+**Status:** ✅ COMPLETE (100%)  
 **Goal:** Real-time tracking and social features  
 **Prerequisites:** MVP2 complete ✅ (approved)
 
-#### Planned Features 📋
+#### Completed Features 📋
 1. ✅ Timeline Preferences (MVP3.1)
    - User profile interests and preferred destinations (Profile/Settings)
    - Feed filter by destination and interest
 
-2. ⏳ Real-time Location Tracking
+2. ✅ Real-time Location Tracking
    - Live user marker on map
    - Current day highlighted
    - Next location ETA
@@ -225,6 +150,30 @@ None (MVP1 complete).
 **Reference:** [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md)
 
 Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integration); start only with explicit user approval (MVP4 introduces paid services).
+
+---
+
+### 🗄️ Database Migration (MongoDB) — Before MVP4
+
+**Status:** 🔄 In progress  
+**Goal:** Replace file-based storage with MongoDB so the app has persistent, scalable data before MVP4 (marketplace and paid services).  
+**Reference:** [MONGODB_SETUP.md](MONGODB_SETUP.md)
+
+#### Scope
+- **Storage:** When `MONGODB_URI` is set, backend uses MongoDB (Atlas); otherwise falls back to file-based JSON (local dev).
+- **Collections:** `users` (id, email, passwordHash, profile, createdAt); `trips` (full trip document with `userId` as owner). Same API surface; only the persistence layer changes.
+- **Migration:** Optional script to import existing `data/users.json` into MongoDB (see MONGODB_SETUP.md).
+
+#### Completed ✅
+- MongoDB driver and `lib/db.js` (connect, readUsers, writeUsers) implemented.
+- Server uses MongoDB when `MONGODB_URI` is set; file-based fallback when not set.
+- Dev user seeding works with both backends.
+- Documentation: MONGODB_SETUP.md, MVP_ROADMAP, APP_ARCHITECTURE, DEVELOPMENT_STATUS updated.
+
+#### Your part (required for MongoDB)
+1. Create a MongoDB Atlas cluster (free M0 tier).
+2. Get the connection string and set `MONGODB_URI` in local `.env` and in Render (backend service) environment.
+3. (Optional) Run the migration script once to import existing file data into MongoDB.
 
 ---
 
@@ -377,7 +326,11 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 
 ## Next Steps
 
-### Immediate (when you approve MVP4)
+### Immediate (now)
+1. **Database migration:** Complete MongoDB setup (see [MONGODB_SETUP.md](MONGODB_SETUP.md)): create Atlas cluster, set `MONGODB_URI`, optionally run migration script. Backend already supports MongoDB when `MONGODB_URI` is set.
+2. Verify app against MongoDB (register, login, trips, prerequisites, chat, gallery).
+
+### After DB migration (when you approve MVP4)
 1. Create MVP4 task breakdown (transport pricing, accommodation suggestions)
 2. Confirm budget and paid services (Skyscanner, accommodation APIs)
 3. Start MVP4 only after explicit approval

@@ -37,6 +37,7 @@
 |----------|---------|------------------|
 | **[APP_ARCHITECTURE.md](APP_ARCHITECTURE.md)** | System design, data flow, tech stack | As needed |
 | **[API_REFERENCE.md](API_REFERENCE.md)** | All API endpoints and models | Per endpoint |
+| **[MONGODB_SETUP.md](MONGODB_SETUP.md)** | MongoDB Atlas setup, MONGODB_URI, migration | Per DB change |
 
 ### Development Workflow
 | Document | Purpose | Update Frequency |

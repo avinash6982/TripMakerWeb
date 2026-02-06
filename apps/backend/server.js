@@ -70,6 +70,10 @@ const DEFAULT_PROFILE = {
 
 let writeQueue = Promise.resolve();
 
+// When MONGODB_URI is set, these are assigned in start() to lib/db; otherwise file-based.
+let readUsers;
+let writeUsers;
+
 // ============================================================================
 // SWAGGER CONFIGURATION
 // ============================================================================
@@ -518,18 +522,11 @@ const DEV_USER = {
 };
 
 async function seedDevUser() {
+  if (!readUsers || !writeUsers) return;
   try {
-    await ensureUsersFile();
-    const raw = await fs.readFile(getUsersFilePath(), "utf8");
-    const users = raw.trim() ? JSON.parse(raw) : [];
-    
-    // Check if dev user exists
-    const existingUser = users.find(u => u.id === DEV_USER.id);
-    if (existingUser) {
-      return; // Already exists
-    }
-    
-    // Create dev user
+    const users = await readUsers();
+    if (users.find((u) => u.id === DEV_USER.id)) return;
+
     const devUser = {
       id: DEV_USER.id,
       email: DEV_USER.email,
@@ -537,42 +534,25 @@ async function seedDevUser() {
       trips: [],
       profile: { ...DEV_USER.profile },
       createdAt: new Date().toISOString(),
-      isTestUser: true
+      isTestUser: true,
     };
-    
     users.push(devUser);
-    await fs.writeFile(getUsersFilePath(), JSON.stringify(users, null, 2));
-    console.log('✅ Development test user seeded:', DEV_USER.email);
+    await writeUsers(users);
+    console.log("✅ Development test user seeded:", DEV_USER.email);
   } catch (error) {
-    console.error('Failed to seed dev user:', error);
+    console.error("Failed to seed dev user:", error);
   }
 }
 
-async function readUsers() {
+async function readUsersFile() {
   await writeQueue;
-  await seedDevUser(); // Auto-seed dev user
   await ensureUsersFile();
   const raw = await fs.readFile(getUsersFilePath(), "utf8");
-  if (!raw.trim()) {
-    return [];
-  }
+  if (!raw.trim()) return [];
   try {
     const parsed = JSON.parse(raw);
     const users = Array.isArray(parsed) ? parsed : [];
-    let needsWrite = false;
-
-    users.forEach((user) => {
-      const hadTrips = Array.isArray(user.trips);
-      ensureTrips(user);
-      if (!hadTrips) {
-        needsWrite = true;
-      }
-    });
-
-    if (needsWrite) {
-      await writeUsers(users);
-    }
-
+    users.forEach((user) => ensureTrips(user));
     return users;
   } catch (error) {
     error.message = `Invalid users data file: ${error.message}`;
@@ -580,7 +560,7 @@ async function readUsers() {
   }
 }
 
-async function writeUsers(users) {
+async function writeUsersFile(users) {
   await ensureUsersFile();
   writeQueue = writeQueue.then(async () => {
     try {
@@ -3582,14 +3562,31 @@ app.use((err, _req, res, _next) => {
 // START SERVER
 // ============================================================================
 
-// Only start server if not running in Vercel
-if (!process.env.RENDER) {
+async function start() {
+  if (process.env.MONGODB_URI) {
+    const dbModule = require("./lib/db");
+    await dbModule.connect();
+    readUsers = dbModule.readUsers.bind(dbModule);
+    writeUsers = dbModule.writeUsers.bind(dbModule);
+  } else {
+    readUsers = readUsersFile;
+    writeUsers = writeUsersFile;
+  }
+  await seedDevUser();
+
   app.listen(PORT, () => {
     console.log(`🚀 Auth server listening on port ${PORT}`);
     console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
     console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    if (!process.env.MONGODB_URI) {
+      console.log("📁 Storage: file-based (set MONGODB_URI to use MongoDB)");
+    }
   });
 }
 
-// Export for Vercel serverless function
+start().catch((err) => {
+  console.error("Failed to start server:", err);
+  process.exit(1);
+});
+
 module.exports = app;

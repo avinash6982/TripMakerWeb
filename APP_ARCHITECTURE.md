@@ -1,6 +1,6 @@
 # 🏗️ TripMaker Application Architecture
 
-**Last Updated:** January 31, 2026 (unarchive + MVP2 phase)  
+**Last Updated:** February 2026 (MongoDB migration)  
 **Version:** 1.0.0  
 **Status:** Production-Ready
 
@@ -59,10 +59,12 @@
 │  │  Routes: /health, /api/*, /api-docs, etc.               │  │
 │  └──────────────────┬───────────────────────────────────┘  │
 │                     │                                        │
-│                     │ File I/O (ephemeral on Render)         │
+│                     │ MongoDB (when MONGODB_URI set)        │
+│                     │ or File I/O (ephemeral fallback)       │
 │                     ▼                                        │
 │  ┌──────────────────────────────────────────────────────┐  │
-│  │  Data: /tmp/tripmaker-users.json; auto-seeded dev user   │  │
+│  │  MongoDB Atlas: users + trips collections; or         │  │
+│  │  /tmp/tripmaker-users.json (fallback)                 │  │
 │  └──────────────────────────────────────────────────────┘  │
 └────────────────────────────────────────────────────────────┘
 
@@ -76,12 +78,13 @@ LOCAL DEVELOPMENT
 │   Server)      │                    │                │
 └────────────────┘                    └────────┬───────┘
                                                │
-                                               │ File I/O
-                                               ▼
+                          MONGODB_URI set?    │
+                          ├─ Yes: MongoDB     │
+                          └─ No:  File I/O    ▼
                                       ┌────────────────┐
-                                      │  data/users    │
-                                      │     .json      │
-                                      │  (Persistent)  │
+                                      │  MongoDB Atlas  │
+                                      │  or data/users  │
+                                      │     .json       │
                                       └────────────────┘
 ```
 
@@ -118,8 +121,19 @@ LOCAL DEVELOPMENT
 | Technology | Purpose |
 |------------|---------|
 | **Render** | Hosting (Static Site + Web Service); no Vercel |
+| **MongoDB Atlas** | Database when `MONGODB_URI` is set (free M0 tier); see MONGODB_SETUP.md |
 | **npm workspaces** | Monorepo management |
 | **Git/GitHub** | Version control |
+
+---
+
+## Database (MongoDB)
+
+When `MONGODB_URI` is set (local `.env` or Render environment), the backend uses MongoDB instead of file-based storage.
+
+- **Collections:** `users` (id, email, passwordHash, profile, createdAt; no trips array); `trips` (full trip document with `userId` as owner). Same logical model as before; trips are stored in a separate collection for scalability.
+- **Connection:** One client shared across requests; connect at startup before accepting traffic.
+- **Fallback:** If `MONGODB_URI` is not set, the backend uses file-based JSON (`data/users.json` locally; ephemeral path on Render). See [MONGODB_SETUP.md](MONGODB_SETUP.md) for setup steps.
 
 ---
 
