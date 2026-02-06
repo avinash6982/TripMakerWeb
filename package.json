@@ -40,7 +40,6 @@
     "@aws-sdk/s3-request-presigner": "^3.700.0"
   },
   "devDependencies": {
-    "@rollup/rollup-darwin-arm64": "^4.57.1",
     "@vercel/node": "^5.5.28",
     "concurrently": "^9.2.1"
   }
