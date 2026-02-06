@@ -155,6 +155,56 @@ export const removeCollaborator = (tripId, userId) =>
   );
 
 /**
+ * Add a prerequisite item (Additional feature: trip prerequisites). Collaborator only.
+ * @param {string} tripId
+ * @param {{ title: string, description?: string, category?: string, imageKey?: string, assigneeUserId?: string }} payload
+ */
+export const addPrerequisite = (tripId, payload) =>
+  requestJson(
+    `/trips/${tripId}/prerequisites`,
+    { method: "POST", body: JSON.stringify(payload) },
+    "Unable to add prerequisite."
+  );
+
+/**
+ * Update a prerequisite item (title, description, category, imageKey). Not allowed when trip is completed.
+ * @param {string} tripId
+ * @param {string} itemId
+ * @param {{ title?: string, description?: string, category?: string, imageKey?: string }} payload
+ */
+export const updatePrerequisite = (tripId, itemId, payload) =>
+  requestJson(
+    `/trips/${tripId}/prerequisites/${encodeURIComponent(itemId)}`,
+    { method: "PUT", body: JSON.stringify(payload) },
+    "Unable to update prerequisite."
+  );
+
+/**
+ * Update prerequisite assignee or status. Only when trip is active.
+ * @param {string} tripId
+ * @param {string} itemId
+ * @param {{ assigneeUserId?: string | null, status?: 'pending' | 'done' }} payload
+ */
+export const patchPrerequisite = (tripId, itemId, payload) =>
+  requestJson(
+    `/trips/${tripId}/prerequisites/${encodeURIComponent(itemId)}`,
+    { method: "PATCH", body: JSON.stringify(payload) },
+    "Unable to update prerequisite."
+  );
+
+/**
+ * Delete a prerequisite item. Not allowed when trip is completed.
+ * @param {string} tripId
+ * @param {string} itemId
+ */
+export const deletePrerequisite = (tripId, itemId) =>
+  requestJson(
+    `/trips/${tripId}/prerequisites/${encodeURIComponent(itemId)}`,
+    { method: "DELETE" },
+    "Unable to delete prerequisite."
+  );
+
+/**
  * Fetch chat messages for a trip (MVP3). Paginated.
  * @param {string} tripId
  * @param {{ limit?: number, offset?: number }} [params]

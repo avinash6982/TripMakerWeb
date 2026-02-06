@@ -1,7 +1,7 @@
 # 🚧 Development Status
 
 > **Last Updated:** February 2026  
-> **Current Phase:** Design Optimization complete — ready for MVP4  
+> **Current Phase:** Additional feature (Prerequisites) complete — ready for MVP4  
 > **Next phase:** MVP4 (start when you explicitly approve)
 
 ---
@@ -9,9 +9,9 @@
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**MVP4: Marketplace Integration** is next. Do not start MVP4 until you explicitly approve (paid services; see MVP_ROADMAP.md).
+**Additional features** between MVP3 and MVP4 are tracked in [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md). **Prerequisites** (trip checklist: add/assign/mark done) is implemented on branch `feature_prerequisites`. **MVP4: Marketplace Integration** is next; do not start MVP4 until you explicitly approve (paid services; see MVP_ROADMAP.md).
 
-**Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md)
+**Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md)
 
 ### MVP1, MVP2 & MVP3 Completed
 - **MVP1:** Trip CRUD, save, list, detail, edit, delete, archive, unarchive, transport hubs, map, day-wise itinerary, place suggestions.

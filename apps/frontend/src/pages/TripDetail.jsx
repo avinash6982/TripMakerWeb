@@ -15,6 +15,10 @@ import {
   getApiBaseUrl,
   fetchTripComments,
   postTripComment,
+  addPrerequisite,
+  updatePrerequisite,
+  patchPrerequisite,
+  deletePrerequisite,
 } from "../services/trips";
 import { getStoredUser } from "../services/auth";
 import { getTransportHubsForDestination } from "../data/transportHubs";
@@ -79,7 +83,30 @@ const TripDetail = () => {
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [headerActionsUseOverflow, setHeaderActionsUseOverflow] = useState(true);
+  const [showPrereqModal, setShowPrereqModal] = useState(false);
+  const [prereqEditingId, setPrereqEditingId] = useState(null);
+  const [prereqFormTitle, setPrereqFormTitle] = useState("");
+  const [prereqFormDescription, setPrereqFormDescription] = useState("");
+  const [prereqFormCategory, setPrereqFormCategory] = useState("other");
+  const [prereqFormImageKey, setPrereqFormImageKey] = useState("");
+  const [prereqFormImageFile, setPrereqFormImageFile] = useState(null);
+  const [prereqFormAssigneeUserId, setPrereqFormAssigneeUserId] = useState("");
+  const [prereqSaving, setPrereqSaving] = useState(false);
+  const [prereqDeleteConfirmId, setPrereqDeleteConfirmId] = useState(null);
+  const [prereqFilter, setPrereqFilter] = useState("all");
+  const [prereqAssignPopoverId, setPrereqAssignPopoverId] = useState(null);
+  const [prereqViewAllOpen, setPrereqViewAllOpen] = useState(false);
+  const prereqAssignPopoverRef = useRef(null);
   const actionsMenuRef = useRef(null);
+
+  /** Update only prerequisites in trip state to avoid map re-renders (keeps destination/itinerary refs stable). */
+  const setTripPrerequisitesOnly = (updated) => {
+    setTrip((prev) =>
+      prev && updated && Array.isArray(updated.prerequisites)
+        ? { ...prev, prerequisites: updated.prerequisites }
+        : updated
+    );
+  };
   const optionsMenuRef = useRef(null);
   const commentsDesktopRef = useRef(null);
   const pageHeaderRef = useRef(null);
@@ -128,6 +155,17 @@ const TripDetail = () => {
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
   }, [optionsMenuOpen]);
+
+  useEffect(() => {
+    if (!prereqAssignPopoverId) return;
+    const close = (e) => {
+      if (prereqAssignPopoverRef.current && !prereqAssignPopoverRef.current.contains(e.target)) {
+        setPrereqAssignPopoverId(null);
+      }
+    };
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [prereqAssignPopoverId]);
 
   // Dynamic overflow: collapse header actions into menu when header width is limited
   useEffect(() => {
@@ -446,8 +484,8 @@ const TripDetail = () => {
   const peopleOnTrip = trip
     ? [
         {
-          id: "owner",
-          email: trip.ownerEmail || (isOwner && currentUser?.email) || t("trips.owner", "Owner"),
+          id: trip.userId,
+          email: trip.ownerEmail || (isOwner && currentUser?.email) || t("trips.role.owner", "Owner"),
           role: "owner",
         },
         ...(trip.collaborators || []).map((c) => ({
@@ -457,6 +495,566 @@ const TripDetail = () => {
         })),
       ]
     : [];
+
+  const renderPrerequisitesCard = () => {
+    const prereqList = trip?.prerequisites || [];
+    const canAddPrereq = (isOwner || collab) && trip?.id;
+    const tripActive = trip?.status === "active";
+    const canAssignOrMarkDone = (isOwner || collab) && tripActive;
+    const canEditOrDelete = (isOwner || collab) && trip?.status !== "completed";
+    const categoryKeys = ["documents", "clothing", "electronics", "medicine", "other"];
+    const getCategoryLabel = (cat) =>
+      cat && categoryKeys.includes(cat)
+        ? t(`trips.prerequisiteCategory${cat.charAt(0).toUpperCase() + cat.slice(1)}`)
+        : t("trips.prerequisiteCategoryOther");
+
+    const filteredList =
+      prereqFilter === "all"
+        ? prereqList
+        : prereqList.filter((item) => item.status === prereqFilter);
+
+    return (
+      <div className="trip-detail-prerequisites">
+        <div className="trip-detail-prereq-header">
+          <h2>{t("trips.prerequisites")}</h2>
+          <div className="trip-detail-prereq-header-actions">
+            {prereqList.length > 0 && (
+              <div className="trip-detail-prereq-filter-wrap">
+                <button
+                  type="button"
+                  className="trip-detail-prereq-round-btn"
+                  onClick={() => setPrereqFilter((f) => (f === "all" ? "pending" : f === "pending" ? "done" : "all"))}
+                  title={t("trips.prerequisiteFilter", "Filter")}
+                  aria-label={t("trips.prerequisiteFilter", "Filter")}
+                  aria-expanded={false}
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                  </svg>
+                </button>
+                <span className="trip-detail-prereq-filter-label">
+                  {prereqFilter === "all"
+                    ? t("trips.prerequisiteFilterAll", "All")
+                    : prereqFilter === "pending"
+                      ? t("trips.prerequisiteStatusPending")
+                      : t("trips.prerequisiteStatusDone")}
+                </span>
+              </div>
+            )}
+            {canAddPrereq && (
+              <button
+                type="button"
+                className="trip-detail-prereq-round-btn trip-detail-prereq-add-btn"
+                onClick={() => {
+                  setPrereqEditingId(null);
+                  setPrereqFormTitle("");
+                  setPrereqFormDescription("");
+                  setPrereqFormCategory("other");
+                  setPrereqFormImageKey("");
+                  setPrereqFormImageFile(null);
+                  setPrereqFormAssigneeUserId("");
+                  setShowPrereqModal(true);
+                }}
+                aria-label={t("trips.addPrerequisite")}
+                title={t("trips.addPrerequisite")}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
+        {prereqList.length === 0 ? (
+          <p className="muted trip-detail-prereq-empty">{t("trips.prerequisitesEmpty")}</p>
+        ) : filteredList.length === 0 ? (
+          <p className="muted trip-detail-prereq-empty">{t("trips.prerequisitesEmptyFilter", "No items match the filter.")}</p>
+        ) : (
+          <>
+          <ul className="trip-detail-prereq-list">
+            {(filteredList.length > 2 ? filteredList.slice(0, 2) : filteredList).map((item) => (
+              <li key={item.id} className={`trip-detail-prereq-item trip-detail-prereq-item-row ${item.status === "done" ? "is-done" : ""}`}>
+                <div className="trip-detail-prereq-item-main">
+                  <span className="trip-detail-prereq-category" title={getCategoryLabel(item.category)} aria-hidden>
+                    {item.category === "documents" && "📄"}
+                    {item.category === "clothing" && "👕"}
+                    {item.category === "electronics" && "🔌"}
+                    {item.category === "medicine" && "💊"}
+                    {(!item.category || item.category === "other") && "📋"}
+                  </span>
+                  <span className="trip-detail-prereq-title-desc">
+                    <span className="trip-detail-prereq-title">{item.title}</span>
+                    {item.description && (
+                      <>
+                        <span className="trip-detail-prereq-title-sep"> — </span>
+                        <span className="trip-detail-prereq-desc">{item.description}</span>
+                      </>
+                    )}
+                  </span>
+                  <span className="trip-detail-prereq-status" data-status={item.status}>
+                    {item.status === "done"
+                      ? t("trips.prerequisiteStatusDone")
+                      : t("trips.prerequisiteStatusPending")}
+                  </span>
+                </div>
+                <div className="trip-detail-prereq-item-actions" ref={prereqAssignPopoverId === item.id ? prereqAssignPopoverRef : null}>
+                  {canAssignOrMarkDone && (
+                    <div className="trip-detail-prereq-assign-wrap">
+                      {item.assigneeUserId || item.assigneeEmail ? (
+                        <button
+                          type="button"
+                          className="trip-detail-prereq-avatar-btn"
+                          onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                          title={item.assigneeEmail || item.assigneeUserId}
+                          aria-label={t("trips.prerequisiteAssignTo") + ": " + (item.assigneeEmail || item.assigneeUserId)}
+                        >
+                          <span className="trip-detail-prereq-avatar">
+                            {getInitials(item.assigneeEmail || item.assigneeUserId)}
+                          </span>
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="trip-detail-prereq-avatar-btn trip-detail-prereq-avatar-add"
+                          onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                          title={t("trips.prerequisiteAssign")}
+                          aria-label={t("trips.prerequisiteAssign")}
+                        >
+                          <span className="trip-detail-prereq-avatar trip-detail-prereq-avatar-add-icon" aria-hidden>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                              <circle cx="8.5" cy="7" r="4" />
+                              <line x1="20" y1="8" x2="20" y2="14" />
+                              <line x1="23" y1="11" x2="17" y2="11" />
+                            </svg>
+                          </span>
+                        </button>
+                      )}
+                      {prereqAssignPopoverId === item.id && (
+                        <div className="trip-detail-prereq-assign-popover" role="menu">
+                          {(item.assigneeUserId || item.assigneeEmail) && (
+                            <button
+                              type="button"
+                              className="trip-detail-prereq-assign-popover-item"
+                              role="menuitem"
+                              onClick={async () => {
+                                try {
+                                  const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: null });
+                                  setTripPrerequisitesOnly(updated);
+                                  setPrereqAssignPopoverId(null);
+                                } catch (err) {
+                                  setMessage(err?.message || "Update failed.");
+                                }
+                              }}
+                            >
+                              {t("trips.prerequisiteUnassign")}
+                            </button>
+                          )}
+                          {peopleOnTrip.map((p) => (
+                            <button
+                              key={p.id}
+                              type="button"
+                              className="trip-detail-prereq-assign-popover-item"
+                              role="menuitem"
+                              onClick={async () => {
+                                try {
+                                  const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: p.id });
+                                  setTripPrerequisitesOnly(updated);
+                                  setPrereqAssignPopoverId(null);
+                                } catch (err) {
+                                  setMessage(err?.message || "Update failed.");
+                                }
+                              }}
+                            >
+                              <span className="trip-detail-prereq-assign-popover-avatar">{getInitials(p.email)}</span>
+                              {p.email}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {canAssignOrMarkDone && (
+                    <button
+                      type="button"
+                      className="trip-detail-prereq-icon-btn"
+                      onClick={async () => {
+                        try {
+                          const updated = await patchPrerequisite(trip.id, item.id, {
+                            status: item.status === "done" ? "pending" : "done",
+                          });
+                          setTripPrerequisitesOnly(updated);
+                        } catch (err) {
+                          setMessage(err?.message || "Update failed.");
+                        }
+                      }}
+                      title={
+                        item.status === "done"
+                          ? t("trips.prerequisiteMarkPending")
+                          : t("trips.prerequisiteMarkDone")
+                      }
+                      aria-label={
+                        item.status === "done"
+                          ? t("trips.prerequisiteMarkPending")
+                          : t("trips.prerequisiteMarkDone")
+                      }
+                    >
+                      {item.status === "done" ? (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          aria-hidden
+                        >
+                          <path d="M3 6h18M7 12h10M9 18h6" />
+                        </svg>
+                      ) : (
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          aria-hidden
+                        >
+                          <path d="M20 6L9 17l-5-5" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
+                  {canEditOrDelete && (
+                    <>
+                      <button
+                      type="button"
+                      className="trip-detail-prereq-icon-btn"
+                      onClick={() => {
+                        setPrereqEditingId(item.id);
+                        setPrereqFormTitle(item.title);
+                        setPrereqFormDescription(item.description || "");
+                        setPrereqFormCategory(item.category || "other");
+                        setPrereqFormImageKey(item.imageKey || "");
+                        setPrereqFormImageFile(null);
+                        setPrereqFormAssigneeUserId(item.assigneeUserId || "");
+                        setShowPrereqModal(true);
+                      }}
+                      title={t("trips.prerequisiteEdit")}
+                      aria-label={t("trips.prerequisiteEdit")}
+                    >
+                      <svg
+                        width="18"
+                        height="18"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        aria-hidden
+                      >
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
+                    {prereqDeleteConfirmId === item.id ? (
+                      <>
+                        <span className="trip-detail-prereq-delete-confirm-text">
+                          {t("trips.prerequisiteDeleteConfirm")}
+                        </span>
+                        <button
+                          type="button"
+                          className="btn primary btn-sm"
+                          onClick={async () => {
+                            try {
+                              const updated = await deletePrerequisite(trip.id, item.id);
+                              setTripPrerequisitesOnly(updated);
+                              setPrereqDeleteConfirmId(null);
+                              setMessage(t("trips.prerequisiteDeleteSuccess"));
+                            } catch (err) {
+                              setMessage(err?.message || "Delete failed.");
+                            }
+                          }}
+                        >
+                          {t("trips.delete")}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn ghost btn-sm"
+                          onClick={() => setPrereqDeleteConfirmId(null)}
+                        >
+                          {t("trips.cancel")}
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
+                        onClick={() => setPrereqDeleteConfirmId(item.id)}
+                        title={t("trips.prerequisiteDelete")}
+                        aria-label={t("trips.prerequisiteDelete")}
+                      >
+                        <svg
+                          width="18"
+                          height="18"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          aria-hidden
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          <line x1="10" y1="11" x2="10" y2="17" />
+                          <line x1="14" y1="11" x2="14" y2="17" />
+                        </svg>
+                      </button>
+                    )}
+                  </>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+          {filteredList.length > 2 && (
+            <button
+              type="button"
+              className="btn ghost btn-sm trip-detail-prereq-viewall-btn"
+              onClick={() => setPrereqViewAllOpen(true)}
+            >
+              {t("trips.viewAll")}
+            </button>
+          )}
+          {prereqViewAllOpen && (
+            <div
+              className="modal-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="prereq-viewall-title"
+              onClick={() => setPrereqViewAllOpen(false)}
+            >
+              <div className="modal-card trip-detail-prereq-viewall-modal" onClick={(e) => e.stopPropagation()}>
+                <div className="trip-detail-prereq-viewall-header">
+                  <h2 id="prereq-viewall-title">{t("trips.prerequisites")}</h2>
+                  <button
+                    type="button"
+                    className="trip-detail-prereq-viewall-close"
+                    onClick={() => setPrereqViewAllOpen(false)}
+                    aria-label={t("trips.close")}
+                    title={t("trips.close")}
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="trip-detail-prereq-viewall-body">
+                  <ul className="trip-detail-prereq-list">
+                    {filteredList.map((item) => (
+                      <li key={item.id} className={`trip-detail-prereq-item trip-detail-prereq-item-row ${item.status === "done" ? "is-done" : ""}`}>
+                        <div className="trip-detail-prereq-item-main">
+                          <span className="trip-detail-prereq-category" title={getCategoryLabel(item.category)} aria-hidden>
+                            {item.category === "documents" && "📄"}
+                            {item.category === "clothing" && "👕"}
+                            {item.category === "electronics" && "🔌"}
+                            {item.category === "medicine" && "💊"}
+                            {(!item.category || item.category === "other") && "📋"}
+                          </span>
+                          <span className="trip-detail-prereq-title-desc">
+                            <span className="trip-detail-prereq-title">{item.title}</span>
+                            {item.description && (
+                              <>
+                                <span className="trip-detail-prereq-title-sep"> — </span>
+                                <span className="trip-detail-prereq-desc">{item.description}</span>
+                              </>
+                            )}
+                          </span>
+                          <span className="trip-detail-prereq-status" data-status={item.status}>
+                            {item.status === "done" ? t("trips.prerequisiteStatusDone") : t("trips.prerequisiteStatusPending")}
+                          </span>
+                        </div>
+                        <div className="trip-detail-prereq-item-actions" ref={prereqAssignPopoverId === item.id ? prereqAssignPopoverRef : null}>
+                          {canAssignOrMarkDone && (
+                            <div className="trip-detail-prereq-assign-wrap">
+                              {item.assigneeUserId || item.assigneeEmail ? (
+                                <button
+                                  type="button"
+                                  className="trip-detail-prereq-avatar-btn"
+                                  onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                                  title={item.assigneeEmail || item.assigneeUserId}
+                                  aria-label={t("trips.prerequisiteAssignTo") + ": " + (item.assigneeEmail || item.assigneeUserId)}
+                                >
+                                  <span className="trip-detail-prereq-avatar">{getInitials(item.assigneeEmail || item.assigneeUserId)}</span>
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="trip-detail-prereq-avatar-btn trip-detail-prereq-avatar-add"
+                                  onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                                  title={t("trips.prerequisiteAssign")}
+                                  aria-label={t("trips.prerequisiteAssign")}
+                                >
+                                  <span className="trip-detail-prereq-avatar trip-detail-prereq-avatar-add-icon" aria-hidden>
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                      <circle cx="8.5" cy="7" r="4" />
+                                      <line x1="20" y1="8" x2="20" y2="14" />
+                                      <line x1="23" y1="11" x2="17" y2="11" />
+                                    </svg>
+                                  </span>
+                                </button>
+                              )}
+                              {prereqAssignPopoverId === item.id && (
+                                <div className="trip-detail-prereq-assign-popover" role="menu">
+                                  {(item.assigneeUserId || item.assigneeEmail) && (
+                                    <button
+                                      type="button"
+                                      className="trip-detail-prereq-assign-popover-item"
+                                      role="menuitem"
+                                      onClick={async () => {
+                                        try {
+                                          const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: null });
+                                          setTripPrerequisitesOnly(updated);
+                                          setPrereqAssignPopoverId(null);
+                                        } catch (err) {
+                                          setMessage(err?.message || "Update failed.");
+                                        }
+                                      }}
+                                    >
+                                      {t("trips.prerequisiteUnassign")}
+                                    </button>
+                                  )}
+                                  {peopleOnTrip.map((p) => (
+                                    <button
+                                      key={p.id}
+                                      type="button"
+                                      className="trip-detail-prereq-assign-popover-item"
+                                      role="menuitem"
+                                      onClick={async () => {
+                                        try {
+                                          const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: p.id });
+                                          setTripPrerequisitesOnly(updated);
+                                          setPrereqAssignPopoverId(null);
+                                        } catch (err) {
+                                          setMessage(err?.message || "Update failed.");
+                                        }
+                                      }}
+                                    >
+                                      <span className="trip-detail-prereq-assign-popover-avatar">{getInitials(p.email)}</span>
+                                      {p.email}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {canAssignOrMarkDone && (
+                            <button
+                              type="button"
+                              className="trip-detail-prereq-icon-btn"
+                              onClick={async () => {
+                                try {
+                                  const updated = await patchPrerequisite(trip.id, item.id, { status: item.status === "done" ? "pending" : "done" });
+                                  setTripPrerequisitesOnly(updated);
+                                } catch (err) {
+                                  setMessage(err?.message || "Update failed.");
+                                }
+                              }}
+                              title={item.status === "done" ? t("trips.prerequisiteMarkPending") : t("trips.prerequisiteMarkDone")}
+                              aria-label={item.status === "done" ? t("trips.prerequisiteMarkPending") : t("trips.prerequisiteMarkDone")}
+                            >
+                              {item.status === "done" ? (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                  <path d="M3 6h18M7 12h10M9 18h6" />
+                                </svg>
+                              ) : (
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                  <path d="M20 6L9 17l-5-5" />
+                                </svg>
+                              )}
+                            </button>
+                          )}
+                          {canEditOrDelete && (
+                            <>
+                              <button
+                                type="button"
+                                className="trip-detail-prereq-icon-btn"
+                                onClick={() => {
+                                  setPrereqViewAllOpen(false);
+                                  setPrereqEditingId(item.id);
+                                  setPrereqFormTitle(item.title);
+                                  setPrereqFormDescription(item.description || "");
+                                  setPrereqFormCategory(item.category || "other");
+                                  setPrereqFormImageKey(item.imageKey || "");
+                                  setPrereqFormImageFile(null);
+                                  setPrereqFormAssigneeUserId(item.assigneeUserId || "");
+                                  setShowPrereqModal(true);
+                                }}
+                                title={t("trips.prerequisiteEdit")}
+                                aria-label={t("trips.prerequisiteEdit")}
+                              >
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                              </button>
+                              {prereqDeleteConfirmId === item.id ? (
+                                <>
+                                  <span className="trip-detail-prereq-delete-confirm-text">{t("trips.prerequisiteDeleteConfirm")}</span>
+                                  <button
+                                    type="button"
+                                    className="btn primary btn-sm"
+                                    onClick={async () => {
+                                      try {
+                                        const updated = await deletePrerequisite(trip.id, item.id);
+                                        setTripPrerequisitesOnly(updated);
+                                        setPrereqDeleteConfirmId(null);
+                                        setPrereqViewAllOpen(false);
+                                        setMessage(t("trips.prerequisiteDeleteSuccess"));
+                                      } catch (err) {
+                                        setMessage(err?.message || "Delete failed.");
+                                      }
+                                    }}
+                                  >
+                                    {t("trips.delete")}
+                                  </button>
+                                  <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
+                                    {t("trips.cancel")}
+                                  </button>
+                                </>
+                              ) : (
+                                <button
+                                  type="button"
+                                  className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
+                                  onClick={() => setPrereqDeleteConfirmId(item.id)}
+                                  title={t("trips.prerequisiteDelete")}
+                                  aria-label={t("trips.prerequisiteDelete")}
+                                >
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                    <polyline points="3 6 5 6 21 6" />
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                    <line x1="10" y1="11" x2="10" y2="17" />
+                                    <line x1="14" y1="11" x2="14" y2="17" />
+                                  </svg>
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          </>
+        )}
+      </div>
+    );
+  };
 
   if (error || !trip) {
     return (
@@ -881,11 +1479,36 @@ const TripDetail = () => {
           const hubs = getTransportHubsForDestination(trip.destination);
           const hasMap = !!mapCenter;
           const hasTransport = !!hubs;
-          if (!hasMap && !hasTransport) return null;
+          const prereqList = trip?.prerequisites || [];
+          const canAddPrereq = (isOwner || collab) && trip?.id;
+          const hasPrereq = prereqList.length > 0 || canAddPrereq;
+          if (!hasMap && !hasTransport && !hasPrereq) return null;
 
-          return (
-            <div className="trip-detail-map-transport-grid">
-              {hasMap && (
+          const sideColumnContent = (hasTransport || hasPrereq) && (
+            <div className="trip-detail-side-column">
+              {hasTransport && (
+                <div className="trip-detail-transport">
+                  <h2>{t("trips.transportation")}</h2>
+                  <ul className="transport-hubs-list">
+                    <li>
+                      <strong>{t("trips.nearestAirport")}:</strong> {hubs.airport?.name} — {hubs.airport?.distance}
+                    </li>
+                    <li>
+                      <strong>{t("trips.nearestTrain")}:</strong> {hubs.train?.name} — {hubs.train?.distance}
+                    </li>
+                    <li>
+                      <strong>{t("trips.nearestBus")}:</strong> {hubs.bus?.name} — {hubs.bus?.distance}
+                    </li>
+                  </ul>
+                </div>
+              )}
+              {hasPrereq && renderPrerequisitesCard()}
+            </div>
+          );
+
+          if (hasMap && (hasTransport || hasPrereq)) {
+            return (
+              <div className="trip-detail-map-transport-grid">
                 <div className="trip-detail-map">
                   <div className="trip-detail-map-header">
                     <h2>{t("trips.map")}</h2>
@@ -904,8 +1527,20 @@ const TripDetail = () => {
                       }}
                       disabled={locationLoading}
                       aria-pressed={showMyLocation}
-                      title={locationLoading ? t("trips.locationLoading") : showMyLocation ? t("trips.hideMyLocation") : t("trips.showMyLocation")}
-                      aria-label={locationLoading ? t("trips.locationLoading") : showMyLocation ? t("trips.hideMyLocation") : t("trips.showMyLocation")}
+                      title={
+                        locationLoading
+                          ? t("trips.locationLoading")
+                          : showMyLocation
+                            ? t("trips.hideMyLocation")
+                            : t("trips.showMyLocation")
+                      }
+                      aria-label={
+                        locationLoading
+                          ? t("trips.locationLoading")
+                          : showMyLocation
+                            ? t("trips.hideMyLocation")
+                            : t("trips.showMyLocation")
+                      }
                     >
                       {locationLoading
                         ? t("trips.locationLoading")
@@ -934,11 +1569,18 @@ const TripDetail = () => {
                     return (
                       <>
                         <p className="trip-detail-eta" role="status">
-                          {t("trips.etaToNext", { km: distanceKm, name, min: estimatedMinutes }, "~{{km}} km to {{name}} · ~{{min}} min")}
+                          {t(
+                            "trips.etaToNext",
+                            { km: distanceKm, name, min: estimatedMinutes },
+                            "~{{km}} km to {{name}} · ~{{min}} min",
+                          )}
                         </p>
                         {distanceKm > 15 && (
                           <p className="trip-detail-eta-alert" role="status">
-                            {t("trips.farFromNextStop", "Far from next stop — consider adjusting your schedule.")}
+                            {t(
+                              "trips.farFromNextStop",
+                              "Far from next stop — consider adjusting your schedule.",
+                            )}
                           </p>
                         )}
                       </>
@@ -957,7 +1599,108 @@ const TripDetail = () => {
                     />
                   )}
                 </div>
-              )}
+                {sideColumnContent}
+              </div>
+            );
+          }
+
+          if (hasMap) {
+            return (
+              <div className="trip-detail-map">
+                <div className="trip-detail-map-header">
+                  <h2>{t("trips.map")}</h2>
+                  <button
+                    type="button"
+                    className="btn ghost btn-sm"
+                    onClick={() => {
+                      if (showMyLocation) {
+                        stopWatching();
+                        setShowMyLocation(false);
+                      } else {
+                        clearLocationError();
+                        startWatching();
+                        setShowMyLocation(true);
+                      }
+                    }}
+                    disabled={locationLoading}
+                    aria-pressed={showMyLocation}
+                    title={
+                      locationLoading
+                        ? t("trips.locationLoading")
+                        : showMyLocation
+                          ? t("trips.hideMyLocation")
+                          : t("trips.showMyLocation")
+                    }
+                    aria-label={
+                      locationLoading
+                        ? t("trips.locationLoading")
+                        : showMyLocation
+                          ? t("trips.hideMyLocation")
+                          : t("trips.showMyLocation")
+                    }
+                  >
+                    {locationLoading
+                      ? t("trips.locationLoading")
+                      : showMyLocation
+                        ? t("trips.hideMyLocation")
+                        : t("trips.showMyLocation")}
+                  </button>
+                </div>
+                {locationError && (
+                  <p className="message error trip-detail-location-error" role="alert">
+                    {locationError}
+                  </p>
+                )}
+                {showMyLocation && currentLocationPosition && itineraryMarkers.length > 0 && (() => {
+                  const closest = getClosestStop(currentLocationPosition, itineraryMarkers);
+                  if (!closest) return null;
+                  const { distanceKm, marker, estimatedMinutes } = closest;
+                  const name = marker?.name || t("trips.nextStop", "Next stop");
+                  if (distanceKm < 0.2) {
+                    return (
+                      <p className="trip-detail-eta trip-detail-eta-close" role="status">
+                        {t("trips.youAreCloseTo", { name }, "Very close to {{name}}")}
+                      </p>
+                    );
+                  }
+                  return (
+                    <>
+                      <p className="trip-detail-eta" role="status">
+                        {t(
+                          "trips.etaToNext",
+                          { km: distanceKm, name, min: estimatedMinutes },
+                          "~{{km}} km to {{name}} · ~{{min}} min",
+                        )}
+                      </p>
+                      {distanceKm > 15 && (
+                        <p className="trip-detail-eta-alert" role="status">
+                          {t(
+                            "trips.farFromNextStop",
+                            "Far from next stop — consider adjusting your schedule.",
+                          )}
+                        </p>
+                      )}
+                    </>
+                  );
+                })()}
+                {mapLoading && (
+                  <p className="muted trip-detail-map-loading">{t("labels.loading")}</p>
+                )}
+                {!mapLoading && (
+                  <MapView
+                    center={mapCenter}
+                    destinationLabel={trip.destination}
+                    itineraryMarkers={itineraryMarkers}
+                    dayRoutes={dayRoutes}
+                    currentLocation={showMyLocation ? currentLocationPosition : null}
+                  />
+                )}
+              </div>
+            );
+          }
+
+          return (
+            <>
               {hasTransport && (
                 <div className="trip-detail-transport">
                   <h2>{t("trips.transportation")}</h2>
@@ -974,7 +1717,8 @@ const TripDetail = () => {
                   </ul>
                 </div>
               )}
-            </div>
+              {hasPrereq && renderPrerequisitesCard()}
+            </>
           );
         })()}
 
@@ -1235,6 +1979,150 @@ const TripDetail = () => {
           </div>
         )}
       </div>
+
+      {showPrereqModal && (
+        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="prereq-modal-title">
+          <div className="modal-card trip-detail-prereq-modal">
+            <h2 id="prereq-modal-title">{prereqEditingId ? t("trips.prerequisiteEdit") : t("trips.addPrerequisite")}</h2>
+            <form
+              onSubmit={async (e) => {
+                e.preventDefault();
+                const title = prereqFormTitle.trim();
+                if (!title || !trip?.id || prereqSaving) return;
+                setPrereqSaving(true);
+                setMessage("");
+                try {
+                  let imageKey = prereqFormImageKey || undefined;
+                  if (prereqFormImageFile && prereqFormImageFile.size <= 5 * 1024 * 1024) {
+                    const { uploadUrl, key } = await getUploadPresign(prereqFormImageFile.size, prereqFormImageFile.type || "image/jpeg");
+                    await fetch(uploadUrl, { method: "PUT", body: prereqFormImageFile, headers: { "Content-Type": prereqFormImageFile.type || "image/jpeg" } });
+                    imageKey = key;
+                  }
+                  if (prereqEditingId) {
+                    const payload = { title, description: prereqFormDescription.trim() || undefined, category: prereqFormCategory || undefined };
+                    if (imageKey !== undefined) payload.imageKey = imageKey;
+                    const updated = await updatePrerequisite(trip.id, prereqEditingId, payload);
+                    setTripPrerequisitesOnly(updated);
+                    setMessage(t("trips.prerequisiteUpdateSuccess"));
+                  } else {
+                    const payload = { title, description: prereqFormDescription.trim() || undefined, category: prereqFormCategory || undefined };
+                    if (imageKey) payload.imageKey = imageKey;
+                    if (trip.status === "active" && prereqFormAssigneeUserId) payload.assigneeUserId = prereqFormAssigneeUserId;
+                    await addPrerequisite(trip.id, payload);
+                    const data = await fetchTrip(trip.id);
+                    setTripPrerequisitesOnly(data);
+                    setMessage(t("trips.prerequisiteAddSuccess"));
+                  }
+                  setShowPrereqModal(false);
+                  setPrereqEditingId(null);
+                  setPrereqFormTitle("");
+                  setPrereqFormDescription("");
+                  setPrereqFormCategory("other");
+                  setPrereqFormImageKey("");
+                  setPrereqFormImageFile(null);
+                  setPrereqFormAssigneeUserId("");
+                } catch (err) {
+                  setMessage(err?.message || "Failed to save.");
+                } finally {
+                  setPrereqSaving(false);
+                }
+              }}
+            >
+              <div className="field">
+                <label htmlFor="prereq-title">{t("trips.prerequisiteTitle")}</label>
+                <input
+                  id="prereq-title"
+                  type="text"
+                  value={prereqFormTitle}
+                  onChange={(e) => setPrereqFormTitle(e.target.value)}
+                  placeholder={t("trips.prerequisiteTitlePlaceholder")}
+                  required
+                  disabled={prereqSaving}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="prereq-desc">{t("trips.prerequisiteDescription")}</label>
+                <input
+                  id="prereq-desc"
+                  type="text"
+                  value={prereqFormDescription}
+                  onChange={(e) => setPrereqFormDescription(e.target.value)}
+                  placeholder={t("trips.prerequisiteDescriptionPlaceholder")}
+                  disabled={prereqSaving}
+                />
+              </div>
+              <div className="field">
+                <label htmlFor="prereq-category">{t("trips.prerequisiteCategory")}</label>
+                <select
+                  id="prereq-category"
+                  value={prereqFormCategory}
+                  onChange={(e) => setPrereqFormCategory(e.target.value)}
+                  disabled={prereqSaving}
+                >
+                  <option value="documents">{t("trips.prerequisiteCategoryDocuments")}</option>
+                  <option value="clothing">{t("trips.prerequisiteCategoryClothing")}</option>
+                  <option value="electronics">{t("trips.prerequisiteCategoryElectronics")}</option>
+                  <option value="medicine">{t("trips.prerequisiteCategoryMedicine")}</option>
+                  <option value="other">{t("trips.prerequisiteCategoryOther")}</option>
+                </select>
+              </div>
+              {!prereqEditingId && trip?.status === "active" && peopleOnTrip.length > 0 && (
+                <div className="field">
+                  <label htmlFor="prereq-assignee">{t("trips.prerequisiteAssign")}</label>
+                  <select
+                    id="prereq-assignee"
+                    value={prereqFormAssigneeUserId}
+                    onChange={(e) => setPrereqFormAssigneeUserId(e.target.value)}
+                    disabled={prereqSaving}
+                  >
+                    <option value="">—</option>
+                    {peopleOnTrip.map((p) => (
+                      <option key={p.id} value={p.id}>{p.email}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+              <div className="field">
+                <label htmlFor="prereq-image">{t("trips.attachImage")} (optional)</label>
+                <input
+                  id="prereq-image"
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    setPrereqFormImageFile(f || null);
+                    e.target.value = "";
+                  }}
+                  disabled={prereqSaving}
+                />
+                {prereqFormImageFile && <span className="muted small">{prereqFormImageFile.name}</span>}
+              </div>
+              <div className="modal-actions">
+                <button type="submit" className="btn primary" disabled={prereqSaving || !prereqFormTitle.trim()}>
+                  {prereqSaving ? t("labels.loading") : (prereqEditingId ? t("trips.saveChanges") : t("trips.addPrerequisite"))}
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => {
+                    setShowPrereqModal(false);
+                    setPrereqEditingId(null);
+                    setPrereqFormTitle("");
+                    setPrereqFormDescription("");
+                    setPrereqFormCategory("other");
+                    setPrereqFormImageKey("");
+                    setPrereqFormImageFile(null);
+                    setPrereqFormAssigneeUserId("");
+                  }}
+                  disabled={prereqSaving}
+                >
+                  {t("trips.cancel")}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {showInviteModal && (
         <div className="modal-overlay" role="dialog" aria-modal="true">

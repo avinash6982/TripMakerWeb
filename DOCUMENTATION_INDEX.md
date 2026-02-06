@@ -27,6 +27,7 @@
 |----------|---------|------------------|
 | **[PRODUCT_VISION.md](PRODUCT_VISION.md)** | Long-term vision, business model | Quarterly |
 | **[MVP_ROADMAP.md](MVP_ROADMAP.md)** | Phase breakdown, progress tracking | Weekly |
+| **[ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md)** | Features between MVP3 and MVP4 (e.g. Prerequisites) | Per feature |
 | **[MVP3_TASK_BREAKDOWN.md](MVP3_TASK_BREAKDOWN.md)** | MVP3 atomic tasks and verification | Per task |
 | **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** | MVP2 reference (complete) | Rarely |
 | **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** | MVP1 reference (complete) | Rarely |

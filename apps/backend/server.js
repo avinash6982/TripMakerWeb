@@ -680,6 +680,10 @@ function ensureGallery(trip) {
   if (!Array.isArray(trip.gallery)) trip.gallery = [];
   return trip.gallery;
 }
+function ensurePrerequisites(trip) {
+  if (!Array.isArray(trip.prerequisites)) trip.prerequisites = [];
+  return trip.prerequisites;
+}
 function ensureGalleryImageLikes(item) {
   if (!Array.isArray(item.likes)) item.likes = [];
   return item.likes;
@@ -1862,6 +1866,7 @@ app.post(
         isPublic,
         thumbnailKey: undefined,
         gallery: [],
+        prerequisites: [],
         createdAt: timestamp,
         updatedAt: timestamp,
       };
@@ -2050,6 +2055,7 @@ app.get("/trips/:id", optionalAuth, [param("id").notEmpty().withMessage("Trip ID
     }
     if (!resolvedTrip) return res.status(404).json({ error: "Trip not found." });
     ensureGallery(resolvedTrip);
+    ensurePrerequisites(resolvedTrip);
 
     // Access: owner or collaborator may always see the trip (including private)
     if (userId) {
@@ -2505,6 +2511,218 @@ app.delete(
       trip.updatedAt = new Date().toISOString();
       await writeUsers(users);
       return res.status(200).json({ message: "Collaborator removed.", collaborators: trip.collaborators });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+// Helper: find trip and owner by tripId; authUser must be owner or collaborator. Returns { trip, ownerUser } or null.
+function findTripAndOwnerForCollaborator(users, tripId, authUserId) {
+  const authUser = users.find((c) => c.id === authUserId);
+  if (!authUser) return null;
+  ensureTrips(authUser);
+  let trip = (authUser.trips || []).find((t) => t.id === tripId);
+  let ownerUser = authUser;
+  if (!trip) {
+    for (const u of users) {
+      ensureTrips(u);
+      const t = (u.trips || []).find((x) => x.id === tripId);
+      if (!t) continue;
+      ensureCollaborators(t);
+      if ((t.collaborators || []).some((c) => c.userId === authUserId)) {
+        trip = t;
+        ownerUser = u;
+        break;
+      }
+    }
+  }
+  if (!trip) return null;
+  const isOwner = trip.userId === authUserId;
+  const collab = (trip.collaborators || []).find((c) => c.userId === authUserId);
+  if (!isOwner && !collab) return null;
+  return { trip, ownerUser };
+}
+
+const PREREQUISITE_CATEGORIES = ["documents", "clothing", "electronics", "medicine", "other"];
+const PREREQUISITE_STATUSES = ["pending", "done"];
+
+app.post(
+  "/trips/:id/prerequisites",
+  requireAuth,
+  [param("id").notEmpty().withMessage("Trip ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const title = String((req.body && req.body.title) || "").trim();
+      if (!title) return res.status(400).json({ error: "Prerequisite title is required." });
+      const users = await readUsers();
+      const found = findTripAndOwnerForCollaborator(users, tripId, userId);
+      if (!found) return res.status(404).json({ error: "Trip not found." });
+      const { trip, ownerUser } = found;
+      ensurePrerequisites(trip);
+      let description = typeof req.body?.description === "string" ? req.body.description.trim() : "";
+      let category = typeof req.body?.category === "string" ? req.body.category.trim().toLowerCase() : "";
+      if (category && !PREREQUISITE_CATEGORIES.includes(category)) category = "other";
+      const imageKey = typeof req.body?.imageKey === "string" ? req.body.imageKey.trim() : undefined;
+      let assigneeUserId = typeof req.body?.assigneeUserId === "string" ? req.body.assigneeUserId.trim() : undefined;
+      if (assigneeUserId === "") assigneeUserId = undefined;
+      const isActive = trip.status === "active";
+      if (assigneeUserId && !isActive) assigneeUserId = undefined;
+      let assigneeEmail = undefined;
+      if (assigneeUserId) {
+        const assignee = (trip.collaborators || []).find((c) => c.userId === assigneeUserId);
+        if (assignee) assigneeEmail = assignee.email;
+        else {
+          const ownerIsAssignee = trip.userId === assigneeUserId;
+          if (ownerIsAssignee) {
+            const owner = users.find((u) => u.id === trip.userId);
+            if (owner) assigneeEmail = owner.email;
+          }
+        }
+      }
+      const item = {
+        id: crypto.randomUUID(),
+        title,
+        description: description || undefined,
+        category: category || undefined,
+        imageKey: imageKey || undefined,
+        assigneeUserId: assigneeUserId || undefined,
+        assigneeEmail: assigneeEmail || undefined,
+        status: "pending",
+        createdAt: new Date().toISOString(),
+        createdBy: userId,
+      };
+      trip.prerequisites.push(item);
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(201).json(item);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.put(
+  "/trips/:id/prerequisites/:itemId",
+  requireAuth,
+  [
+    param("id").notEmpty().withMessage("Trip ID is required."),
+    param("itemId").notEmpty().withMessage("Prerequisite item ID is required."),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const itemId = String(req.params.itemId || "");
+      const users = await readUsers();
+      const found = findTripAndOwnerForCollaborator(users, tripId, userId);
+      if (!found) return res.status(404).json({ error: "Trip not found." });
+      const { trip } = found;
+      ensurePrerequisites(trip);
+      if (trip.status === "completed") return res.status(403).json({ error: "Cannot edit prerequisites when trip is completed." });
+      const item = trip.prerequisites.find((p) => p.id === itemId);
+      if (!item) return res.status(404).json({ error: "Prerequisite item not found." });
+      if (typeof req.body?.title === "string") {
+        const t = req.body.title.trim();
+        if (t) item.title = t;
+      }
+      if (req.body && "description" in req.body) item.description = typeof req.body.description === "string" ? req.body.description.trim() || undefined : undefined;
+      if (req.body && "category" in req.body) {
+        const c = typeof req.body.category === "string" ? req.body.category.trim().toLowerCase() : "";
+        item.category = c && PREREQUISITE_CATEGORIES.includes(c) ? c : "other";
+      }
+      if (req.body && "imageKey" in req.body) item.imageKey = typeof req.body.imageKey === "string" ? req.body.imageKey.trim() || undefined : undefined;
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(200).json(trip);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.patch(
+  "/trips/:id/prerequisites/:itemId",
+  requireAuth,
+  [
+    param("id").notEmpty().withMessage("Trip ID is required."),
+    param("itemId").notEmpty().withMessage("Prerequisite item ID is required."),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const itemId = String(req.params.itemId || "");
+      const users = await readUsers();
+      const found = findTripAndOwnerForCollaborator(users, tripId, userId);
+      if (!found) return res.status(404).json({ error: "Trip not found." });
+      const { trip } = found;
+      if (trip.status !== "active") return res.status(403).json({ error: "Assign and status updates only allowed when trip is active." });
+      ensurePrerequisites(trip);
+      const item = trip.prerequisites.find((p) => p.id === itemId);
+      if (!item) return res.status(404).json({ error: "Prerequisite item not found." });
+      if (req.body && "assigneeUserId" in req.body) {
+        const val = req.body.assigneeUserId;
+        if (val === null || val === undefined || val === "") {
+          item.assigneeUserId = undefined;
+          item.assigneeEmail = undefined;
+        } else {
+          const uid = String(val).trim();
+          const collab = (trip.collaborators || []).find((c) => c.userId === uid);
+          if (collab) {
+            item.assigneeUserId = uid;
+            item.assigneeEmail = collab.email;
+          } else if (trip.userId === uid) {
+            const owner = users.find((u) => u.id === trip.userId);
+            if (owner) {
+              item.assigneeUserId = uid;
+              item.assigneeEmail = owner.email;
+            }
+          }
+        }
+      }
+      if (req.body && typeof req.body.status === "string" && PREREQUISITE_STATUSES.includes(req.body.status)) {
+        item.status = req.body.status;
+      }
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(200).json(trip);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+app.delete(
+  "/trips/:id/prerequisites/:itemId",
+  requireAuth,
+  [
+    param("id").notEmpty().withMessage("Trip ID is required."),
+    param("itemId").notEmpty().withMessage("Prerequisite item ID is required."),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = req.user?.id;
+      const tripId = String(req.params.id || "");
+      const itemId = String(req.params.itemId || "");
+      const users = await readUsers();
+      const found = findTripAndOwnerForCollaborator(users, tripId, userId);
+      if (!found) return res.status(404).json({ error: "Trip not found." });
+      const { trip } = found;
+      ensurePrerequisites(trip);
+      if (trip.status === "completed") return res.status(403).json({ error: "Cannot delete prerequisites when trip is completed." });
+      const idx = trip.prerequisites.findIndex((p) => p.id === itemId);
+      if (idx === -1) return res.status(404).json({ error: "Prerequisite item not found." });
+      trip.prerequisites.splice(idx, 1);
+      trip.updatedAt = new Date().toISOString();
+      await writeUsers(users);
+      return res.status(200).json(trip);
     } catch (error) {
       return next(error);
     }

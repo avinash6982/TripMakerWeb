@@ -5,11 +5,12 @@ alwaysApply: true
 
 # MVP Development Discipline
 
-## Current Phase: **MVP3 - Real-Time Trip Execution**
+## Current Phase: **Additional features (MVP3–4) / Ready for MVP4**
 
 ### Phase Status
 - **Started:** Jan 31, 2026 (MVP3 unblocked)
-- **Target Completion:** TBD
+- **MVP3:** 100% complete
+- **Additional features:** Tracked in [ADDITIONAL_FEATURES.md](../../ADDITIONAL_FEATURES.md). **Prerequisites** (trip checklist: add/assign/mark done) ✅ complete.
 - **Demo Status:** ✅ Always demo-ready
 - **MVP1:** 100% complete
 - **MVP2:** 100% complete (feed, sharing, invite codes, collaborators)
