@@ -3563,25 +3563,46 @@ app.use((err, _req, res, _next) => {
 // ============================================================================
 
 async function start() {
-  if (process.env.MONGODB_URI) {
-    const dbModule = require("./lib/db");
-    await dbModule.connect();
-    readUsers = dbModule.readUsers.bind(dbModule);
-    writeUsers = dbModule.writeUsers.bind(dbModule);
-  } else {
-    readUsers = readUsersFile;
-    writeUsers = writeUsersFile;
-  }
+  // Use file storage first so readUsers/writeUsers are always set
+  readUsers = readUsersFile;
+  writeUsers = writeUsersFile;
   await seedDevUser();
 
+  // Listen immediately so Render detects an open port (avoids "No open ports" deploy failure)
   app.listen(PORT, () => {
     console.log(`🚀 Auth server listening on port ${PORT}`);
     console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
     console.log(`🏥 Health check: http://localhost:${PORT}/health`);
     if (!process.env.MONGODB_URI) {
       console.log("📁 Storage: file-based (set MONGODB_URI to use MongoDB)");
+    } else {
+      // Connect to MongoDB in background so TLS/network issues don't block startup
+      connectMongoInBackground();
     }
   });
+}
+
+function connectMongoInBackground() {
+  const dbModule = require("./lib/db");
+  const retryIntervalMs = 30000; // 30s
+
+  function tryConnect() {
+    dbModule.connect()
+      .then(() => {
+        readUsers = dbModule.readUsers.bind(dbModule);
+        writeUsers = dbModule.writeUsers.bind(dbModule);
+        return seedDevUser();
+      })
+      .then(() => {
+        console.log("✅ Switched to MongoDB storage");
+      })
+      .catch((err) => {
+        console.warn("MongoDB connect failed (will retry in 30s):", err.message);
+        setTimeout(tryConnect, retryIntervalMs);
+      });
+  }
+
+  tryConnect();
 }
 
 start().catch((err) => {
