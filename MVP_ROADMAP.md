@@ -331,6 +331,11 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 - 📝 **Per-user limit:** 100 MB per user (enforced server-side)
 - 📝 **Visibility:** Storage usage (e.g. X MB / 100 MB) shown in Profile or Settings; implement as tasks progress
 
+### February 6, 2026 (MVP3 fixes)
+- ✅ **Trip Gallery:** Comment section implemented as toggleable sidebar (same pattern as Trip Detail); full-height layout so sidebar occupies space consistently.
+- ✅ **Trip Gallery:** Image viewer uses full available height; thumbnail strip fixed to bottom; zoom + pan supported.
+- ✅ **Trip Gallery:** Page structure aligned with Trip Detail (layout outside container, full viewport height on desktop).
+
 ---
 
 ## Risk Management

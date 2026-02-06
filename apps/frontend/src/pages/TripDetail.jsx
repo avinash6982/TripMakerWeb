@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useLocation as useRouteLocation, useNavigate, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import {
   fetchTrip,
@@ -32,6 +32,7 @@ const TripDetail = () => {
   const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
+  const routeLocation = useRouteLocation();
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -74,13 +75,12 @@ const TripDetail = () => {
   const [coverLoading, setCoverLoading] = useState(false);
   const [heroSlideIndex, setHeroSlideIndex] = useState(0);
   const [chatPanelOpen, setChatPanelOpen] = useState(false);
-  const [commentsPanelOpen, setCommentsPanelOpen] = useState(false);
+  const [commentsPanelOpen, setCommentsPanelOpen] = useState(true);
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [headerActionsUseOverflow, setHeaderActionsUseOverflow] = useState(true);
   const actionsMenuRef = useRef(null);
   const optionsMenuRef = useRef(null);
-  const commentsPanelRef = useRef(null);
   const commentsDesktopRef = useRef(null);
   const pageHeaderRef = useRef(null);
 
@@ -144,9 +144,8 @@ const TripDetail = () => {
   useEffect(() => {
     if (!commentsPanelOpen) return;
     const close = (e) => {
-      const insideMobile = commentsPanelRef.current?.contains(e.target);
       const insideDesktop = commentsDesktopRef.current?.contains(e.target);
-      if (!insideMobile && !insideDesktop) setCommentsPanelOpen(false);
+      if (!insideDesktop) setCommentsPanelOpen(false);
     };
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
@@ -238,9 +237,14 @@ const TripDetail = () => {
     return () => { cancelled = true; };
   }, [trip?.id, trip?.destination, trip?.itinerary]);
 
-  // MVP3: Load and poll trip chat messages
+  // MVP3: Load and poll trip chat messages (only for owner or collaborators)
+  const currentUser = getStoredUser();
+  const isOwner = trip && currentUser?.id && trip.userId === currentUser.id;
+  const collab = trip?.collaborators?.find((c) => c.userId === currentUser?.id);
+  const canShowChat = isOwner || collab;
+
   useEffect(() => {
-    if (!trip?.id) return;
+    if (!trip?.id || !canShowChat) return;
     let cancelled = false;
     const load = async () => {
       try {
@@ -256,7 +260,7 @@ const TripDetail = () => {
       cancelled = true;
       clearInterval(interval);
     };
-  }, [trip?.id]);
+  }, [trip?.id, canShowChat]);
 
   const handleSendMessage = async (e) => {
     e?.preventDefault();
@@ -427,9 +431,6 @@ const TripDetail = () => {
     );
   }
 
-  const currentUser = getStoredUser();
-  const isOwner = trip && currentUser?.id && trip.userId === currentUser.id;
-  const collab = trip?.collaborators?.find((c) => c.userId === currentUser?.id);
   const isEditor = collab && collab.role === "editor";
   const canEdit = isOwner || isEditor;
 
@@ -844,6 +845,7 @@ const TripDetail = () => {
                     )}
                     <Link
                       to={`/trips/${trip.id}/gallery`}
+                      state={{ from: routeLocation.state?.from || "trips" }}
                       className="trip-detail-hero-action trip-detail-hero-gallery-link"
                       title={t("trips.viewGallery", "View gallery")}
                       aria-label={t("trips.viewGallery", "View gallery")}
@@ -989,14 +991,45 @@ const TripDetail = () => {
                   <section key={slot.timeOfDay}>
                     <h4>{t(`tripPlanner.slots.${slot.timeOfDay}`)}</h4>
                     <ul>
-                      {slot.items?.map((item, j) => (
-                        <li key={j}>{item.name}</li>
-                      ))}
+                      {slot.items?.map((item, j) => {
+                        const mapsQuery = `${item.name}, ${trip.destination || ""}`.trim();
+                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
+                        return (
+                          <li key={j} className="trip-itinerary-item">
+                            <span>{item.name}</span>
+                            <a
+                              href={mapsUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="trip-itinerary-map-link"
+                              title={t("trips.openInMaps", "Open in Google Maps")}
+                              aria-label={t("trips.openInMaps", "Open in Google Maps") + ": " + item.name}
+                            >
+                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                              </svg>
+                            </a>
+                          </li>
+                        );
+                      })}
                     </ul>
                   </section>
                 ))}
               </article>
             ))}
+          </div>
+        )}
+
+        {!editMode && trip?.id && (
+          <div className="trip-detail-comments-mobile-inline">
+            <h2 className="trip-detail-comments-mobile-inline-title">{t("feed.comments", "Comments")}</h2>
+            <div className="trip-detail-comments-mobile-inline-body">
+              {commentsListContent}
+            </div>
+            <div className="trip-detail-comments-mobile-inline-footer">
+              {commentsFormContent}
+            </div>
           </div>
         )}
       </section>
@@ -1019,21 +1052,23 @@ const TripDetail = () => {
                   <span className="trip-detail-comments-fab-badge" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
                 )}
               </button>
-              <button
-                type="button"
-                className="trip-detail-chat-fab"
-                onClick={() => setChatPanelOpen((open) => !open)}
-                title={t("trips.chat", "Trip chat")}
-                aria-label={t("trips.chat", "Trip chat")}
-                aria-expanded={chatPanelOpen}
-              >
-                <span className="trip-detail-chat-fab-icon" aria-hidden>💬</span>
-                {messages.length > 0 && (
-                  <span className="trip-detail-chat-fab-badge">{messages.length > 99 ? "99+" : messages.length}</span>
-                )}
-              </button>
+              {(isOwner || collab) && (
+                <button
+                  type="button"
+                  className="trip-detail-chat-fab"
+                  onClick={() => setChatPanelOpen((open) => !open)}
+                  title={t("trips.chat", "Trip chat")}
+                  aria-label={t("trips.chat", "Trip chat")}
+                  aria-expanded={chatPanelOpen}
+                >
+                  <span className="trip-detail-chat-fab-icon" aria-hidden>💬</span>
+                  {messages.length > 0 && (
+                    <span className="trip-detail-chat-fab-badge">{messages.length > 99 ? "99+" : messages.length}</span>
+                  )}
+                </button>
+              )}
             </div>
-            {chatPanelOpen && (
+            {(isOwner || collab) && chatPanelOpen && (
               <div className="trip-detail-chat-panel" role="dialog" aria-label={t("trips.chat", "Trip chat")}>
                 <div className="trip-detail-chat-panel-inner">
                   <div className="trip-detail-chat-panel-header">
@@ -1150,18 +1185,21 @@ const TripDetail = () => {
               role="complementary"
               aria-label={t("feed.comments", "Comments")}
             >
+              <button
+                type="button"
+                className="trip-detail-comments-sidebar-close-waterdrop"
+                onClick={() => setCommentsPanelOpen(false)}
+                title={t("trips.closeComments", "Close comments")}
+                aria-label={t("trips.closeComments", "Close comments")}
+                aria-hidden={!commentsPanelOpen}
+              >
+                <span className="trip-detail-comments-waterdrop-icon" aria-hidden>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </span>
+              </button>
               <div className="trip-detail-comments-sidebar-inner">
                 <div className="trip-detail-comments-sidebar-header">
                   <h2 className="trip-detail-comments-sidebar-title">{t("feed.comments", "Comments")}</h2>
-                  <button
-                    type="button"
-                    className="trip-detail-comments-sidebar-close"
-                    onClick={() => setCommentsPanelOpen(false)}
-                    title={t("trips.close", "Close")}
-                    aria-label={t("trips.close", "Close")}
-                  >
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M9 18l6-6-6-6"/></svg>
-                  </button>
                 </div>
                 <div className="trip-detail-comments-sidebar-body">
                   {commentsListContent}
@@ -1310,30 +1348,6 @@ const TripDetail = () => {
         </div>
       )}
 
-      {!editMode && trip?.id && commentsPanelOpen && (
-            <div className="trip-detail-comments-panel-mobile" ref={commentsPanelRef} role="dialog" aria-modal="true" aria-label={t("feed.comments", "Comments")}>
-              <div className="trip-detail-comments-panel-inner">
-                <div className="trip-detail-comments-panel-header">
-                  <h2 className="trip-detail-comments-panel-title">{t("feed.comments", "Comments")}</h2>
-                  <button
-                    type="button"
-                    className="btn ghost btn-sm trip-detail-comments-panel-close"
-                    onClick={() => setCommentsPanelOpen(false)}
-                    title={t("trips.close", "Close")}
-                    aria-label={t("trips.close", "Close")}
-                  >
-                    ×
-                  </button>
-                </div>
-                <div className="trip-detail-comments-panel-body">
-                  {commentsListContent}
-                </div>
-                <div className="trip-detail-comments-panel-footer">
-                  {commentsFormContent}
-                </div>
-              </div>
-            </div>
-      )}
     </main>
   );
 };

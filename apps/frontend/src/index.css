@@ -3011,11 +3011,8 @@ button.text-link {
   margin-top: 0.5rem;
 }
 
-/* Trip chat FAB and floating panel (MVP3) – FAB inside main column so it pushes with comments sidebar */
+/* Trip chat FAB and floating panel (MVP3) – FAB fixed to viewport so it stays visible while scrolling */
 .trip-detail-chat-fab {
-  position: absolute;
-  bottom: 1.25rem;
-  right: 1.25rem;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -3027,7 +3024,6 @@ button.text-link {
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 40;
   transition: transform 0.2s, box-shadow 0.2s;
 }
 
@@ -3067,21 +3063,22 @@ button.text-link {
   justify-content: center;
 }
 
-/* FAB wrapper: desktop = no box (contents); mobile = fixed stack */
+/* FAB wrapper: fixed to viewport so FABs stay visible while scrolling */
 .trip-detail-fabs {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  z-index: 40;
 }
 
 @media (max-width: 767px) {
   .trip-detail-fabs {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    position: fixed;
     bottom: calc(var(--tabbar-height-safe, 64px) + 0.75rem);
     right: 1rem;
-    z-index: 40;
-    align-items: flex-end;
   }
 
   .trip-detail-fabs .trip-detail-chat-fab,
@@ -3172,12 +3169,32 @@ button.text-link {
   margin: 0;
 }
 
-/* Trip detail layout: main + comments sidebar (desktop) */
+/* Trip detail layout: main + comments sidebar (desktop)
+   On desktop: page fills viewport; main scrolls; comments panel fixed height with add-comment always visible */
+@media (min-width: 768px) {
+  .trip-detail-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+}
+
 .trip-detail-layout {
   display: flex;
   align-items: stretch;
   min-height: 0;
   position: relative;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .trip-detail-layout {
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 
 /* Wrapper for desktop comments (aside + toggle) so click-outside ref contains both */
@@ -3190,6 +3207,13 @@ button.text-link {
   min-width: 0;
   transition: flex 0.3s ease;
   position: relative;
+}
+
+@media (min-width: 768px) {
+  .trip-detail-main {
+    overflow-y: auto;
+    min-height: 0;
+  }
 }
 
 .trip-detail-comments-sidebar {
@@ -3213,6 +3237,7 @@ button.text-link {
   max-width: 420px;
   overflow: visible;
   pointer-events: auto;
+  position: relative;
 }
 
 .trip-detail-comments-sidebar-inner {
@@ -3243,24 +3268,54 @@ button.text-link {
   font-weight: 600;
 }
 
-.trip-detail-comments-sidebar-close {
-  padding: 0.25rem;
-  min-width: 2rem;
-  min-height: 2rem;
+/* Close comments waterdrop: on divider line, sticky to separation point */
+.trip-detail-comments-sidebar-close-waterdrop {
+  display: none;
+}
+
+.trip-detail-comments-sidebar[data-open="true"] .trip-detail-comments-sidebar-close-waterdrop {
+  display: flex;
+  position: absolute;
+  left: 0;
+  /* Vertically centered on divider; sticks with sidebar */
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  width: 2.75rem;
+  height: 2.75rem;
+  padding: 0;
   border: none;
-  background: transparent;
+  background: var(--color-bg-elevated);
   color: var(--color-text);
   cursor: pointer;
-  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border);
+  /* Waterdrop: flat left edge (on divider), rounded right */
+  border-radius: 0 var(--radius-full) var(--radius-full) 0;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s, transform 0.2s;
+}
+
+.trip-detail-comments-sidebar-close-waterdrop:hover {
+  background: var(--color-primary-muted);
+  color: var(--color-primary);
+  transform: translate(-50%, -50%) scale(1.05);
+}
+
+.trip-detail-comments-sidebar-close-waterdrop:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.trip-detail-comments-waterdrop-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, color 0.2s;
 }
 
-.trip-detail-comments-sidebar-close:hover {
-  background: var(--color-bg-elevated);
-  color: var(--color-primary);
+.trip-detail-comments-waterdrop-icon svg {
+  display: block;
 }
 
 .trip-detail-comments-sidebar-body {
@@ -3281,17 +3336,19 @@ button.text-link {
   background: var(--color-bg-elevated);
 }
 
-/* Desktop: circular toggle button (comment icon + chevron) */
+/* Desktop: waterdrop toggle in middle of screen (right edge), sticky to separation point */
 .trip-detail-comments-toggle-desktop {
   position: fixed;
+  /* Vertically centered in viewport */
   top: 50%;
-  right: 1rem;
+  right: 0;
   transform: translateY(-50%);
   z-index: 45;
   pointer-events: auto;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 50%;
+  width: 2.75rem;
+  height: 2.75rem;
+  /* Waterdrop: flat right edge (attached to viewport), rounded left */
+  border-radius: var(--radius-full) 0 0 var(--radius-full);
   border: none;
   background: var(--color-bg-elevated);
   color: var(--color-text);
@@ -3318,10 +3375,9 @@ button.text-link {
   outline-offset: 2px;
 }
 
+/* When panel open: hide toggle (waterdrop close on divider is the only close control) */
 .trip-detail-comments-toggle-desktop[aria-expanded="true"] {
-  right: 1rem;
-  background: var(--color-primary-muted);
-  color: var(--color-primary);
+  display: none;
 }
 
 .trip-detail-comments-toggle-icon {
@@ -3379,8 +3435,9 @@ button.text-link {
     display: none;
   }
 
+  /* On mobile: comments shown inline at bottom; hide comments FAB */
   .trip-detail-comments-fab {
-    display: inline-flex;
+    display: none;
     position: fixed;
     bottom: calc(var(--tabbar-height-safe, 64px) + 4rem);
     right: 1rem;
@@ -3440,77 +3497,45 @@ button.text-link {
   }
 }
 
-/* Mobile: comments overlay panel */
-.trip-detail-comments-panel-mobile {
+/* Mobile: inline comments at bottom of content */
+.trip-detail-comments-mobile-inline {
   display: none;
 }
 
 @media (max-width: 767px) {
-  .trip-detail-comments-panel-mobile {
-    display: flex;
-    position: fixed;
-    bottom: calc(var(--tabbar-height-safe, 64px) + 4rem);
-    right: 1rem;
-    left: 1rem;
-    max-height: min(70vh, 420px);
-    background: var(--color-bg-elevated);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-xl);
-    border: 1px solid var(--border);
-    z-index: 39;
-    flex-direction: column;
-    overflow: hidden;
-  }
-
-  .trip-detail-comments-panel-inner {
+  .trip-detail-comments-mobile-inline {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+    gap: 0;
   }
 
-  .trip-detail-comments-panel-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: var(--space-3) var(--space-4);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-
-  .trip-detail-comments-panel-title {
-    margin: 0;
-    font-size: 1rem;
+  .trip-detail-comments-mobile-inline-title {
+    margin: 0 0 1rem 0;
+    font-size: 1.25rem;
     font-weight: 600;
   }
 
-  .trip-detail-comments-panel-close {
-    padding: 0.25rem;
-    min-width: 2rem;
-    min-height: 2rem;
-    font-size: 1.25rem;
-    line-height: 1;
-  }
-
-  .trip-detail-comments-panel-body {
-    flex: 1;
+  .trip-detail-comments-mobile-inline-body {
     min-height: 0;
+    max-height: 300px;
     overflow-y: auto;
-    padding: var(--space-4);
+    padding-bottom: 1rem;
   }
 
-  .trip-detail-comments-panel-body .trip-detail-comments-list {
-    max-height: 200px;
+  .trip-detail-comments-mobile-inline-body .trip-detail-comments-list {
+    max-height: none;
   }
 
-  .trip-detail-comments-panel-footer {
+  .trip-detail-comments-mobile-inline-footer {
     flex-shrink: 0;
-    padding: var(--space-3) var(--space-4);
+    padding-top: 0.75rem;
     border-top: 1px solid var(--border);
-    background: var(--color-bg-elevated);
   }
 }
+
 
 /* Feed comments on Trip Detail (same as Discover) */
 .trip-detail-comments {
@@ -3639,9 +3664,33 @@ button.text-link {
   margin-top: 0.5rem;
 }
 
-/* Trip gallery page (MVP3) – uses shared .page-header */
+/* Trip gallery page (MVP3) – uses shared .page-header.
+   With layout (has images): full-height + flex like trip-detail so comments sidebar occupies space correctly. */
 .trip-gallery-page {
   padding: 2rem 0;
+}
+
+@media (min-width: 768px) {
+  .trip-gallery-page:has(.trip-gallery-layout) {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - var(--header-height));
+    overflow: hidden;
+    padding: 0;
+  }
+}
+
+@media (min-width: 768px) {
+  .trip-gallery-page:has(.trip-gallery-layout) .trip-gallery-layout {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .trip-gallery-page:has(.trip-gallery-layout) .trip-gallery-main {
+    overflow-y: auto;
+    min-height: 0;
+  }
 }
 
 /* Empty state */
@@ -3694,57 +3743,227 @@ button.text-link {
   animation: trip-gallery-spin 0.7s linear infinite;
 }
 
-.trip-gallery-carousel {
+/* Gallery layout: main (viewer + thumbs) + optional comments sidebar on desktop */
+.trip-gallery-layout {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 1rem;
-  margin-bottom: 0.5rem;
+  min-height: 0;
 }
 
-.trip-gallery-nav {
-  flex-shrink: 0;
-  width: 48px;
-  height: 48px;
-  font-size: 1.5rem;
-  padding: 0;
+@media (min-width: 768px) {
+  .trip-gallery-layout {
+    flex-direction: row;
+    align-items: stretch;
+    min-height: 0;
+  }
+}
+
+.trip-gallery-main {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.trip-gallery-current {
+/* Gallery container: flex column so viewer fills remaining height and thumbs stay at bottom */
+.trip-gallery-main > .container {
+  display: flex;
+  flex-direction: column;
   flex: 1;
-  min-height: 280px;
+  min-height: 0;
+  gap: 1rem;
+}
+
+.trip-gallery-main > .container > .page-header {
+  flex-shrink: 0;
+}
+
+/* Viewer uses all remaining height above the thumb strip */
+.trip-gallery-viewer {
+  position: relative;
+  flex: 1 1 0;
+  min-height: 0;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.trip-gallery-main > .container > .trip-gallery-bottom {
+  flex-shrink: 0;
+}
+
+.trip-gallery-viewer-inner {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
+  width: 100%;
+  height: 100%;
   overflow: hidden;
 }
 
 .trip-gallery-img {
   max-width: 100%;
-  max-height: 400px;
+  max-height: 100%;
+  width: auto;
+  height: auto;
   object-fit: contain;
+  transform-origin: center center;
+  transition: transform 0.2s ease;
 }
 
-.trip-gallery-counter {
-  font-size: 0.9rem;
-  color: var(--color-text-muted);
-  margin: 0 0 0.75rem;
+/* Prev/next arrows overlaying viewer */
+.trip-gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  z-index: 2;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.trip-gallery-nav:hover:not(:disabled) {
+  background: #fff;
+  box-shadow: var(--shadow-lg);
+}
+
+.trip-gallery-nav:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.trip-gallery-prev {
+  left: 1rem;
+}
+
+.trip-gallery-next {
+  right: 1rem;
+}
+
+/* Overlays: like + zoom on image */
+.trip-gallery-viewer-overlays {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.trip-gallery-viewer-overlays > * {
+  pointer-events: auto;
+}
+
+.trip-gallery-like-overlay {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.5rem 0.75rem;
+  border: none;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: background 0.2s, color 0.2s;
+}
+
+.trip-gallery-like-overlay:hover:not(:disabled) {
+  background: #fff;
+}
+
+.trip-gallery-like-overlay.liked {
+  color: #dc2626;
+}
+
+.trip-gallery-like-overlay:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.trip-gallery-zoom-controls {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.trip-gallery-zoom-btn {
+  width: 2.5rem;
+  height: 2.5rem;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text);
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-md);
+  transition: background 0.2s;
+}
+
+.trip-gallery-zoom-btn:hover:not(:disabled) {
+  background: #fff;
+}
+
+.trip-gallery-zoom-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Bottom: thumb strip + comments (mobile only; desktop uses sidebar) */
+.trip-gallery-bottom {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 0;
+}
+
+/* Mobile: show comments below thumbs. Desktop: hide (comments in sidebar) */
+.trip-gallery-comments-mobile-only {
+  display: block;
+}
+
+@media (min-width: 768px) {
+  .trip-gallery-comments-mobile-only {
+    display: none;
+  }
 }
 
 .trip-gallery-thumbs {
   display: flex;
   gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 1rem;
-  justify-content: center;
+  overflow-x: auto;
+  padding: 0.25rem 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.trip-gallery-thumbs::-webkit-scrollbar {
+  height: 6px;
 }
 
 .trip-gallery-thumb-btn {
+  flex-shrink: 0;
   width: 56px;
   height: 56px;
   padding: 0;
@@ -3753,7 +3972,7 @@ button.text-link {
   overflow: hidden;
   background: transparent;
   cursor: pointer;
-  flex-shrink: 0;
+  transition: border-color 0.2s;
 }
 
 .trip-gallery-thumb-btn img {
@@ -3766,65 +3985,27 @@ button.text-link {
   border-color: var(--color-primary);
 }
 
-.trip-gallery-meta {
-  margin-top: 1rem;
+/* Comments: consistent with trip detail */
+.trip-gallery-comments {
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }
 
-.trip-gallery-actions {
-  display: flex;
-  gap: 0.5rem;
-  flex-wrap: wrap;
-  margin-bottom: 0.5rem;
+.trip-gallery-comments-title {
+  margin: 0 0 0.75rem 0;
+  font-size: 1.125rem;
+  font-weight: 600;
 }
 
-.trip-gallery-like.liked {
-  color: #dc2626;
-}
-
-.trip-gallery-comments-panel {
-  margin-top: 0.75rem;
-  padding: 0.75rem;
-  background: var(--color-bg);
-  border-radius: var(--radius-md);
-}
-
-.trip-gallery-comments-list {
-  list-style: none;
-  margin: 0 0 0.75rem;
-  padding: 0;
+.trip-gallery-comments-body {
   max-height: 200px;
   overflow-y: auto;
+  margin-bottom: 0.75rem;
 }
 
-.trip-gallery-comments-list li {
-  padding: 0.35rem 0;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.9rem;
-}
-
-.trip-gallery-comment-img {
-  display: block;
-  max-width: 80px;
-  max-height: 60px;
-  object-fit: cover;
-  border-radius: 4px;
-  margin-top: 0.25rem;
-}
-
-.trip-gallery-add-comment {
-  display: flex;
-  gap: 0.5rem;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.trip-gallery-add-comment input[type="text"] {
-  flex: 1;
-  min-width: 120px;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  font-size: 0.95rem;
+.trip-gallery-comments-body .trip-detail-comments-list {
+  max-height: none;
 }
 
 .transport-hubs-list {
@@ -3897,6 +4078,37 @@ button.text-link {
   list-style: disc;
   margin: 0 0 0 1.25rem;
   padding: 0;
+}
+
+.trip-itinerary-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.15rem 0;
+}
+
+.trip-itinerary-map-link {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0.25rem;
+  border-radius: var(--radius-sm);
+  color: var(--color-primary);
+  text-decoration: none;
+  transition: background 0.2s, color 0.2s;
+}
+
+.trip-itinerary-map-link:hover {
+  background: var(--color-primary-muted);
+  color: var(--color-primary-hover);
+}
+
+.trip-itinerary-map-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .planner-map-card {
@@ -4283,6 +4495,21 @@ button.text-link {
   min-height: 100vh;
   padding-bottom: 0;
   /* mobile adds padding via .app--mobile */
+}
+
+/* Trip detail/gallery: no page scroll, only main content scrolls (desktop) */
+@media (min-width: 768px) {
+  .app.app--trip-split {
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .app.app--trip-split .app-content {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 
 /* ========== Mobile: bottom tab bar (single row, 4 items) ========== */

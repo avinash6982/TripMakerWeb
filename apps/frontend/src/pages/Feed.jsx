@@ -244,7 +244,7 @@ const Feed = () => {
           <ul className="feed-list" aria-label={t("feed.title")}>
             {trips.map((trip) => (
               <li key={trip.id} className="feed-card">
-                <Link to={`/trips/${trip.id}`} className="feed-card-link">
+                <Link to={`/trips/${trip.id}`} state={{ from: "feed" }} className="feed-card-link">
                   <div className="feed-card-hero" aria-hidden>
                     {trip.thumbnailKey ? (
                       <img src={mediaUrl(trip.thumbnailKey)} alt="" className="feed-card-hero-img" />
