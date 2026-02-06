@@ -455,8 +455,23 @@ interface Trip {
   pace: 'relaxed' | 'balanced' | 'fast';
   status: 'upcoming' | 'active' | 'completed' | 'archived';
   itinerary: Array<Record<string, unknown>>;
+  prerequisites?: PrerequisiteItem[];  // Additional feature: trip checklist (add/assign/done)
   createdAt: string;            // ISO 8601 timestamp
   updatedAt: string;            // ISO 8601 timestamp
+}
+
+// Prerequisite item (between MVP3 and MVP4)
+interface PrerequisiteItem {
+  id: string;                   // UUID
+  title: string;
+  description?: string;
+  category?: string;             // documents | clothing | electronics | medicine | other
+  imageKey?: string;            // R2 key (optional)
+  assigneeUserId?: string;
+  assigneeEmail?: string;
+  status: 'pending' | 'done';
+  createdAt: string;
+  createdBy?: string;
 }
 
 // User Model

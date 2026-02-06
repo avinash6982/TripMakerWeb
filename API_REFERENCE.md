@@ -615,6 +615,33 @@ Removes a collaborator from the trip. Only the **trip owner** or an **editor** m
 
 ---
 
+### 📋 Trip Prerequisites (Additional feature: MVP3–4)
+
+Trip checklist items (things to bring or prepare). **GET /trips/:id** includes a **`prerequisites`** array. Public view: list only. Collaborators can add items; when trip **status** is **active**, they can assign items to collaborators and mark items as done. When trip is **completed**, only adding is allowed (no assign/edit/delete).
+
+**Add item:** `POST /trips/:id/prerequisites` or `POST /api/trips/:id/prerequisites`  
+**Authentication:** Required (JWT). User must be trip owner or collaborator.  
+**Body:** `{ "title": "Passport", "description": "Optional", "category": "documents", "imageKey": "uploads/userId/uuid.jpg", "assigneeUserId": "user-uuid" }`. Only `title` required. `category`: one of `documents`, `clothing`, `electronics`, `medicine`, `other`. `assigneeUserId` only accepted when trip status is `active`.  
+**Response (201):** Created prerequisite item: `{ id, title, description, category, imageKey, assigneeUserId, assigneeEmail, status: "pending", createdAt, createdBy }`.
+
+**Update item (title, description, category, imageKey):** `PUT /trips/:id/prerequisites/:itemId` or `PUT /api/trips/:id/prerequisites/:itemId`  
+**Authentication:** Required (JWT). Collaborator only. Not allowed when trip status is `completed`.  
+**Body:** `{ "title", "description", "category", "imageKey" }` (all optional).  
+**Response (200):** Updated trip (includes full `prerequisites` array).
+
+**Update assignee or status:** `PATCH /trips/:id/prerequisites/:itemId` or `PATCH /api/trips/:id/prerequisites/:itemId`  
+**Authentication:** Required (JWT). Collaborator only. **Only when trip status is `active`.**  
+**Body:** `{ "assigneeUserId": "user-uuid" | null, "status": "pending" | "done" }` (both optional).  
+**Response (200):** Updated trip.
+
+**Delete item:** `DELETE /trips/:id/prerequisites/:itemId` or `DELETE /api/trips/:id/prerequisites/:itemId`  
+**Authentication:** Required (JWT). Collaborator only. Not allowed when trip status is `completed`.  
+**Response (200):** Updated trip (prerequisites array without the item).
+
+**Errors:** 400 (validation), 403 (not collaborator or status not allowed), 404 (trip or item not found).
+
+---
+
 ### 💬 Trip Chat Messages (MVP3)
 
 **List messages:** `GET /trips/:id/messages` or `GET /api/trips/:id/messages`  

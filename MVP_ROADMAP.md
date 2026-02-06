@@ -275,9 +275,15 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 | MVP4 | ⏸️ Not Started | 0% | After approval |
 | MVP5 | ⏸️ Not Started | 0% | TBD |
 
+### Additional Features (Between MVP3 and MVP4)
+
+| Feature | Summary | Status |
+|--------|---------|--------|
+| **Prerequisites** | Trip checklist: add/assign/mark done by collaborators; public view read-only. See [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md). | ✅ Complete |
+
 ### Current Phase: Ready for MVP4
 
-**Overall:** MVP1–MVP3 and Design Optimization complete. MVP4 (Marketplace Integration) is next; start only with explicit approval.
+**Overall:** MVP1–MVP3, Design Optimization, and additional feature Prerequisites complete. MVP4 (Marketplace Integration) is next; start only with explicit approval.
 
 | Phase | Summary | Status |
 |-------|---------|--------|
@@ -285,6 +291,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 | MVP2 | Route lines, transport mode, feed, trip sharing, invite codes, collaborators | ✅ 100% |
 | MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2, 100MB/user), like/comment, share, gallery, thumbnails | ✅ 100% |
 | Design Optimization | UI/design review; one change per feedback item | ✅ Complete |
+| Additional: Prerequisites | Trip prerequisites list; assign/mark done when trip active | ✅ Complete |
 
 ---
 
