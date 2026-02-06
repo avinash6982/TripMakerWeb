@@ -13,8 +13,20 @@ let db = null;
 async function connect() {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error("MONGODB_URI is required to use MongoDB.");
-  client = new MongoClient(uri);
-  await client.connect();
+  // Force IPv4 to avoid TLS handshake issues from some clouds (e.g. Render + Node 22 + Atlas)
+  const options = { family: 4 };
+  client = new MongoClient(uri, options);
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      await client.connect();
+      break;
+    } catch (err) {
+      if (attempt === maxAttempts) throw err;
+      console.warn(`MongoDB connect attempt ${attempt} failed, retrying in 2s...`, err.message);
+      await new Promise((r) => setTimeout(r, 2000));
+    }
+  }
   db = client.db(DB_NAME);
   console.log("✅ MongoDB connected");
   return db;

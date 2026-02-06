@@ -381,7 +381,7 @@ const TripDetail = () => {
       const updated = await updateTrip(trip.id, {
         name: editForm.name.trim(),
         destination: editForm.destination.trim(),
-        days: Math.min(10, Math.max(1, Number(editForm.days) || 3)),
+        days: Math.min(10, Math.max(1, Number(editForm.days) || 1)),
       });
       setTrip(updated);
       setEditMode(false);
@@ -1339,13 +1339,32 @@ const TripDetail = () => {
                   type="number"
                   min={1}
                   max={10}
-                  value={editForm.days}
-                  onChange={(e) =>
+                  value={editForm.days === "" ? "" : editForm.days}
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    if (v === "") {
+                      setEditForm((f) => ({ ...f, days: "" }));
+                      return;
+                    }
+                    const n = Number(v);
+                    if (!Number.isFinite(n)) return;
                     setEditForm((f) => ({
                       ...f,
-                      days: Math.min(10, Math.max(1, Number(e.target.value) || 1)),
-                    }))
-                  }
+                      days: Math.min(10, Math.max(1, Math.round(n))),
+                    }));
+                  }}
+                  onBlur={() => {
+                    setEditForm((f) => {
+                      if (f.days === "" || f.days == null) {
+                        return { ...f, days: 1 };
+                      }
+                      const n = Number(f.days);
+                      return {
+                        ...f,
+                        days: Number.isFinite(n) ? Math.min(10, Math.max(1, Math.round(n))) : 1,
+                      };
+                    });
+                  }}
                 />
               </div>
             </form>

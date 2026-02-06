@@ -46,14 +46,27 @@ const Home = () => {
   const handleChange = (event) => {
     const { name, value } = event.target;
     if (name === "days") {
+      if (value === "") {
+        setFormState((prev) => ({ ...prev, days: "" }));
+        return;
+      }
       const parsed = Number(value);
-      const nextDays = Number.isFinite(parsed)
-        ? Math.min(10, Math.max(1, Math.round(parsed)))
-        : 1;
+      if (!Number.isFinite(parsed)) return;
+      const nextDays = Math.min(10, Math.max(1, Math.round(parsed)));
       setFormState((prev) => ({ ...prev, days: nextDays }));
       return;
     }
     setFormState((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleDaysBlur = () => {
+    setFormState((prev) => {
+      if (prev.days === "" || prev.days == null) {
+        return { ...prev, days: 1 };
+      }
+      const n = Number(prev.days);
+      return { ...prev, days: Number.isFinite(n) ? Math.min(10, Math.max(1, Math.round(n))) : 1 };
+    });
   };
 
   const handleSubmit = async (event) => {
@@ -67,9 +80,10 @@ const Home = () => {
     setStatus("loading");
     setMessage("");
     try {
+      const days = Math.min(10, Math.max(1, Number(formState.days) || 1));
       const payload = {
         destination: trimmedDestination,
-        days: formState.days,
+        days,
         pace: formState.pace,
         seed: Date.now(),
       };
@@ -310,10 +324,11 @@ const Home = () => {
                       id="trip-days"
                       name="days"
                       type="number"
-                      min="1"
-                      max="10"
-                      value={formState.days}
+                      min={1}
+                      max={10}
+                      value={formState.days === "" ? "" : formState.days}
                       onChange={handleChange}
+                      onBlur={handleDaysBlur}
                     />
                   </span>
                 </div>
