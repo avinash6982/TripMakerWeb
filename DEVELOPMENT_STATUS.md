@@ -1,15 +1,15 @@
 # 🚧 Development Status
 
-> **Last Updated:** February 2026  
-> **Current Phase:** Database migration (MongoDB) — before MVP4  
-> **Next phase:** MVP4 (start when you explicitly approve, after DB migration is done)
+> **Last Updated:** February 7, 2026  
+> **Current Phase:** Ready for MVP4  
+> **Next phase:** MVP4 (Marketplace Integration) — start when you explicitly approve
 
 ---
 
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**Database migration (MongoDB):** Replace file-based storage with MongoDB so the app has persistent, scalable data before MVP4. Backend uses MongoDB when `MONGODB_URI` is set; otherwise falls back to file-based JSON. **Your part:** Create Atlas cluster, get connection string, set `MONGODB_URI` locally and on Render. See [MONGODB_SETUP.md](MONGODB_SETUP.md).
+**Ready for MVP4:** MVP1, MVP2, MVP3, Design Optimization, and Additional features (Prerequisites) are complete. You can start MVP4 when you explicitly approve. **Optional:** Complete MongoDB setup for production persistence (backend supports MongoDB when `MONGODB_URI` is set; see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
 
 **Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
@@ -66,24 +66,26 @@
 
 ## 🎯 Next Tasks (Priority Order)
 
-### Immediate
-1. **MVP2:** Create MVP2 task breakdown; implement first features (e.g. 2.1 day-wise route lines, 2.3 transportation mode selection).
-2. **Browser verification:** After each task, verify in browser per `MVP1_BROWSER_TEST_CHECKLIST.md` (and MVP2 flows when added).
+### Immediate (when you approve MVP4)
+1. Create MVP4 task breakdown (transport pricing, accommodation suggestions).
+2. Confirm budget and paid services (Skyscanner, accommodation APIs).
+3. Start MVP4 implementation only after explicit approval.
 
-### Completed (MVP1)
-- All Phase 1.1–1.6 tasks (trip CRUD, save, list, detail, edit, delete, archive, **unarchive**, transport hubs).
-- One-character edit bug fix (stable key in Home.jsx).
-- Place suggestions (datalist) for activity editing on Home page.
-- Documentation and .cursorrules updated to require browser verification after each task.
+### Optional (before or during MVP4)
+- **MongoDB:** Create Atlas cluster, set `MONGODB_URI` locally and on Render; optionally run migration script (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
+
+### Completed
+- MVP1, MVP2, MVP3 (all features); Design Optimization; Additional features (Prerequisites).
+- Browser verification required after each future task (see `MVP1_BROWSER_TEST_CHECKLIST.md`).
 
 ---
 
-## 🔬 Current Focus: Database Migration (MongoDB)
+## 🔬 Current Focus: Ready for MVP4
 
-**Objective:** Use MongoDB for persistence before MVP4. Backend implementation is done; you need to create an Atlas cluster, set `MONGODB_URI`, and optionally run the migration script (see MONGODB_SETUP.md).
+**Objective:** All pre–MVP4 work is complete. Start MVP4 (Marketplace Integration) when you explicitly approve. MongoDB is optional but recommended for production; backend already supports it when `MONGODB_URI` is set.
 
-**Status:** MVP1–MVP3 complete. Design Optimization complete. DB migration in progress (MongoDB implemented; your setup required). MVP4 next after DB migration.  
-**Reference:** MVP_ROADMAP.md (DB migration section), MONGODB_SETUP.md.
+**Status:** MVP1–MVP3 complete. Design Optimization complete. Additional features (Prerequisites) complete. MVP4 not started — awaiting your approval.  
+**Reference:** MVP_ROADMAP.md, MVP_PLAN.md, MONGODB_SETUP.md (optional).
 
 ---
 
@@ -101,15 +103,17 @@
 
 ## 📈 Progress Metrics
 
-### Overall MVP1 Progress
-- **Completed:** 13/13 features (100%)
-- **In Progress:** 0
-- **Blocked:** 0
-- **Not Started:** 0 (MVP1 complete)
+### Overall MVP Progress
+- **MVP1:** 13/13 features (100%) ✅
+- **MVP2:** All features (100%) ✅
+- **MVP3:** All features (100%) ✅
+- **Design Optimization:** Complete ✅
+- **Additional features (Prerequisites):** Complete ✅
+- **MVP4:** Not started (awaiting approval)
 
-### Current Sprint Progress
-- **MVP1:** All phases and tasks complete
-- **Practice:** Browser verification required after each future task (see MVP1_BROWSER_TEST_CHECKLIST.md)
+### Current Sprint
+- **Focus:** Ready for MVP4; start when you approve.
+- **Practice:** Browser verification required after each future task (see MVP1_BROWSER_TEST_CHECKLIST.md).
 
 ### Code Statistics
 - **Backend Endpoints:** 5 total (2 needed for trips)
@@ -161,7 +165,7 @@
 
 ---
 
-## 🎯 Definition of Done (Current Sprint)
+## 🎯 Definition of Done (per task / sprint)
 
 ### Task-Level DoD
 - [ ] Code implemented and tested locally
@@ -170,15 +174,13 @@
 - [ ] API/docs updated if applicable
 - [ ] Git commit with clear message
 
-### Sprint-Level DoD
-- [ ] All 9 tasks completed
+### Sprint-Level DoD (when closing a phase)
+- [ ] All planned tasks for that phase completed
 - [ ] API_REFERENCE.md updated
 - [ ] APP_ARCHITECTURE.md updated
-- [ ] MVP_PLAN.md status updated
-- [ ] Deployed to Vercel
-- [ ] Smoke tested on production
-- [ ] Demo video/screenshots created
-- [ ] Ready for Phase 1.2
+- [ ] MVP_ROADMAP.md / MVP_PLAN.md status updated
+- [ ] Deployed and smoke-tested
+- [ ] Demo-ready
 
 ---
 
@@ -226,17 +228,7 @@
 
 ## 📅 Sprint Schedule
 
-### Week View
-
-| Day | Date | Focus | Tasks |
-|-----|------|-------|-------|
-| Mon | Jan 31 | Schema + APIs | 1.1.1 - 1.1.4 |
-| Tue | Feb 1 | Vercel + Service | 1.1.5 - 1.1.7 |
-| Wed | Feb 2 | Frontend UI | 1.1.8 |
-| Thu | Feb 3 | Testing + Docs | 1.1.9 |
-| Fri | Feb 4 | Phase 1.2 Start | Trips List |
-| Sat | Feb 5 | Phase 1.2 Continue | Trip Cards |
-| Sun | Feb 6 | Phase 1.2 Complete | Trip Detail |
+MVP1–MVP3 and Design Optimization are complete. No fixed sprint schedule until MVP4 is approved; then MVP4 task breakdown will define the next sprints.
 
 ---
 
@@ -289,6 +281,6 @@ git push origin main        # Auto-deploys to Vercel
 
 ---
 
-**Last Updated:** January 31, 2026 (doc cleanup)  
-**Next Update:** End of day or after completing Task 1.1.4  
+**Last Updated:** February 7, 2026  
+**Next Update:** When MVP4 is approved or when significant progress is made  
 **Updated By:** Development Team

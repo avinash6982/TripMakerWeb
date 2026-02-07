@@ -64,17 +64,8 @@ alwaysApply: true
 ### MVP2: Collaboration & Discovery (COMPLETE)
 **Goal:** Users can share trips and collaborate — ✅ All core features done.
 
-### MVP3: Real-Time Trip Execution (CURRENT)
-**Goal:** Real-time tracking and social features
-
-#### Core Features (implement in order)
-1. Timeline preferences/customization
-2. Real-time location tracking on map
-3. Live map with current location
-4. ETA, delays, alerts
-5. In-trip chat and media upload
-6. Social features (like/comment on feed)
-7. Share trips externally
+### MVP3: Real-Time Trip Execution (COMPLETE)
+**Goal:** Real-time tracking and social features — ✅ All core features done (timeline prefs, live map, ETA, chat, R2 media, like/comment, share, gallery, thumbnails).
 
 ### MVP4: Marketplace Integration
 **Goal:** Real pricing and booking options
@@ -188,14 +179,9 @@ wip: started adding trip creation
 
 ## Current Phase Checklist
 
-### MVP3 Next Tasks
-- [ ] Create MVP3_TASK_BREAKDOWN.md
-- [ ] Timeline/feed preferences (user profile interests, feed customization)
-- [ ] Real-time location tracking (browser Geolocation)
-- [ ] Live map with current location marker
-- [ ] ETA, delays, alerts
-- [ ] In-trip chat (WebSocket or polling; zero-cost)
-- [ ] Like/comment on feed trips
-- [ ] Share trips externally (copy link)
+### MVP4 (start only with user approval)
+- [ ] Create MVP4 task breakdown (transport pricing, accommodation)
+- [ ] Confirm paid services and budget (Skyscanner, accommodation APIs)
+- [ ] Implement transport pricing and accommodation suggestions per plan
 
-**Do NOT proceed to MVP4 until MVP3 is complete and user explicitly approves.**
+**Do NOT start MVP4 until user explicitly approves. MVP3 is complete.**
