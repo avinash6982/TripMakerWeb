@@ -26,7 +26,7 @@
 
 ## ✅ Today's Completed Tasks
 
-### February 6, 2026 (MVP3 fixes)
+### February 6, 2026 (MVP3 fixes – web)
 - Gallery: comments as toggleable sidebar (same UI as Trip Detail).
 - Gallery: full-height layout; viewer fills remaining height; thumb strip fixed to bottom.
 - Gallery: zoom + pan on image when zoomed.

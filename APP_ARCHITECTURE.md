@@ -92,7 +92,7 @@ LOCAL DEVELOPMENT
 
 ## Technology Stack
 
-### Frontend
+### Frontend (Web)
 | Technology | Version | Purpose |
 |------------|---------|---------|
 | **React** | 19.2.3 | UI framework (functional components, hooks) |
@@ -915,7 +915,7 @@ git push origin feat/new-feature
 - [ ] Real-time collaboration
 
 ### Long-term
-- [ ] Mobile app (React Native)
+- [ ] Native mobile app (future)
 - [ ] Vendor marketplace integration
 - [ ] Payment processing
 - [ ] Analytics dashboard

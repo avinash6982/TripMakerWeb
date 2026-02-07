@@ -236,7 +236,7 @@ Traditional trip planning is **fragmented and inefficient**:
 **Goal:** $100k MRR
 
 **Strategies:**
-- Mobile app (React Native)
+- Native mobile app
 - International expansion
 - Enterprise features
 - API for partners
