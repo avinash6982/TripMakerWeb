@@ -2,7 +2,7 @@
 
 > **Last Updated:** February 7, 2026  
 > **Current Phase:** Ready for MVP4  
-> **Next phase:** MVP4 (Marketplace Integration) — start when you explicitly approve
+> **Next phase:** MVP4 (AI Trip Agent) — start when you explicitly approve. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
 ---
 
@@ -20,7 +20,7 @@
 
 ### Design Optimization: complete
 - UI/design feedback phase finished (February 2026).
-- Design Optimization marked complete; next phase is MVP4 (start only with your explicit approval).
+- Design Optimization marked complete; next phase is MVP4 (AI Trip Agent); then MVP5 (Marketplace), MVP6 (Enterprise). Start only with your explicit approval.
 
 ---
 
@@ -66,10 +66,10 @@
 
 ## 🎯 Next Tasks (Priority Order)
 
-### Immediate (when you approve MVP4)
-1. Create MVP4 task breakdown (transport pricing, accommodation suggestions).
-2. Confirm budget and paid services (Skyscanner, accommodation APIs).
-3. Start MVP4 implementation only after explicit approval.
+### Immediate (when you approve MVP4 — AI Trip Agent)
+1. Follow [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for task breakdown and implementation (adapter pattern, chat endpoint(s), frontend AI chat + FAB).
+2. Provide API keys (e.g. Gemini, Groq, OpenRouter) after implementation; free-tier providers supported.
+3. Start MVP4 implementation only after explicit approval. Do not start MVP5 until MVP4 is complete.
 
 ### Optional (before or during MVP4)
 - **MongoDB:** Create Atlas cluster, set `MONGODB_URI` locally and on Render; optionally run migration script (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
@@ -82,10 +82,10 @@
 
 ## 🔬 Current Focus: Ready for MVP4
 
-**Objective:** All pre–MVP4 work is complete. Start MVP4 (Marketplace Integration) when you explicitly approve. MongoDB is optional but recommended for production; backend already supports it when `MONGODB_URI` is set.
+**Objective:** All pre–MVP4 work is complete. Start MVP4 (AI Trip Agent) when you explicitly approve. Then MVP5 (Marketplace), MVP6 (Enterprise). MongoDB is optional but recommended for production; backend already supports it when `MONGODB_URI` is set.
 
-**Status:** MVP1–MVP3 complete. Design Optimization complete. Additional features (Prerequisites) complete. MVP4 not started — awaiting your approval.  
-**Reference:** MVP_ROADMAP.md, MVP_PLAN.md, MONGODB_SETUP.md (optional).
+**Status:** MVP1–MVP3 complete. Design Optimization complete. Additional features (Prerequisites) complete. MVP4 (AI Trip Agent) not started — awaiting your approval.  
+**Reference:** MVP_ROADMAP.md, MVP_PLAN.md, [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md), MONGODB_SETUP.md (optional).
 
 ---
 

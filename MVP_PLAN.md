@@ -1,8 +1,8 @@
 # 🎯 TripMaker MVP Plan & Feature Breakdown
 
 > **Last Updated:** February 7, 2026  
-> **Current Phase:** Ready for MVP4 (MVP1–3 complete)  
-> **Status:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; MVP4 not started (awaiting approval)
+> **Current Phase:** Ready for MVP4 (AI Trip Agent)  
+> **Status:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; MVP4 (AI Trip Agent) not started (awaiting approval). See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
 ---
 
@@ -134,9 +134,9 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 ---
 
-### 🟡 MVP4: Marketplace Integration
+### 🟡 MVP4: AI Trip Agent
 
-**Goal:** Real pricing and booking options (paid services).
+**Goal:** Users create and edit trips by chatting with an AI agent; any destination/pace/days; AI returns data in the same format as existing trip plan. Provider-agnostic adapter pattern; user supplies API keys. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
 **Prerequisites:** MVP3 complete ✅; Design Optimization complete ✅; user approval to start MVP4.
 
@@ -144,31 +144,51 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| 4.1 | Transport pricing (Skyscanner API) | ⏸️ Not started | P0 |
-| 4.2 | Accommodation suggestions (Booking.com, etc.) | ⏸️ Not started | P1 |
-| 4.3 | Price comparison view | ⏸️ Not started | P1 |
+| 4.1 | Backend adapter (interface + e.g. Gemini, Groq, OpenRouter); env config; fallback to static planner | ⏸️ Not started | P0 |
+| 4.2 | Chat endpoint(s): messages + context → plan response (same as `/trips/plan`) | ⏸️ Not started | P0 |
+| 4.3 | Frontend: AI chat after destination/pace/days; "Start over"; itinerary preview; create trip | ⏸️ Not started | P0 |
+| 4.4 | Frontend: AI chat FAB on relevant screens for trip edits (create + edit only in MVP4) | ⏸️ Not started | P1 |
+| 4.5 | Keep existing static plan flow; AI is alternative path | ⏸️ Not started | P0 |
 
 **MVP4 Start Date:** After explicit user approval (see MVP_ROADMAP.md).
 
 ---
 
-### 🟡 MVP5: Enterprise Features
+### 🟡 MVP5: Marketplace Integration
 
-**Goal:** Travel agency templates and monetization.
+**Goal:** Real pricing and booking options (paid services).
 
-**Blocked By:** MVP4 completion
+**Prerequisites:** MVP4 (AI Trip Agent) complete ✅; user approval to start MVP5.
 
 #### Features
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| 5.1 | Agency account type | ⏸️ BLOCKED | P0 |
-| 5.2 | Create trip templates | ⏸️ BLOCKED | P0 |
-| 5.3 | Push templates to users | ⏸️ BLOCKED | P1 |
-| 5.4 | Request to join templates | ⏸️ BLOCKED | P1 |
-| 5.5 | Template marketplace | ⏸️ BLOCKED | P2 |
+| 5.1 | Transport pricing (Skyscanner API) | ⏸️ Not started | P0 |
+| 5.2 | Accommodation suggestions (Booking.com, etc.) | ⏸️ Not started | P1 |
+| 5.3 | Price comparison view | ⏸️ Not started | P1 |
 
-**MVP5 Start Date:** TBD (After MVP4 complete)
+**MVP5 Start Date:** After MVP4 complete and explicit user approval.
+
+---
+
+### 🟡 MVP6: Enterprise Features
+
+**Goal:** Travel agency templates and monetization.
+
+**Blocked By:** MVP5 completion
+
+#### Features
+
+| # | Feature | Status | Priority |
+|---|---------|--------|----------|
+| 6.1 | Agency account type | ⏸️ BLOCKED | P0 |
+| 6.2 | Create trip templates | ⏸️ BLOCKED | P0 |
+| 6.3 | Push templates to users | ⏸️ BLOCKED | P1 |
+| 6.4 | Request to join templates | ⏸️ BLOCKED | P1 |
+| 6.5 | Template marketplace | ⏸️ BLOCKED | P2 |
+
+**MVP6 Start Date:** TBD (After MVP5 complete)
 
 ---
 

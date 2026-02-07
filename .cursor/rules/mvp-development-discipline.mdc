@@ -5,7 +5,7 @@ alwaysApply: true
 
 # MVP Development Discipline
 
-## Current Phase: **Additional features (MVP3–4) / Ready for MVP4**
+## Current Phase: **Ready for MVP4 (AI Trip Agent)**
 
 ### Phase Status
 - **Started:** Jan 31, 2026 (MVP3 unblocked)
@@ -67,14 +67,21 @@ alwaysApply: true
 ### MVP3: Real-Time Trip Execution (COMPLETE)
 **Goal:** Real-time tracking and social features — ✅ All core features done (timeline prefs, live map, ETA, chat, R2 media, like/comment, share, gallery, thumbnails).
 
-### MVP4: Marketplace Integration
-**Goal:** Real pricing and booking options
+### MVP4: AI Trip Agent (NEXT)
+**Goal:** Chat-based trip creation and editing; adapter pattern; provider-agnostic. User supplies API keys. See [MVP4_AI_AGENT.md](../../MVP4_AI_AGENT.md).
+
+#### Core Features (DO NOT IMPLEMENT until user approves MVP4)
+1. Backend adapter (interface + e.g. Gemini, Groq); chat endpoint(s); fallback to static planner
+2. Frontend: AI chat after destination/pace/days; "Start over"; FAB for trip edits (create + edit only in MVP4)
+
+### MVP5: Marketplace Integration
+**Goal:** Real pricing and booking options (paid services)
 
 #### Core Features (DO NOT IMPLEMENT YET)
 1. Transport pricing (Skyscanner integration)
 2. Accommodation suggestions
 
-### MVP5: Enterprise Features
+### MVP6: Enterprise Features
 **Goal:** Travel agency templates
 
 #### Core Features (DO NOT IMPLEMENT YET)
@@ -179,9 +186,10 @@ wip: started adding trip creation
 
 ## Current Phase Checklist
 
-### MVP4 (start only with user approval)
-- [ ] Create MVP4 task breakdown (transport pricing, accommodation)
-- [ ] Confirm paid services and budget (Skyscanner, accommodation APIs)
-- [ ] Implement transport pricing and accommodation suggestions per plan
+### MVP4: AI Trip Agent (start only with user approval)
+- [ ] Follow [MVP4_AI_AGENT.md](../../MVP4_AI_AGENT.md) for task breakdown and implementation
+- [ ] Backend: adapter interface + at least one provider (e.g. Gemini); chat endpoint(s); fallback to static planner
+- [ ] Frontend: AI chat after destination/pace/days; "Start over"; FAB for trip edits (create + edit only)
+- [ ] User provides API keys after implementation (free-tier providers supported)
 
-**Do NOT start MVP4 until user explicitly approves. MVP3 is complete.**
+**Do NOT start MVP5 until MVP4 is complete. MVP3 is complete.**

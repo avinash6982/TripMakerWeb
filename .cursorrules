@@ -11,7 +11,7 @@
 ### 📋 Current MVP Phase: Ready for MVP4
 **READ FIRST:** See `MVP_ROADMAP.md` for complete phase breakdown  
 **Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; Additional features (Prerequisites) complete.  
-**Current focus:** MVP4 (Marketplace Integration) — start only with explicit user approval. Optional: complete MongoDB setup before MVP4 (see MONGODB_SETUP.md).
+**Current focus:** MVP4 (AI Trip Agent) — start only with explicit user approval. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md). Then MVP5 (Marketplace), MVP6 (Enterprise). Optional: complete MongoDB setup (see MONGODB_SETUP.md).
 
 ### 🚨 MANDATORY RULES FOR ALL DEVELOPMENT
 
@@ -62,7 +62,7 @@
 - Refactoring code within current scope
 
 ❌ **FORBIDDEN:**
-- Adding MVP4/MVP5 features without explicit user approval
+- Adding MVP4/MVP5/MVP6 features without explicit user approval
 - Adding "nice to have" features not in MVP_PLAN.md or MVP_ROADMAP.md
 - Implementing features from other phases
 - Adding external dependencies not in plan
@@ -112,8 +112,8 @@
 - **MVP1–MVP3:** 100% complete (trip planning, collaboration, real-time execution, gallery, chat, R2 media, like/comment, share)
 - **Design Optimization:** Complete
 - **Additional features:** Prerequisites (trip checklist) complete
-- **Next phase:** MVP4 (Marketplace Integration) — start only with explicit user approval
-- **Optional before MVP4:** MongoDB setup (MONGODB_SETUP.md); backend supports it when MONGODB_URI is set
+- **Next phase:** MVP4 (AI Trip Agent) — start only with explicit user approval; see MVP4_AI_AGENT.md. Then MVP5 (Marketplace), MVP6 (Enterprise).
+- **Optional:** MongoDB setup (MONGODB_SETUP.md); backend supports it when MONGODB_URI is set
 - **Browser verification:** Required after each task — see `MVP1_BROWSER_TEST_CHECKLIST.md`
 
 ---

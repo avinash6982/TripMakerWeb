@@ -2,7 +2,7 @@
 
 **Last Updated:** February 2026  
 **Phase:** Post–MVP3, pre–MVP4  
-**Purpose:** Track feature requests that sit between MVP3 (Real-Time Trip Execution) and MVP4 (Marketplace Integration). These are implemented when agreed, without starting the full MVP4 scope.
+**Purpose:** Track feature requests that sit between MVP3 (Real-Time Trip Execution) and MVP4 (AI Trip Agent). These are implemented when agreed, without starting the full MVP4 scope. (Marketplace is MVP5.)
 
 ---
 
