@@ -20,6 +20,7 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const { body, param, validationResult } = require("express-validator");
 const { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
+const { getTripAgentAdapters } = require("./lib/tripAgent");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const app = express();
@@ -469,6 +470,13 @@ const generalLimiter = createLimiter(
   15 * 60 * 1000,
   generalLimiterMax,
   "Too many requests, please try again later."
+);
+
+// Stricter limit for trip agent (Gemini has RPM limits; avoid bursting)
+const tripAgentLimiter = createLimiter(
+  60 * 1000,
+  isDev ? 15 : 10,
+  "Too many AI requests. Please wait a minute and try again."
 );
 
 app.use(generalLimiter);
@@ -1704,6 +1712,111 @@ app.post(
       const { destination, days, pace, seed } = req.body || {};
       const plan = buildTripPlan({ destination, days, pace, seed });
       return res.status(200).json(plan);
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /trips/agent/chat:
+ *   post:
+ *     tags: [Trips]
+ *     summary: Chat with AI trip agent
+ *     description: Send messages and context; returns a trip plan (same shape as POST /trips/plan). Falls back to static planner if AI unavailable or errors.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - messages
+ *               - context
+ *             properties:
+ *               messages:
+ *                 type: array
+ *                 items:
+ *                   type: object
+ *                   properties:
+ *                     role: { type: string, enum: [user, assistant] }
+ *                     content: { type: string }
+ *               context:
+ *                 type: object
+ *                 properties:
+ *                   destination: { type: string }
+ *                   days: { type: integer, minimum: 1, maximum: 10 }
+ *                   pace: { type: string }
+ *                   currentItinerary: { type: array }
+ *     responses:
+ *       200:
+ *         description: Trip plan (from AI or fallback)
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/TripPlan'
+ *       400:
+ *         description: Validation error
+ *       500:
+ *         description: Server error
+ */
+app.post(
+  "/trips/agent/chat",
+  tripAgentLimiter,
+  [
+    body("messages").isArray().withMessage("messages must be an array."),
+    body("context").optional().isObject().withMessage("context must be an object."),
+    body("context.destination").optional().isString(),
+    body("context.days").optional().isInt({ min: 1, max: 10 }),
+    body("context.pace").optional().isString(),
+    body("context.currentItinerary").optional().isArray(),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const { messages = [], context = {} } = req.body || {};
+      const destination = (context.destination && String(context.destination).trim()) || "Your Trip";
+      const days = Math.min(10, Math.max(1, Number(context.days) || 3));
+      const pace = context.pace || "balanced";
+      const fallbackPlan = () =>
+        buildTripPlan({ destination, days, pace, seed: Date.now() });
+
+      const adapters = getTripAgentAdapters();
+      const contextForAdapter = {
+        destination,
+        days,
+        pace,
+        currentItinerary: context.currentItinerary,
+      };
+      if (adapters.length === 0) {
+        if (process.env.NODE_ENV !== "production") {
+          console.log("Trip agent: no API keys set (GEMINI_API_KEY / GROQ_API_KEY); using static plan.");
+        }
+        return res.status(200).json(fallbackPlan());
+      }
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Trip agent: trying", adapters.map((a) => a.name).join(" then "));
+      }
+      for (const adapter of adapters) {
+        try {
+          const plan = await adapter.generateTripFromChat(messages, contextForAdapter);
+          if (process.env.NODE_ENV !== "production") {
+            console.log("Trip agent: responded via", adapter.name);
+          }
+          return res.status(200).json(plan);
+        } catch (aiError) {
+          console.warn(
+            `Trip agent [${adapter.name}] failed, trying next:`,
+            aiError?.message || aiError
+          );
+        }
+      }
+      if (process.env.NODE_ENV !== "production") {
+        console.log("Trip agent: all adapters failed; using static plan (agentUnavailable).");
+      }
+      const plan = fallbackPlan();
+      return res.status(200).json({ ...plan, agentUnavailable: true });
     } catch (error) {
       return next(error);
     }

@@ -49,7 +49,7 @@ The agent will:
 Design Optimization was acknowledged complete (February 2026). The agent has:
 
 - Marked Design Optimization as complete in DEVELOPMENT_STATUS.md and MVP_ROADMAP.md.
-- Set the next phase to MVP4 (Marketplace Integration). MVP4 will **not** start until you explicitly ask to begin it (MVP4 introduces paid services).
+- Set the next phase to MVP4 (AI Trip Agent). MVP4 will **not** start until you explicitly ask to begin it. MVP5 (Marketplace) introduces paid travel/booking services.
 
 ---
 

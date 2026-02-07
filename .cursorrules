@@ -1,18 +1,17 @@
 # 🎯 TripMaker (Waypoint) - Cursor AI Master Rules
 
-> **Last Updated:** January 31, 2026 (doc cleanup)  
+> **Last Updated:** February 7, 2026  
 > **Version:** 3.0.0  
-> **Status:** MVP1 In Development 🚧 (See MVP_ROADMAP.md for details)
+> **Status:** MVP1–3 complete; ready for MVP4 (See MVP_ROADMAP.md for details)
 
 ---
 
 ## 🎯 CRITICAL: MVP DEVELOPMENT RULES
 
-### 📋 Current MVP Phase: MVP1 - Trip Planning Foundation
+### 📋 Current MVP Phase: Ready for MVP4
 **READ FIRST:** See `MVP_ROADMAP.md` for complete phase breakdown  
-**Tasks:** See `MVP1_TASK_BREAKDOWN.md` for atomic tasks  
-**Progress:** 25% complete (Auth + Profile done)  
-**Current Sprint:** Trip Persistence (CRUD operations)
+**Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; Additional features (Prerequisites) complete.  
+**Current focus:** MVP4 (AI Trip Agent) — start only with explicit user approval. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md). Then MVP5 (Marketplace), MVP6 (Enterprise). Optional: complete MongoDB setup (see MONGODB_SETUP.md).
 
 ### 🚨 MANDATORY RULES FOR ALL DEVELOPMENT
 
@@ -57,14 +56,14 @@
 **NEVER go outside current MVP phase unless explicitly requested.**
 
 ✅ **ALLOWED:**
-- Implementing tasks in current MVP phase (MVP1)
+- Implementing MVP4 tasks when user has explicitly approved MVP4
 - Fixing bugs in already-completed features
 - Improving documentation
 - Refactoring code within current scope
 
 ❌ **FORBIDDEN:**
-- Adding MVP2/MVP3/MVP4/MVP5 features
-- Adding "nice to have" features not in MVP_PLAN.md
+- Adding MVP4/MVP5/MVP6 features without explicit user approval
+- Adding "nice to have" features not in MVP_PLAN.md or MVP_ROADMAP.md
 - Implementing features from other phases
 - Adding external dependencies not in plan
 - Changing tech stack or architecture
@@ -110,11 +109,11 @@
 5. What files need updating? (Check "After completing" checklist)
 
 **Current Phase Context:**
-- **MVP Phase:** MVP3 - Real-Time Trip Execution (ready to start)
-- **MVP1:** 100% complete
-- **MVP2:** 100% complete (feed, sharing, invite codes, collaborators)
-- **Current Sprint:** MVP3 task breakdown and first deliverables
-- **Blocked Features:** MVP4-5 until MVP3 complete
+- **MVP1–MVP3:** 100% complete (trip planning, collaboration, real-time execution, gallery, chat, R2 media, like/comment, share)
+- **Design Optimization:** Complete
+- **Additional features:** Prerequisites (trip checklist) complete
+- **Next phase:** MVP4 (AI Trip Agent) — start only with explicit user approval; see MVP4_AI_AGENT.md. Then MVP5 (Marketplace), MVP6 (Enterprise).
+- **Optional:** MongoDB setup (MONGODB_SETUP.md); backend supports it when MONGODB_URI is set
 - **Browser verification:** Required after each task — see `MVP1_BROWSER_TEST_CHECKLIST.md`
 
 ---

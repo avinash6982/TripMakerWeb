@@ -304,6 +304,53 @@ curl -X POST http://localhost:3000/trips/plan \
 
 ---
 
+### 🤖 Trip Agent Chat (MVP4)
+
+**Endpoint:** `POST /trips/agent/chat` or `POST /api/trips/agent/chat`  
+**Authentication:** None  
+**Rate Limit:** Same as general (100 req/15min)
+
+Chat with the AI trip agent to generate or refine an itinerary. Returns the same response shape as `POST /trips/plan`. If no AI provider is configured or the AI call fails, the backend falls back to the static trip planner.
+
+#### Request
+
+```bash
+curl -X POST http://localhost:3000/trips/agent/chat \
+  -H "Content-Type: application/json" \
+  -d '{
+    "messages": [
+      { "role": "user", "content": "Create a 3 day relaxed trip to Rome" }
+    ],
+    "context": {
+      "destination": "Rome",
+      "days": 3,
+      "pace": "relaxed"
+    }
+  }'
+```
+
+#### Request Body
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `messages` | array | Yes | Chat history: `[{ role: "user"|"assistant", content: string }]` |
+| `context` | object | No | `destination`, `days`, `pace`, optional `currentItinerary` (for edits) |
+
+#### Response (200 OK)
+
+Same shape as [Generate Trip Plan](#-generate-trip-plan): `destination`, `pace`, `days`, `generatedAt`, `isFallback`, `meta`, `itinerary`. When the AI fails (e.g. 429) and the static fallback is used, the response also includes `agentUnavailable: true` so the client can show a short message (e.g. "AI temporarily limited; try again in a few minutes").
+
+#### Backend configuration
+
+- **Fallback chain:** Tried in order: (1) Gemini, (2) Groq. If both are configured and one fails (e.g. 429), the other is tried. If all fail or no keys are set, the static plan is returned.
+- **Env:**  
+  - **Gemini:** `GEMINI_API_KEY` or `TRIP_AGENT_PROVIDER=gemini` + `TRIP_AGENT_API_KEY`  
+  - **Groq (fallback):** `GROQ_API_KEY`  
+  When no keys are set, the endpoint returns the static plan only.
+- **Reference:** [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)
+
+---
+
 ### 🧳 Create Trip
 
 **Endpoint:** `POST /trips` or `POST /api/trips`  

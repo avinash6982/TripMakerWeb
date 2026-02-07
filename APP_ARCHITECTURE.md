@@ -398,7 +398,8 @@ Local Development (apps/backend/server.js)
 │  ├─ GET  /health           (Health check)
 │  ├─ POST /register         (Create user)
 │  ├─ POST /login            (Authenticate)
-│  ├─ POST /trips/plan       (Generate trip plan)
+│  ├─ POST /trips/plan       (Generate trip plan – static)
+│  ├─ POST /trips/agent/chat (MVP4: AI trip agent – chat to get/refine plan; fallback to static)
 │  ├─ POST /trips            (Create trip)
 │  ├─ GET  /trips            (List trips)
 │  ├─ GET  /trips/:id        (Get/update/delete trip)
@@ -406,6 +407,8 @@ Local Development (apps/backend/server.js)
 │  ├─ PATCH /trips/:id/unarchive (Unarchive trip)
 │  ├─ GET  /profile/:id      (Get profile)
 │  └─ PUT  /profile/:id      (Update profile)
+├─ Trip Agent (MVP4)
+│  └─ lib/tripAgent.js       (Adapter interface; Gemini implementation; env TRIP_AGENT_PROVIDER, TRIP_AGENT_API_KEY or GEMINI_API_KEY; fallback to static planner)
 ├─ Error Handlers
 │  ├─ 404 handler
 │  └─ Global error handler

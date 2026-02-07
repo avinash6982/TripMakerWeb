@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** February 2026  
-**Current Phase:** Database migration (MongoDB) — before MVP4  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Prerequisites 100%; Design Optimization complete; **DB migration in progress**; MVP4 not started (awaiting approval)
+**Last Updated:** February 7, 2026  
+**Current Phase:** Ready for MVP4  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Prerequisites 100%; Design Optimization complete; **MVP4 (AI Trip Agent) not started** (awaiting your approval). Optional: MongoDB setup (see MONGODB_SETUP.md).
 
 ---
 
@@ -149,14 +149,14 @@ The detailed task breakdown for MVP1 now lives in `MVP1_TASK_BREAKDOWN.md` and i
 **Prerequisites:** MVP3 complete  
 **Reference:** [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md)
 
-Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integration); start only with explicit user approval (MVP4 introduces paid services).
+Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); start only with explicit user approval. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
 ---
 
-### 🗄️ Database Migration (MongoDB) — Before MVP4
+### 🗄️ Database Migration (MongoDB) — Optional Before MVP4/MVP5
 
 **Status:** 🔄 In progress  
-**Goal:** Replace file-based storage with MongoDB so the app has persistent, scalable data before MVP4 (marketplace and paid services).  
+**Goal:** Replace file-based storage with MongoDB so the app has persistent, scalable data before or during MVP4/MVP5.  
 **Reference:** [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
 #### Scope
@@ -177,12 +177,30 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 
 ---
 
-### 💼 MVP4: Marketplace Integration
+### 🤖 MVP4: AI Trip Agent
+
+**Status:** ⏸️ NOT STARTED  
+**Goal:** Users create and edit trips by chatting with an AI agent; any destination/pace/days; AI returns data in the same format as existing trip plan for seamless integration.  
+**Prerequisites:** Design Optimization complete ✅; user approval to start MVP4  
+**Reference:** [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)
+
+**Note:** Implementation is provider-agnostic (adapter pattern). User supplies API keys after implementation; free-tier providers (e.g. Gemini, Groq, OpenRouter) are supported.
+
+#### Planned Features 📋
+1. ⏳ Backend adapter: interface + implementations (e.g. Gemini, Groq, OpenRouter); env-based provider/key config; fallback to static planner when AI unavailable.
+2. ⏳ Chat endpoint(s): accept messages + context (destination, days, pace, currentItinerary); return plan response (same shape as `POST /trips/plan`).
+3. ⏳ Frontend: after destination/pace/days, show AI chat (with "Start over"); display AI replies and itinerary preview; create trip from AI-generated plan.
+4. ⏳ Frontend: AI chat FAB on all relevant screens for further edits to the trip (MVP4 scope: trip creation and itinerary edit only).
+5. ⏳ Existing static plan flow remains; AI is an alternative path.
+
+---
+
+### 💼 MVP5: Marketplace Integration
 
 **Status:** ⏸️ NOT STARTED  
 **Goal:** Real pricing and booking options  
-**Prerequisites:** Design Optimization acknowledged complete + user approval to start MVP4  
-**Note:** This phase introduces PAID services
+**Prerequisites:** MVP4 (AI Trip Agent) complete + user approval to start MVP5  
+**Note:** This phase introduces PAID services (Skyscanner, accommodation APIs)
 
 #### Planned Features 📋
 1. ⏳ Transport Pricing
@@ -197,11 +215,11 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 
 ---
 
-### 🏢 MVP5: Enterprise Features
+### 🏢 MVP6: Enterprise Features
 
 **Status:** ⏸️ NOT STARTED  
 **Goal:** Travel agency templates  
-**Prerequisites:** MVP4 complete + user approval
+**Prerequisites:** MVP5 complete + user approval
 
 #### Planned Features 📋
 1. ⏳ Agency Templates
@@ -221,8 +239,9 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 | MVP2 | ✅ Complete | 100% | Jan 31, 2026 |
 | MVP3 | ✅ Complete | 100% | Feb 2026 |
 | Design Optimization | ✅ Complete | — | Feb 2026 |
-| MVP4 | ⏸️ Not Started | 0% | After approval |
-| MVP5 | ⏸️ Not Started | 0% | TBD |
+| MVP4 (AI Trip Agent) | ⏸️ Not Started | 0% | After approval |
+| MVP5 (Marketplace) | ⏸️ Not Started | 0% | After MVP4 |
+| MVP6 (Enterprise) | ⏸️ Not Started | 0% | TBD |
 
 ### Additional Features (Between MVP3 and MVP4)
 
@@ -230,9 +249,9 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 |--------|---------|--------|
 | **Prerequisites** | Trip checklist: add/assign/mark done by collaborators; public view read-only. See [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md). | ✅ Complete |
 
-### Current Phase: Ready for MVP4
+### Current Phase: Ready for MVP4 (AI Trip Agent)
 
-**Overall:** MVP1–MVP3, Design Optimization, and additional feature Prerequisites complete. MVP4 (Marketplace Integration) is next; start only with explicit approval.
+**Overall:** MVP1–MVP3, Design Optimization, and additional feature Prerequisites complete. MVP4 (AI Trip Agent) is next; start only with explicit approval. Then MVP5 (Marketplace), MVP6 (Enterprise).
 
 | Phase | Summary | Status |
 |-------|---------|--------|
@@ -241,6 +260,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 | MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2, 100MB/user), like/comment, share, gallery, thumbnails | ✅ 100% |
 | Design Optimization | UI/design review; one change per feedback item | ✅ Complete |
 | Additional: Prerequisites | Trip prerequisites list; assign/mark done when trip active | ✅ Complete |
+| MVP4 | AI Trip Agent: chat-based trip create/edit; adapter pattern; see MVP4_AI_AGENT.md | ⏸️ Not started |
 
 ---
 
@@ -327,18 +347,22 @@ Design Optimization phase is complete. Next phase is **MVP4** (Marketplace Integ
 ## Next Steps
 
 ### Immediate (now)
-1. **Database migration:** Complete MongoDB setup (see [MONGODB_SETUP.md](MONGODB_SETUP.md)): create Atlas cluster, set `MONGODB_URI`, optionally run migration script. Backend already supports MongoDB when `MONGODB_URI` is set.
-2. Verify app against MongoDB (register, login, trips, prerequisites, chat, gallery).
+1. **Database migration (optional):** Complete MongoDB setup (see [MONGODB_SETUP.md](MONGODB_SETUP.md)): create Atlas cluster, set `MONGODB_URI`, optionally run migration script. Backend already supports MongoDB when `MONGODB_URI` is set.
+2. Verify app against MongoDB (register, login, trips, prerequisites, chat, gallery) if using MongoDB.
 
-### After DB migration (when you approve MVP4)
-1. Create MVP4 task breakdown (transport pricing, accommodation suggestions)
-2. Confirm budget and paid services (Skyscanner, accommodation APIs)
-3. Start MVP4 only after explicit approval
+### When you approve MVP4 (AI Trip Agent)
+1. Follow [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for task breakdown and implementation.
+2. Provide API keys (e.g. Gemini, Groq, or OpenRouter) after implementation; free-tier providers supported.
+3. Start MVP4 only after explicit approval. Do not start MVP5 until MVP4 is complete.
+
+### After MVP4 (when you approve MVP5)
+1. Create MVP5 task breakdown (transport pricing, accommodation suggestions).
+2. Confirm budget and paid services (Skyscanner, accommodation APIs).
 
 ### Design Optimization complete
-- UI redesign phase finished (February 2026). No MVP4 work until you approve.
+- UI redesign phase finished (February 2026). MVP4 (AI Trip Agent) is next; MVP5/MVP6 after that.
 
 ---
 
 **Maintained By:** TripMaker Development Team  
-**Next Review:** February 7, 2026 (mid-MVP1 checkpoint)
+**Next Review:** When MVP4 (AI Trip Agent) is approved or when phase status changes. Documentation aligned as of February 7, 2026 (MVP4 = AI Trip Agent; MVP5 = Marketplace; MVP6 = Enterprise).

@@ -1,8 +1,8 @@
 # 🎯 TripMaker MVP Plan & Feature Breakdown
 
-> **Last Updated:** February 3, 2026 (MVP3 media storage: R2 + limits)  
-> **Current Phase:** MVP3 (Real-Time Trip Execution)  
-> **Status:** MVP1 100%; MVP2 100%; MVP3 ready to start
+> **Last Updated:** February 7, 2026  
+> **Current Phase:** Ready for MVP4 (AI Trip Agent)  
+> **Status:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; MVP4 (AI Trip Agent) not started (awaiting approval). See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
 ---
 
@@ -91,31 +91,31 @@
 
 ---
 
-### 🟢 MVP3: Real-Time Trip Execution (CURRENT PHASE)
+### 🟢 MVP3: Real-Time Trip Execution (COMPLETE)
 
 **Goal:** Live trip tracking, collaboration tools, social features.
 
-**Blocked By:** MVP2 completion ✅ (unblocked)
+**Completed:** February 2026
 
 #### Features
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| 3.1 | Timeline/feed preferences | 📋 Planned | P2 |
-| 3.2 | Real-time location tracking | 📋 Planned | P0 |
-| 3.3 | Live map with current location | 📋 Planned | P0 |
-| 3.4 | ETA, delays, alerts | 📋 Planned | P1 |
-| 3.5 | In-trip chat | 📋 Planned | P1 |
-| 3.6 | Media upload in chat | 📋 Planned | P2 |
-| 3.7 | Like/comment on feed trips | 📋 Planned | P1 |
-| 3.8 | Share trips externally | 📋 Planned | P2 |
-| 3.9 | Trip gallery (per-trip images, not chat) | 📋 Planned | P1 |
-| 3.10 | Trip thumbnail (cover image) | 📋 Planned | P1 |
-| 3.11 | Comments support images (trip + gallery image) | 📋 Planned | P2 |
-| 3.12 | Gallery page (carousel, prev/next, likes/comments per image) | 📋 Planned | P1 |
-| 3.13 | Listings: trip thumbnail + gallery preview (Discover) | 📋 Planned | P1 |
+| 3.1 | Timeline/feed preferences | ✅ DONE | P2 |
+| 3.2 | Real-time location tracking | ✅ DONE | P0 |
+| 3.3 | Live map with current location | ✅ DONE | P0 |
+| 3.4 | ETA, delays, alerts | ✅ DONE | P1 |
+| 3.5 | In-trip chat | ✅ DONE | P1 |
+| 3.6 | Media upload in chat (R2, 100MB/user) | ✅ DONE | P2 |
+| 3.7 | Like/comment on feed trips | ✅ DONE | P1 |
+| 3.8 | Share trips externally | ✅ DONE | P2 |
+| 3.9 | Trip gallery (per-trip images, not chat) | ✅ DONE | P1 |
+| 3.10 | Trip thumbnail (cover image) | ✅ DONE | P1 |
+| 3.11 | Comments support images (trip + gallery image) | ✅ DONE | P2 |
+| 3.12 | Gallery page (carousel, prev/next, likes/comments per image) | ✅ DONE | P1 |
+| 3.13 | Listings: trip thumbnail + gallery preview (Discover) | ✅ DONE | P1 |
 
-**MVP3 Start Date:** January 31, 2026 (ready to start)
+**MVP3 Completion:** 100% (13/13 features)
 
 #### MVP3 Gallery & Thumbnail (Feb 2026)
 
@@ -134,42 +134,61 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 ---
 
-### 🟡 MVP4: Smart Recommendations
+### 🟡 MVP4: AI Trip Agent
 
-**Goal:** Real-time transport and accommodation suggestions with pricing.
+**Goal:** Users create and edit trips by chatting with an AI agent; any destination/pace/days; AI returns data in the same format as existing trip plan. Provider-agnostic adapter pattern; user supplies API keys. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
-**Blocked By:** MVP3 completion
+**Prerequisites:** MVP3 complete ✅; Design Optimization complete ✅; user approval to start MVP4.
 
 #### Features
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| 4.1 | Transport method suggestions | ⏸️ BLOCKED | P0 |
-| 4.2 | Multi-source pricing (Skyscanner, etc) | ⏸️ BLOCKED | P0 |
-| 4.3 | Stay/accommodation suggestions | ⏸️ BLOCKED | P1 |
-| 4.4 | Price comparison | ⏸️ BLOCKED | P1 |
+| 4.1 | Backend adapter (interface + e.g. Gemini, Groq, OpenRouter); env config; fallback to static planner | ⏸️ Not started | P0 |
+| 4.2 | Chat endpoint(s): messages + context → plan response (same as `/trips/plan`) | ⏸️ Not started | P0 |
+| 4.3 | Frontend: AI chat after destination/pace/days; "Start over"; itinerary preview; create trip | ⏸️ Not started | P0 |
+| 4.4 | Frontend: AI chat FAB on relevant screens for trip edits (create + edit only in MVP4) | ⏸️ Not started | P1 |
+| 4.5 | Keep existing static plan flow; AI is alternative path | ⏸️ Not started | P0 |
 
-**MVP4 Start Date:** TBD (After MVP3 complete)
+**MVP4 Start Date:** After explicit user approval (see MVP_ROADMAP.md).
 
 ---
 
-### 🟡 MVP5: Enterprise Features
+### 🟡 MVP5: Marketplace Integration
 
-**Goal:** Travel agency templates and monetization.
+**Goal:** Real pricing and booking options (paid services).
 
-**Blocked By:** MVP4 completion
+**Prerequisites:** MVP4 (AI Trip Agent) complete ✅; user approval to start MVP5.
 
 #### Features
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| 5.1 | Agency account type | ⏸️ BLOCKED | P0 |
-| 5.2 | Create trip templates | ⏸️ BLOCKED | P0 |
-| 5.3 | Push templates to users | ⏸️ BLOCKED | P1 |
-| 5.4 | Request to join templates | ⏸️ BLOCKED | P1 |
-| 5.5 | Template marketplace | ⏸️ BLOCKED | P2 |
+| 5.1 | Transport pricing (Skyscanner API) | ⏸️ Not started | P0 |
+| 5.2 | Accommodation suggestions (Booking.com, etc.) | ⏸️ Not started | P1 |
+| 5.3 | Price comparison view | ⏸️ Not started | P1 |
 
-**MVP5 Start Date:** TBD (After MVP4 complete)
+**MVP5 Start Date:** After MVP4 complete and explicit user approval.
+
+---
+
+### 🟡 MVP6: Enterprise Features
+
+**Goal:** Travel agency templates and monetization.
+
+**Blocked By:** MVP5 completion
+
+#### Features
+
+| # | Feature | Status | Priority |
+|---|---------|--------|----------|
+| 6.1 | Agency account type | ⏸️ BLOCKED | P0 |
+| 6.2 | Create trip templates | ⏸️ BLOCKED | P0 |
+| 6.3 | Push templates to users | ⏸️ BLOCKED | P1 |
+| 6.4 | Request to join templates | ⏸️ BLOCKED | P1 |
+| 6.5 | Template marketplace | ⏸️ BLOCKED | P2 |
+
+**MVP6 Start Date:** TBD (After MVP5 complete)
 
 ---
 

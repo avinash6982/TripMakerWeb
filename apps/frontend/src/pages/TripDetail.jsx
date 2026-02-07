@@ -20,6 +20,7 @@ import {
   patchPrerequisite,
   deletePrerequisite,
 } from "../services/trips";
+import { chatWithTripAgent } from "../services/tripAgent";
 import { getStoredUser } from "../services/auth";
 import { getTransportHubsForDestination } from "../data/transportHubs";
 import MapView from "../components/MapView";
@@ -96,6 +97,12 @@ const TripDetail = () => {
   const [prereqFilter, setPrereqFilter] = useState("all");
   const [prereqAssignPopoverId, setPrereqAssignPopoverId] = useState(null);
   const [prereqViewAllOpen, setPrereqViewAllOpen] = useState(false);
+  const [agentPanelOpen, setAgentPanelOpen] = useState(false);
+  const [agentMessages, setAgentMessages] = useState([]);
+  const [agentLoading, setAgentLoading] = useState(false);
+  const [agentChatInput, setAgentChatInput] = useState("");
+  const [agentError, setAgentError] = useState("");
+  const [agentNotice, setAgentNotice] = useState("");
   const prereqAssignPopoverRef = useRef(null);
   const actionsMenuRef = useRef(null);
 
@@ -409,6 +416,49 @@ const TripDetail = () => {
       setMessage(err?.message || "Update failed.");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleAgentSend = async (e) => {
+    e?.preventDefault();
+    if (!trip || !agentChatInput?.trim() || agentLoading) return;
+    const text = agentChatInput.trim();
+    const userMessage = { role: "user", content: text };
+    const nextMessages = [...agentMessages, userMessage];
+    setAgentMessages(nextMessages);
+    setAgentChatInput("");
+    setAgentLoading(true);
+    setAgentError("");
+    setAgentNotice("");
+    try {
+      const planResponse = await chatWithTripAgent({
+        messages: nextMessages,
+        context: {
+          destination: trip.destination,
+          days: trip.days,
+          pace: trip.pace,
+          currentItinerary: trip.itinerary,
+        },
+      });
+      await updateTrip(trip.id, {
+        itinerary: planResponse.itinerary,
+        destination: planResponse.destination,
+        days: planResponse.days,
+        pace: planResponse.pace,
+      });
+      const updated = await fetchTrip(trip.id);
+      setTrip(updated);
+      setAgentMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: t("tripPlanner.results.title") },
+      ]);
+      if (planResponse.agentUnavailable) {
+        setAgentNotice(t("tripPlanner.results.agentUnavailable"));
+      }
+    } catch (err) {
+      setAgentError(err?.message || "Update failed.");
+    } finally {
+      setAgentLoading(false);
     }
   };
 
@@ -2253,6 +2303,83 @@ const TripDetail = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* AI Trip Agent FAB (MVP4) – only for owner or collaborators */}
+      {trip && canShowChat && (
+        <>
+          <button
+            type="button"
+            className="trip-agent-fab"
+            onClick={() => setAgentPanelOpen((o) => !o)}
+            aria-label={t("tripPlanner.aiChat.title")}
+            title={t("tripPlanner.aiChat.title")}
+          >
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
+          {agentPanelOpen && (
+            <div className="trip-agent-panel-overlay" onClick={() => setAgentPanelOpen(false)} aria-hidden />
+          )}
+          <div className={`trip-agent-panel ${agentPanelOpen ? "trip-agent-panel-open" : ""}`}>
+            <div className="trip-agent-panel-inner">
+              <div className="trip-agent-chat-header">
+                <span className="trip-agent-chat-title">{t("tripPlanner.aiChat.title")}</span>
+                <button
+                  type="button"
+                  className="btn small ghost"
+                  onClick={() => setAgentPanelOpen(false)}
+                  aria-label="Close"
+                >
+                  ×
+                </button>
+              </div>
+              <p className="trip-agent-chat-intro">{t("tripPlanner.aiChat.intro")}</p>
+              <div className="trip-agent-chat-messages">
+                {agentMessages.map((m, i) => (
+                  <div key={i} className={`trip-agent-msg trip-agent-msg-${m.role}`}>
+                    <span className="trip-agent-msg-role">{m.role === "user" ? "You" : "AI"}</span>
+                    <span className="trip-agent-msg-content">{m.content}</span>
+                  </div>
+                ))}
+                {agentLoading && (
+                  <div className="trip-agent-msg trip-agent-msg-assistant">
+                    <span className="trip-agent-msg-role">AI</span>
+                    <span className="trip-agent-msg-content">…</span>
+                  </div>
+                )}
+              </div>
+              <form className="trip-agent-chat-form" onSubmit={handleAgentSend}>
+                <input
+                  type="text"
+                  value={agentChatInput}
+                  onChange={(e) => setAgentChatInput(e.target.value)}
+                  placeholder={t("tripPlanner.aiChat.placeholder")}
+                  disabled={agentLoading}
+                  aria-label={t("tripPlanner.aiChat.placeholder")}
+                />
+                <button
+                  type="submit"
+                  className="btn primary"
+                  disabled={agentLoading || !agentChatInput.trim()}
+                >
+                  {agentLoading ? t("tripPlanner.aiChat.sending") : t("tripPlanner.aiChat.send")}
+                </button>
+              </form>
+              {agentError && (
+                <p className="message error" role="alert">
+                  {agentError}
+                </p>
+              )}
+              {agentNotice && !agentError && (
+                <p className="planner-note" role="status">
+                  {agentNotice}
+                </p>
+              )}
+            </div>
+          </div>
+        </>
       )}
 
     </main>

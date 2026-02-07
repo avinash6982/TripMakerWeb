@@ -14,7 +14,7 @@
 
 ### Starting Development Today?
 1. **[DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md)** - Current sprint focus
-2. **[MVP_PLAN.md](MVP_PLAN.md)** - Feature breakdown (MVP1–5)
+2. **[MVP_PLAN.md](MVP_PLAN.md)** - Feature breakdown (MVP1–6)
 3. **[MVP_ROADMAP.md](MVP_ROADMAP.md)** - Phase status and next steps
 4. **[API_REFERENCE.md](API_REFERENCE.md)** - When adding endpoints
 
@@ -28,6 +28,7 @@
 | **[PRODUCT_VISION.md](PRODUCT_VISION.md)** | Long-term vision, business model | Quarterly |
 | **[MVP_ROADMAP.md](MVP_ROADMAP.md)** | Phase breakdown, progress tracking | Weekly |
 | **[ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md)** | Features between MVP3 and MVP4 (e.g. Prerequisites) | Per feature |
+| **[MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)** | MVP4 AI Trip Agent: planning, adapter pattern, itinerary contract | When implementing MVP4 |
 | **[MVP3_TASK_BREAKDOWN.md](MVP3_TASK_BREAKDOWN.md)** | MVP3 atomic tasks and verification | Per task |
 | **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** | MVP2 reference (complete) | Rarely |
 | **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** | MVP1 reference (complete) | Rarely |

@@ -1,12 +1,14 @@
 ---
-description: Enforce zero-cost constraint for MVP phases 1-3
+description: Enforce zero-cost constraint for MVP1-3; MVP4 allows AI APIs (user keys; free tiers OK)
 alwaysApply: true
 ---
 
-# Zero-Cost Constraint (MVP1-3)
+# Zero-Cost Constraint (MVP1-3); MVP4 AI APIs Allowed
 
 ## Principle
-**All features in MVP1, MVP2, and MVP3 must work without ANY paid services.**
+**MVP1, MVP2, MVP3:** All features must work without ANY paid services.
+
+**MVP4 (AI Trip Agent):** This is the first phase where **AI APIs are allowed**. User supplies API keys after implementation. Free-tier usage (e.g. Google Gemini, Groq, OpenRouter free models) is acceptable. See [MVP4_AI_AGENT.md](../../MVP4_AI_AGENT.md).
 
 ---
 
@@ -21,14 +23,16 @@ alwaysApply: true
 - **Static data:** Mock/hardcoded data for testing
 - **Cloudflare R2:** Approved for MVP3 media uploads (in-trip chat); per-user limit 100 MB; usage visible in Profile/Settings
 
-### ❌ Forbidden (Until MVP4+)
+### ❌ Forbidden in MVP1-3
 - **Google Maps API** (paid after free tier)
-- **OpenAI API** (paid)
 - **Skyscanner API** (paid)
-- **Any database service** (use file storage for MVP1-3)
+- **Any database service** (use file storage for MVP1-3; MongoDB optional before/during MVP4)
 - **Email services** (SendGrid, Mailgun)
 - **SMS services** (Twilio)
 - **Other cloud storage** (S3, Cloudinary) — R2 is the approved exception for MVP3 media
+
+### ✅ Allowed in MVP4 (AI Trip Agent) only
+- **AI/LLM APIs** for trip agent: user supplies API keys; free-tier providers (Gemini, Groq, OpenRouter free models, etc.) are acceptable. Paid providers (OpenAI, Anthropic) allowed when user adds key. See [MVP4_AI_AGENT.md](../../MVP4_AI_AGENT.md).
 
 ---
 
@@ -133,8 +137,11 @@ If ANY answer is "yes" or "maybe", STOP and discuss.
 
 ## Cost Phase Transition
 
-### MVP4+ (Marketplace Integration)
-**Only in MVP4 can we introduce paid services:**
+### MVP4 (AI Trip Agent)
+**First phase where AI APIs are allowed:** User supplies API keys. Free-tier providers (Gemini, Groq, OpenRouter) supported; paid (OpenAI, etc.) allowed when user adds key. No change to MVP1-3 zero-cost rule.
+
+### MVP5+ (Marketplace Integration)
+**Only in MVP5 can we introduce paid travel/booking services:**
 - Skyscanner API (transport pricing)
 - Booking.com API (accommodation)
 - Payment processing (Stripe)
@@ -153,12 +160,14 @@ If ANY answer is "yes" or "maybe", STOP and discuss.
 - Browser Geolocation API
 - Cloudflare R2 for MVP3 media (100 MB/user limit; usage in Profile/Settings)
 
-### ❌ REJECTED
+### ❌ REJECTED (MVP1-3)
 - Google Maps (paid after quota)
-- OpenAI API (paid per request)
 - Firebase (paid features needed)
 - Auth0 (paid for features we need)
 - Cloudinary (paid for storage)
+
+### ✅ APPROVED in MVP4 only (user keys; free tiers OK)
+- Google Gemini API, Groq, OpenRouter free models, Hugging Face Inference (see MVP4_AI_AGENT.md). OpenAI/Anthropic when user provides key.
 
 ---
 

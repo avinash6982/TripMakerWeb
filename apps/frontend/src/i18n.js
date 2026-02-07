@@ -80,6 +80,10 @@ const resources = {
           generated: "Generated from offline suggestions.",
           fallback:
             "Showing a general plan because this destination is not in our starter dataset yet.",
+          agentUnavailable:
+            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
+          assistantSummary: "Here's your {{days}}-day {{destination}} plan with {{stops}} stops ({{hours}} hrs/day).",
+          assistantFallback: "Suggested itinerary (AI was temporarily limited—edit below or try again in a few minutes).",
         },
         map: {
           title: "Map preview",
@@ -115,6 +119,15 @@ const resources = {
         status: {
           error: "We couldn't build a plan. Try again.",
           missingDestination: "Please enter a destination.",
+        },
+        aiChat: {
+          title: "Plan with AI",
+          intro: "Chat to create or refine your itinerary. Ask for more days, different pace, or specific places.",
+          placeholder: "e.g. Add a day for wine tasting, or make it more relaxed...",
+          send: "Send",
+          sending: "Sending...",
+          startOver: "Start over",
+          quickPlan: "Quick plan",
         },
       },
       trips: {
@@ -662,6 +675,8 @@ const resources = {
           generated: "ऑफ़लाइन सुझावों से जनरेट किया गया।",
           fallback:
             "यह गंतव्य हमारे शुरुआती डेटा में नहीं है, इसलिए सामान्य योजना दिखाई गई है।",
+          agentUnavailable:
+            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
         },
         map: {
           title: "मैप प्रीव्यू",
@@ -1063,6 +1078,8 @@ const resources = {
           generated: "ഓഫ്ലൈൻ നിർദ്ദേശങ്ങളിൽ നിന്ന് സൃഷ്ടിച്ചത്.",
           fallback:
             "ഈ ലക്ഷ്യസ്ഥാനം ഡാറ്റാസെറ്റിൽ ഇല്ലാത്തതിനാൽ പൊതുവായ പ്ലാൻ ആണ്.",
+          agentUnavailable:
+            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
         },
         map: {
           title: "മാപ്പ് പ്രിവ്യൂ",
@@ -1461,6 +1478,8 @@ const resources = {
           itemMeta: "{{hours}} ساعة · {{category}}",
           generated: "تم إنشاؤها من اقتراحات غير متصلة.",
           fallback: "نعرض خطة عامة لأن الوجهة غير موجودة في بياناتنا الأولية.",
+          agentUnavailable:
+            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
         },
         map: {
           title: "معاينة الخريطة",
@@ -1859,6 +1878,8 @@ const resources = {
           generated: "Generado a partir de sugerencias sin conexión.",
           fallback:
             "Mostramos un plan general porque este destino aún no está en nuestro conjunto inicial.",
+          agentUnavailable:
+            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
         },
         map: {
           title: "Vista previa del mapa",
@@ -2268,6 +2289,8 @@ const resources = {
           generated: "Aus Offline-Vorschlägen erstellt.",
           fallback:
             "Wir zeigen einen allgemeinen Plan, da dieses Ziel noch nicht im Datensatz ist.",
+          agentUnavailable:
+            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
         },
         map: {
           title: "Kartenvorschau",
