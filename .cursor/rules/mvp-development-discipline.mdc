@@ -5,12 +5,12 @@ alwaysApply: true
 
 # MVP Development Discipline
 
-## Current Phase: **Ready for MVP4 (AI Trip Agent)**
+## Current Phase: **MVP4 complete — next MVP5 (Marketplace)**
 
 ### Phase Status
-- **Started:** Jan 31, 2026 (MVP3 unblocked)
+- **MVP4:** 100% complete (AI Trip Agent: Gemini + Groq adapters, chat endpoint, Home + Trip Detail FAB)
 - **MVP3:** 100% complete
-- **Additional features:** Tracked in [ADDITIONAL_FEATURES.md](../../ADDITIONAL_FEATURES.md). **Prerequisites** (trip checklist: add/assign/mark done) ✅ complete.
+- **Additional features:** Prerequisites ✅ complete. MongoDB ✅ complete.
 - **Demo Status:** ✅ Always demo-ready
 - **MVP1:** 100% complete
 - **MVP2:** 100% complete (feed, sharing, invite codes, collaborators)
@@ -67,17 +67,17 @@ alwaysApply: true
 ### MVP3: Real-Time Trip Execution (COMPLETE)
 **Goal:** Real-time tracking and social features — ✅ All core features done (timeline prefs, live map, ETA, chat, R2 media, like/comment, share, gallery, thumbnails).
 
-### MVP4: AI Trip Agent (NEXT)
-**Goal:** Chat-based trip creation and editing; adapter pattern; provider-agnostic. User supplies API keys. See [MVP4_AI_AGENT.md](../../MVP4_AI_AGENT.md).
+### MVP4: AI Trip Agent (COMPLETE)
+**Goal:** Chat-based trip creation and editing; adapter pattern; provider-agnostic. See [MVP4_AI_AGENT.md](../../MVP4_AI_AGENT.md).
 
-#### Core Features (DO NOT IMPLEMENT until user approves MVP4)
-1. Backend adapter (interface + e.g. Gemini, Groq); chat endpoint(s); fallback to static planner
-2. Frontend: AI chat after destination/pace/days; "Start over"; FAB for trip edits (create + edit only in MVP4)
+#### Core Features (done)
+1. ✅ Backend adapter (Gemini, Groq); `POST /trips/agent/chat`; fallback to static planner; aiUnconfigured/agentUnavailable
+2. ✅ Frontend: AI chat after destination/pace/days (Home); "Start over"; FAB on Trip Detail for edits
 
-### MVP5: Marketplace Integration
-**Goal:** Real pricing and booking options (paid services)
+### MVP5: Marketplace Integration (NEXT)
+**Goal:** Real pricing and booking options (paid services). Start only with explicit user approval.
 
-#### Core Features (DO NOT IMPLEMENT YET)
+#### Core Features (DO NOT IMPLEMENT until user approves MVP5)
 1. Transport pricing (Skyscanner integration)
 2. Accommodation suggestions
 
@@ -186,10 +186,9 @@ wip: started adding trip creation
 
 ## Current Phase Checklist
 
-### MVP4: AI Trip Agent (start only with user approval)
-- [ ] Follow [MVP4_AI_AGENT.md](../../MVP4_AI_AGENT.md) for task breakdown and implementation
-- [ ] Backend: adapter interface + at least one provider (e.g. Gemini); chat endpoint(s); fallback to static planner
-- [ ] Frontend: AI chat after destination/pace/days; "Start over"; FAB for trip edits (create + edit only)
-- [ ] User provides API keys after implementation (free-tier providers supported)
+### MVP4: AI Trip Agent — complete
+- [x] Backend: adapter (Gemini, Groq); chat endpoint; fallback to static planner
+- [x] Frontend: AI chat (Home + Trip Detail FAB); "Start over"; create/edit from AI plan
+- [x] User provides API keys (GEMINI_API_KEY, GROQ_API_KEY); free-tier supported
 
-**Do NOT start MVP5 until MVP4 is complete. MVP3 is complete.**
+**Do NOT start MVP5 until user explicitly approves. MVP4 is complete.**

@@ -1,7 +1,7 @@
 # MongoDB Setup for TripMaker
 
 **Last Updated:** February 2026  
-**Purpose:** Use a real database (MongoDB Atlas) instead of file-based storage. Required for production and recommended before MVP4.
+**Purpose:** Use a real database (MongoDB Atlas) instead of file-based storage. **Implementation:** Complete. Users and trips are read/written via `lib/db.js` when `MONGODB_URI` is set; otherwise the backend uses file-based storage.
 
 ---
 
@@ -65,14 +65,12 @@
 
 If you have important data in `data/users.json` and want it in MongoDB:
 
-1. Ensure `MONGODB_URI` is set and the backend has run at least once (so the DB and collections exist).
+1. Ensure `MONGODB_URI` is set (in `.env` or `.env.development` in `apps/backend/`).
 2. From repo root:
    ```bash
    node apps/backend/scripts/migrate-file-to-mongo.js
    ```
-   (Script reads `apps/backend/data/users.json` and upserts users and trips into MongoDB.)
-
-If the script doesn’t exist yet, you can manually copy users/trips from the JSON into Atlas (e.g. via Compass or a one-off script that reads the file and inserts into the `users` and `trips` collections).
+   The script reads `apps/backend/data/users.json` (or `USER_DB_PATH`) and upserts all users and their trips. You can also run from `apps/backend/` as `node scripts/migrate-file-to-mongo.js`.
 
 ---
 

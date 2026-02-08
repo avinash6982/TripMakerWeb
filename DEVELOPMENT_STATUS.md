@@ -66,12 +66,12 @@
 
 ## 🎯 Next Tasks (Priority Order)
 
-### Immediate (MVP4 done; next when you approve)
-1. **MVP4:** Implemented. Set `GEMINI_API_KEY` and/or `GROQ_API_KEY` in backend (see [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)) so Plan with AI returns personalized replies. Without keys, users see a clear "AI not set up" message and a suggested itinerary.
-2. Do not start MVP5 (Marketplace) until explicitly approved.
+### Immediate (next when you approve)
+1. **MVP5 (Marketplace):** Do not start until explicitly approved. Will introduce paid services (Skyscanner, accommodation APIs).
+2. **MVP4 usage:** Set `GEMINI_API_KEY` and/or `GROQ_API_KEY` in backend (see [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)) for personalized AI replies; without keys, users get static planner and a clear message.
 
 ### Optional (before or during MVP4)
-- **MongoDB:** Create Atlas cluster, set `MONGODB_URI` locally and on Render; optionally run migration script (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
+- **MongoDB:** Implementation complete (users + trips in `lib/db.js`; migration script `apps/backend/scripts/migrate-file-to-mongo.js`). Create Atlas cluster, set `MONGODB_URI` locally and on Render; optionally run the migration script (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
 
 ### Completed
 - MVP1, MVP2, MVP3 (all features); Design Optimization; Additional features (Prerequisites).
@@ -79,11 +79,11 @@
 
 ---
 
-## 🔬 Current Focus: Ready for MVP4
+## 🔬 Current Focus: MVP4 complete — next MVP5
 
-**Objective:** All pre–MVP4 work is complete. Start MVP4 (AI Trip Agent) when you explicitly approve. Then MVP5 (Marketplace), MVP6 (Enterprise). MongoDB is optional but recommended for production; backend already supports it when `MONGODB_URI` is set.
+**Objective:** MVP4 (AI Trip Agent) is implemented and complete. Next phase is MVP5 (Marketplace); start only when you explicitly approve. MongoDB implementation is complete; set `MONGODB_URI` to use it in production.
 
-**Status:** MVP1–MVP3 complete. Design Optimization complete. Additional features (Prerequisites) complete. MVP4 (AI Trip Agent) not started — awaiting your approval.  
+**Status:** MVP1–MVP4 complete. Design Optimization complete. Additional features (Prerequisites) complete. Next: MVP5 (Marketplace) when you approve.  
 **Reference:** MVP_ROADMAP.md, MVP_PLAN.md, [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md), MONGODB_SETUP.md (optional).
 
 ---
@@ -106,12 +106,13 @@
 - **MVP1:** 13/13 features (100%) ✅
 - **MVP2:** All features (100%) ✅
 - **MVP3:** All features (100%) ✅
+- **MVP4:** AI Trip Agent (100%) ✅
 - **Design Optimization:** Complete ✅
 - **Additional features (Prerequisites):** Complete ✅
-- **MVP4:** Not started (awaiting approval)
+- **MVP5:** Not started (awaiting approval)
 
 ### Current Sprint
-- **Focus:** Ready for MVP4; start when you approve.
+- **Focus:** MVP4 complete; next MVP5 when you approve.
 - **Practice:** Browser verification required after each future task (see MVP1_BROWSER_TEST_CHECKLIST.md).
 
 ### Code Statistics

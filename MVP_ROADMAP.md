@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** February 7, 2026  
-**Current Phase:** Ready for MVP4  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; Prerequisites 100%; Design Optimization complete; **MVP4 (AI Trip Agent) not started** (awaiting your approval). Optional: MongoDB setup (see MONGODB_SETUP.md).
+**Last Updated:** February 8, 2026  
+**Current Phase:** MVP4 complete  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete. **Next:** MVP5 (Marketplace) when approved. Optional: MongoDB (see MONGODB_SETUP.md).
 
 ---
 
@@ -155,43 +155,43 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 
 ### 🗄️ Database Migration (MongoDB) — Optional Before MVP4/MVP5
 
-**Status:** 🔄 In progress  
-**Goal:** Replace file-based storage with MongoDB so the app has persistent, scalable data before or during MVP4/MVP5.  
+**Status:** ✅ Complete  
+**Goal:** Replace file-based storage with MongoDB so the app has persistent, scalable data.  
 **Reference:** [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
 #### Scope
 - **Storage:** When `MONGODB_URI` is set, backend uses MongoDB (Atlas); otherwise falls back to file-based JSON (local dev).
 - **Collections:** `users` (id, email, passwordHash, profile, createdAt); `trips` (full trip document with `userId` as owner). Same API surface; only the persistence layer changes.
-- **Migration:** Optional script to import existing `data/users.json` into MongoDB (see MONGODB_SETUP.md).
+- **Migration:** Optional script `apps/backend/scripts/migrate-file-to-mongo.js` imports existing `data/users.json` into MongoDB (see MONGODB_SETUP.md).
 
 #### Completed ✅
-- MongoDB driver and `lib/db.js` (connect, readUsers, writeUsers) implemented.
+- MongoDB driver and `lib/db.js` (connect, readUsers, writeUsers) implemented; users and trips fully supported.
 - Server uses MongoDB when `MONGODB_URI` is set; file-based fallback when not set.
 - Dev user seeding works with both backends.
+- Migration script: `node apps/backend/scripts/migrate-file-to-mongo.js` (from repo root).
 - Documentation: MONGODB_SETUP.md, MVP_ROADMAP, APP_ARCHITECTURE, DEVELOPMENT_STATUS updated.
 
-#### Your part (required for MongoDB)
+#### Your part (to use MongoDB)
 1. Create a MongoDB Atlas cluster (free M0 tier).
-2. Get the connection string and set `MONGODB_URI` in local `.env` and in Render (backend service) environment.
-3. (Optional) Run the migration script once to import existing file data into MongoDB.
+2. Get the connection string and set `MONGODB_URI` in local `.env` (or `.env.development`) and in Render (backend service) environment.
+3. (Optional) Run the migration script once to import existing file data: `node apps/backend/scripts/migrate-file-to-mongo.js`.
 
 ---
 
 ### 🤖 MVP4: AI Trip Agent
 
-**Status:** ⏸️ NOT STARTED  
+**Status:** ✅ COMPLETE  
 **Goal:** Users create and edit trips by chatting with an AI agent; any destination/pace/days; AI returns data in the same format as existing trip plan for seamless integration.  
-**Prerequisites:** Design Optimization complete ✅; user approval to start MVP4  
 **Reference:** [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)
 
-**Note:** Implementation is provider-agnostic (adapter pattern). User supplies API keys after implementation; free-tier providers (e.g. Gemini, Groq, OpenRouter) are supported.
+**Note:** Provider-agnostic adapter pattern. Set `GEMINI_API_KEY` and/or `GROQ_API_KEY` in backend; free-tier providers supported. Without keys, users see a clear message and get static planner fallback.
 
-#### Planned Features 📋
-1. ⏳ Backend adapter: interface + implementations (e.g. Gemini, Groq, OpenRouter); env-based provider/key config; fallback to static planner when AI unavailable.
-2. ⏳ Chat endpoint(s): accept messages + context (destination, days, pace, currentItinerary); return plan response (same shape as `POST /trips/plan`).
-3. ⏳ Frontend: after destination/pace/days, show AI chat (with "Start over"); display AI replies and itinerary preview; create trip from AI-generated plan.
-4. ⏳ Frontend: AI chat FAB on all relevant screens for further edits to the trip (MVP4 scope: trip creation and itinerary edit only).
-5. ⏳ Existing static plan flow remains; AI is an alternative path.
+#### Completed Features ✅
+1. ✅ Backend adapter: `lib/tripAgent.js` (Gemini, Groq); env-based keys; fallback to static planner when AI unavailable or no keys.
+2. ✅ Chat endpoint: `POST /trips/agent/chat` — messages + context (destination, days, pace, currentItinerary); returns plan (same shape as `POST /trips/plan`) plus `assistantMessage`, `aiUnconfigured`, `agentUnavailable`.
+3. ✅ Frontend (Home): after destination/pace/days, AI chat with "Start over"; AI replies and itinerary preview; create trip from AI-generated plan.
+4. ✅ Frontend (Trip Detail): AI chat FAB for itinerary edits; same chat API and plan response.
+5. ✅ Static plan flow unchanged; AI is an alternative path.
 
 ---
 
@@ -239,8 +239,8 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | MVP2 | ✅ Complete | 100% | Jan 31, 2026 |
 | MVP3 | ✅ Complete | 100% | Feb 2026 |
 | Design Optimization | ✅ Complete | — | Feb 2026 |
-| MVP4 (AI Trip Agent) | ⏸️ Not Started | 0% | After approval |
-| MVP5 (Marketplace) | ⏸️ Not Started | 0% | After MVP4 |
+| MVP4 (AI Trip Agent) | ✅ Complete | 100% | Feb 2026 |
+| MVP5 (Marketplace) | ⏸️ Not Started | 0% | After approval |
 | MVP6 (Enterprise) | ⏸️ Not Started | 0% | TBD |
 
 ### Additional Features (Between MVP3 and MVP4)
@@ -248,10 +248,11 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | Feature | Summary | Status |
 |--------|---------|--------|
 | **Prerequisites** | Trip checklist: add/assign/mark done by collaborators; public view read-only. See [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md). | ✅ Complete |
+| **MongoDB** | Optional DB: `lib/db.js` (users + trips); migration script `scripts/migrate-file-to-mongo.js`. See [MONGODB_SETUP.md](MONGODB_SETUP.md). | ✅ Complete |
 
-### Current Phase: Ready for MVP4 (AI Trip Agent)
+### Current Phase: MVP4 complete — next MVP5 (Marketplace)
 
-**Overall:** MVP1–MVP3, Design Optimization, and additional feature Prerequisites complete. MVP4 (AI Trip Agent) is next; start only with explicit approval. Then MVP5 (Marketplace), MVP6 (Enterprise).
+**Overall:** MVP1–MVP4 complete. Next phase is MVP5 (Marketplace); start only with explicit approval. Then MVP6 (Enterprise).
 
 | Phase | Summary | Status |
 |-------|---------|--------|
@@ -260,7 +261,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2, 100MB/user), like/comment, share, gallery, thumbnails | ✅ 100% |
 | Design Optimization | UI/design review; one change per feedback item | ✅ Complete |
 | Additional: Prerequisites | Trip prerequisites list; assign/mark done when trip active | ✅ Complete |
-| MVP4 | AI Trip Agent: chat-based trip create/edit; adapter pattern; see MVP4_AI_AGENT.md | ⏸️ Not started |
+| MVP4 | AI Trip Agent: chat-based trip create/edit; Gemini + Groq adapters; Home + Trip Detail FAB; see MVP4_AI_AGENT.md | ✅ Complete |
 
 ---
 
