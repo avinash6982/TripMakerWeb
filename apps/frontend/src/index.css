@@ -871,6 +871,11 @@ button.text-link {
   color: #166534;
 }
 
+.message.info {
+  background: #e0f2fe;
+  color: #0369a1;
+}
+
 .auth-meta {
   margin-top: 1.5rem;
   padding-top: 1rem;
@@ -1262,6 +1267,7 @@ button.text-link {
   flex-direction: column;
   gap: 1rem;
   padding: 0.25rem 0;
+  min-height: 420px;
 }
 
 .trip-agent-chat-header {
@@ -1281,6 +1287,7 @@ button.text-link {
   margin: 0;
   font-size: 0.95rem;
   color: var(--color-text-muted);
+  line-height: 1.4;
 }
 
 .trip-agent-chat-context {
@@ -1291,13 +1298,21 @@ button.text-link {
 .trip-agent-chat-messages {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-  max-height: 280px;
+  gap: 0.875rem;
+  min-height: 220px;
+  max-height: min(420px, 50vh);
   overflow-y: auto;
-  padding: 0.75rem;
+  overflow-x: hidden;
+  padding: 1rem;
   background: var(--color-bg);
   border-radius: var(--radius-md);
   border: 1px solid var(--border);
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.trip-agent-chat-messages:empty {
+  min-height: 180px;
 }
 
 .trip-agent-msg {
@@ -1305,7 +1320,8 @@ button.text-link {
   flex-direction: column;
   gap: 0.25rem;
   align-self: flex-start;
-  max-width: 90%;
+  max-width: 92%;
+  min-width: 0;
 }
 
 .trip-agent-msg-user {
@@ -1320,10 +1336,13 @@ button.text-link {
 
 .trip-agent-msg-content {
   font-size: 0.95rem;
-  padding: 0.5rem 0.75rem;
+  line-height: 1.45;
+  padding: 0.6rem 0.875rem;
   border-radius: var(--radius-md);
   background: var(--color-bg-elevated);
   border: 1px solid var(--border);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .trip-agent-msg-user .trip-agent-msg-content {
@@ -1336,6 +1355,7 @@ button.text-link {
   gap: 0.5rem;
   align-items: center;
   min-width: 0;
+  flex-shrink: 0;
 }
 
 .trip-agent-chat-form input {
@@ -1347,6 +1367,10 @@ button.text-link {
   font-size: 1rem;
 }
 
+.trip-agent-chat-form input::placeholder {
+  color: var(--color-text-muted);
+}
+
 .trip-agent-chat-form input:focus {
   outline: none;
   border-color: var(--color-primary);
@@ -1354,6 +1378,13 @@ button.text-link {
 
 .trip-agent-chat-form .btn {
   flex-shrink: 0;
+}
+
+/* On mobile, keep chat form above the bottom tab bar */
+@media (max-width: 767px) {
+  .trip-agent-chat {
+    padding-bottom: calc(var(--tabbar-height-safe, 64px) + 0.5rem);
+  }
 }
 
 /* Trip Agent FAB and panel (Trip Detail – MVP4) */
@@ -5264,6 +5295,11 @@ button.text-link {
 
   .app-content {
     padding-bottom: var(--tabbar-height-safe);
+  }
+
+  /* Keep planner buttons above the tab bar on mobile */
+  .planner-form-actions {
+    margin-bottom: calc(var(--tabbar-height-safe, 64px) + 0.5rem);
   }
 
   /* Bottom tab bar: 4 equal columns, single row */

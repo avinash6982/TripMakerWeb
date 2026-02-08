@@ -338,7 +338,7 @@ curl -X POST http://localhost:3000/trips/agent/chat \
 
 #### Response (200 OK)
 
-Same shape as [Generate Trip Plan](#-generate-trip-plan): `destination`, `pace`, `days`, `generatedAt`, `isFallback`, `meta`, `itinerary`. When the AI fails (e.g. 429) and the static fallback is used, the response also includes `agentUnavailable: true` so the client can show a short message (e.g. "AI temporarily limited; try again in a few minutes").
+Same shape as [Generate Trip Plan](#-generate-trip-plan): `destination`, `pace`, `days`, `generatedAt`, `isFallback`, `meta`, `itinerary`. Optional fields: **`assistantMessage`** (string, brief conversational reply from the AI); **`agentUnavailable: true`** when the AI was tried but all adapters failed (e.g. 429)—client can show "AI temporarily limited"; **`aiUnconfigured: true`** when no API keys are set—client can show "Add an API key to get AI-powered replies".
 
 #### Backend configuration
 

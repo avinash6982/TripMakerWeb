@@ -21,6 +21,7 @@ const swaggerJsdoc = require("swagger-jsdoc");
 const { body, param, validationResult } = require("express-validator");
 const { S3Client, PutObjectCommand, GetObjectCommand, HeadObjectCommand } = require("@aws-sdk/client-s3");
 const { getTripAgentAdapters } = require("./lib/tripAgent");
+const { handleTripAgentChat } = require("./lib/tripAgentHandler");
 const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const app = express();
@@ -28,6 +29,12 @@ const app = express();
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
+
+// When behind a reverse proxy (e.g. Render), trust X-Forwarded-* headers so
+// express-rate-limit and req.ip identify clients correctly. 1 = trust first proxy.
+if (process.env.RENDER || process.env.NODE_ENV === "production") {
+  app.set("trust proxy", 1);
+}
 
 const PORT = Number(process.env.PORT) || 3000;
 const DEFAULT_USER_DB_PATH = path.resolve("data/users.json");
@@ -1719,6 +1726,94 @@ app.post(
 );
 
 /**
+ * Extract plain text from a message content (string or OpenAI-style array of parts).
+ * @param {string|Array} content
+ * @returns {string}
+ */
+function getMessageText(content) {
+  if (typeof content === "string") return content;
+  if (!Array.isArray(content)) return "";
+  return content
+    .map((part) => (part && typeof part.text === "string" ? part.text : ""))
+    .join(" ");
+}
+
+/**
+ * Parse the LAST user message for a requested day count.
+ * Handles: "5 days", "make it 5", "then make it 5", "for 6 days instead", etc.
+ */
+function parseRequestedDaysFromLastUserMessage(lastUserMessageText) {
+  const s = typeof lastUserMessageText === "string" ? lastUserMessageText.trim() : "";
+  if (!s) return null;
+  const clamp = (n) => Math.min(10, Math.max(1, parseInt(n, 10)));
+  let m = s.match(/(?:make\s+it|make\s+this(?:\s+trip)?|change\s+to|extend\s+to|shorten\s+to|want)\s+(\d+)\b/i);
+  if (m && m[1]) return clamp(m[1]);
+  m = s.match(/(?:trip\s+)?for\s+(\d+)\s*days?(?:\s+instead|\s+please)?/i);
+  if (m && m[1]) return clamp(m[1]);
+  m = s.match(/\b(\d+)\s*days?(?:\s+instead|\s+please)?/i);
+  if (m && m[1]) return clamp(m[1]);
+  m = s.match(/\b(\d+)\s*days?\b/i);
+  if (m && m[1]) return clamp(m[1]);
+  return null;
+}
+
+/** Detect the generic "Here's your N-day X plan with Y stops" response we always replace with a helpful line */
+function isGenericPlanSummaryMessage(text) {
+  if (!text || typeof text !== "string") return false;
+  const t = text.trim();
+  return (
+    /here'?s your \d+-day .+ plan with \d+ stops/i.test(t) ||
+    /^here'?s your .+ plan with \d+ stops/i.test(t)
+  );
+}
+
+/** Short reply for questions (is X enough? / worth it?) when we are NOT changing days. */
+function buildQuestionReply(plan, destination, numDays) {
+  const d = plan.destination || destination;
+  const n = numDays ?? plan.days ?? plan.itinerary?.length ?? 3;
+  const stops = plan.meta?.totalStops ?? 0;
+  const hrs = plan.meta?.avgHoursPerDay ?? 0;
+  return `This ${n}-day ${d} plan has ${stops} stops and about ${hrs} hrs/day—a solid balance. ${n} days works well for a focused trip; you can ask to add more days or change the pace if you'd like.`;
+}
+
+/** Mutate plan so itinerary has exactly n days; update plan.days and plan.meta. */
+function enforcePlanDays(plan, n) {
+  if (!plan || !Array.isArray(plan.itinerary) || n == null) return plan;
+  const requested = Math.min(10, Math.max(1, Number(n) || 3));
+  const emptyDay = (dayNum) => ({
+    day: dayNum,
+    area: "",
+    totalHours: 0,
+    slots: [
+      { timeOfDay: "morning", totalHours: 0, items: [] },
+      { timeOfDay: "afternoon", totalHours: 0, items: [] },
+      { timeOfDay: "evening", totalHours: 0, items: [] },
+    ],
+  });
+  while (plan.itinerary.length < requested) {
+    plan.itinerary.push(emptyDay(plan.itinerary.length + 1));
+  }
+  if (plan.itinerary.length > requested) plan.itinerary.length = requested;
+  plan.days = requested;
+  const totalStops = plan.itinerary.reduce(
+    (sum, d) => sum + (d.slots || []).reduce((s, slot) => s + (slot.items || []).length, 0),
+    0
+  );
+  const totalHours = plan.itinerary.reduce((sum, d) => sum + (d.totalHours || 0), 0);
+  plan.meta = { ...plan.meta, totalStops, avgStopsPerDay: requested ? Number((totalStops / requested).toFixed(1)) : 0, avgHoursPerDay: requested ? Number((totalHours / requested).toFixed(1)) : plan.meta?.avgHoursPerDay ?? 0 };
+  return plan;
+}
+
+/** Build a helpful replacement when the AI returned the generic summary (answers "enough?", "good?", etc.) */
+function buildHelpfulReplacement(plan, destination, resolvedDays) {
+  const d = plan.destination || destination;
+  const n = plan.days ?? plan.itinerary?.length ?? resolvedDays;
+  const stops = plan.meta?.totalStops ?? 0;
+  const hrs = plan.meta?.avgHoursPerDay ?? 0;
+  return `This ${n}-day ${d} plan has ${stops} stops and about ${hrs} hrs/day—a solid balance. For "is X days enough?", it depends: ${n} days works well for a focused trip; you can ask to add more days or change the pace if you’d like.`;
+}
+
+/**
  * @swagger
  * /trips/agent/chat:
  *   post:
@@ -1776,47 +1871,21 @@ app.post(
   async (req, res, next) => {
     try {
       const { messages = [], context = {} } = req.body || {};
-      const destination = (context.destination && String(context.destination).trim()) || "Your Trip";
-      const days = Math.min(10, Math.max(1, Number(context.days) || 3));
-      const pace = context.pace || "balanced";
-      const fallbackPlan = () =>
-        buildTripPlan({ destination, days, pace, seed: Date.now() });
-
-      const adapters = getTripAgentAdapters();
-      const contextForAdapter = {
-        destination,
-        days,
-        pace,
-        currentItinerary: context.currentItinerary,
-      };
-      if (adapters.length === 0) {
-        if (process.env.NODE_ENV !== "production") {
-          console.log("Trip agent: no API keys set (GEMINI_API_KEY / GROQ_API_KEY); using static plan.");
-        }
-        return res.status(200).json(fallbackPlan());
-      }
-      if (process.env.NODE_ENV !== "production") {
-        console.log("Trip agent: trying", adapters.map((a) => a.name).join(" then "));
-      }
-      for (const adapter of adapters) {
-        try {
-          const plan = await adapter.generateTripFromChat(messages, contextForAdapter);
-          if (process.env.NODE_ENV !== "production") {
-            console.log("Trip agent: responded via", adapter.name);
-          }
-          return res.status(200).json(plan);
-        } catch (aiError) {
-          console.warn(
-            `Trip agent [${adapter.name}] failed, trying next:`,
-            aiError?.message || aiError
-          );
-        }
-      }
-      if (process.env.NODE_ENV !== "production") {
-        console.log("Trip agent: all adapters failed; using static plan (agentUnavailable).");
-      }
-      const plan = fallbackPlan();
-      return res.status(200).json({ ...plan, agentUnavailable: true });
+      const result = await handleTripAgentChat({
+        messages,
+        context,
+        buildTripPlan: (opts) => buildTripPlan(opts),
+      });
+      const { plan, assistantMessage, aiUnconfigured, agentUnavailable } = result;
+      const destination = plan?.destination || context?.destination || "Your Trip";
+      const days = plan?.days ?? context?.days ?? 3;
+      const fallbackMsg = `Got it. ${days} days for ${destination}. Ask to add more days or change the pace if you'd like.`;
+      return res.status(200).json({
+        ...plan,
+        assistantMessage: (assistantMessage && String(assistantMessage).trim()) ? assistantMessage : fallbackMsg,
+        ...(aiUnconfigured && { aiUnconfigured: true }),
+        ...(agentUnavailable && { agentUnavailable: true }),
+      });
     } catch (error) {
       return next(error);
     }
@@ -3686,6 +3755,12 @@ async function start() {
     console.log(`🚀 Auth server listening on port ${PORT}`);
     console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
     console.log(`🏥 Health check: http://localhost:${PORT}/health`);
+    const tripAgentAdapters = getTripAgentAdapters();
+    if (tripAgentAdapters.length > 0) {
+      console.log(`🤖 Trip agent: ${tripAgentAdapters.length} adapter(s) configured (${tripAgentAdapters.map((a) => a.name).join(", ")})`);
+    } else {
+      console.log("🤖 Trip agent: no API keys — set GEMINI_API_KEY or GROQ_API_KEY in apps/backend/.env.development (restart after adding)");
+    }
     if (!process.env.MONGODB_URI) {
       console.log("📁 Storage: file-based (set MONGODB_URI to use MongoDB)");
     } else {

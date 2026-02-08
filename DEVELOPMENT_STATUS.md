@@ -1,15 +1,15 @@
 # 🚧 Development Status
 
-> **Last Updated:** February 7, 2026  
-> **Current Phase:** Ready for MVP4  
-> **Next phase:** MVP4 (AI Trip Agent) — start when you explicitly approve. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
+> **Last Updated:** February 8, 2026  
+> **Current Phase:** MVP4 (AI Trip Agent) implemented  
+> **Next phase:** MVP5 (Marketplace) when approved. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for AI setup and usage.
 
 ---
 
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**Ready for MVP4:** MVP1, MVP2, MVP3, Design Optimization, and Additional features (Prerequisites) are complete. You can start MVP4 when you explicitly approve. **Optional:** Complete MongoDB setup for production persistence (backend supports MongoDB when `MONGODB_URI` is set; see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
+**MVP4 (AI Trip Agent) implemented.** Plan with AI on Home and Trip Detail (FAB): chat to create/refine itineraries, change days/pace/destination, and ask questions. Backend tries Gemini then Groq; parses user message for requested days; returns `assistantMessage` for conversational replies and `aiUnconfigured` when no API keys so the UI can explain setup. **Optional:** MongoDB for production (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
 
 **Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
@@ -66,10 +66,9 @@
 
 ## 🎯 Next Tasks (Priority Order)
 
-### Immediate (when you approve MVP4 — AI Trip Agent)
-1. Follow [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for task breakdown and implementation (adapter pattern, chat endpoint(s), frontend AI chat + FAB).
-2. Provide API keys (e.g. Gemini, Groq, OpenRouter) after implementation; free-tier providers supported.
-3. Start MVP4 implementation only after explicit approval. Do not start MVP5 until MVP4 is complete.
+### Immediate (MVP4 done; next when you approve)
+1. **MVP4:** Implemented. Set `GEMINI_API_KEY` and/or `GROQ_API_KEY` in backend (see [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)) so Plan with AI returns personalized replies. Without keys, users see a clear "AI not set up" message and a suggested itinerary.
+2. Do not start MVP5 (Marketplace) until explicitly approved.
 
 ### Optional (before or during MVP4)
 - **MongoDB:** Create Atlas cluster, set `MONGODB_URI` locally and on Render; optionally run migration script (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).

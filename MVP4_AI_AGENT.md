@@ -1,8 +1,8 @@
 # MVP4: AI Trip Agent
 
 **Last Updated:** February 2026  
-**Status:** Planning complete; implementation not started  
-**Purpose:** Chat-based trip creation and editing. AI returns data in the same format as existing `POST /trips/plan` for seamless integration. Provider-agnostic adapter pattern; user supplies API keys after implementation.
+**Status:** Implemented  
+**Purpose:** Chat-based trip creation and editing. AI returns data in the same format as existing `POST /trips/plan` for seamless integration. Provider-agnostic adapter pattern (Gemini, Groq); user/developer supplies API keys.
 
 ---
 
@@ -46,7 +46,7 @@ The AI adapter **must** return the same shape as the current `POST /trips/plan` 
 
 ### Response shape
 
-- **Top level:** `destination` (string), `pace` (string), `days` (number), `generatedAt` (ISO string), `isFallback` (boolean, optional), `meta` (object, optional), **`itinerary`** (array).
+- **Top level:** `destination` (string), `pace` (string), `days` (number), `generatedAt` (ISO string), `isFallback` (boolean, optional), `meta` (object, optional), **`itinerary`** (array). Optional: `assistantMessage` (string, brief reply to the user), `agentUnavailable` (boolean, when static fallback used after AI failure), `aiUnconfigured` (boolean, when no API keys are set).
 - **`itinerary`:** Array of day objects. Each day:
   - `day` (number, 1-based)
   - `area` (string)
@@ -201,6 +201,28 @@ Gemini can return **429** with a message like "You exceeded your current quota".
 - **Region / billing:** Some regions or new accounts need billing enabled (even for free tier). See [Google AI pricing](https://ai.google.dev/pricing).
 
 When all configured AI providers fail (e.g. 429), the app **still works**: you get a suggested itinerary from the static planner and a short message that the AI was temporarily limited. With both Gemini and Groq keys set, Gemini is tried first, then Groq; you can edit the plan or try again later.
+
+---
+
+## 9. How users see it (UX)
+
+| Situation | What the user sees |
+|-----------|---------------------|
+| **No API keys set** | Message: "The AI assistant isn't set up yet. Add a Gemini or Groq API key…" and a suggested itinerary they can edit. Every chat turn returns the same static plan until keys are added. |
+| **Keys set, AI succeeds** | Personalized reply when they ask questions (e.g. "How good is the plan?"), and plan updates when they request changes (e.g. "Make it 5 days"). Optional `assistantMessage` in the response is shown in the chat bubble. |
+| **Keys set, all adapters fail (e.g. 429)** | Message: "We used a suggested itinerary because the AI assistant was temporarily limited…" and the static plan. |
+
+So **if the user always gets the same generic response**, it almost always means no API key is configured: they are seeing the static planner. Add `GEMINI_API_KEY` or `GROQ_API_KEY` in the backend and restart.
+
+---
+
+## 10. How to use Plan with AI (end user)
+
+- **Change the trip:** Say e.g. "Make it 5 days", "Shorten to 3 days", "More relaxed pace", "Switch to Rome". The plan updates and the summary reflects the new days/destination/pace.
+- **Ask questions:** e.g. "How good is this plan?", "Any tips?", "What do you think?" The AI can return a brief conversational reply (when keys are set and the model supports it).
+- **Refine:** e.g. "Add a day for wine tasting", "Focus on museums". The AI returns an updated itinerary.
+
+Without API keys, only the static suggested itinerary is returned and the chat explains that the AI isn't set up.
 
 ---
 
