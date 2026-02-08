@@ -51,7 +51,9 @@ function validateAndNormalizePlan(raw, context) {
     typeof raw.destination === "string" && raw.destination.trim()
       ? raw.destination.trim()
       : (context.destination && String(context.destination).trim()) || "Your Trip";
-  const days = clampDays(Number(raw.days) ?? context.days ?? 3);
+  const requestedDays = clampDays(
+    context.preferredDays ?? Number(raw.days) ?? context.days ?? 3
+  );
   const pace = normalizePace(raw.pace || context.pace);
 
   const itinerary = Array.isArray(raw.itinerary) ? raw.itinerary : [];
@@ -91,28 +93,40 @@ function validateAndNormalizePlan(raw, context) {
     });
   }
 
-  // Ensure we have at least one day with one slot if empty
+  const emptyDay = (dayNum) => ({
+    day: dayNum,
+    area: "",
+    totalHours: 0,
+    slots: [
+      { timeOfDay: "morning", totalHours: 0, items: [] },
+      { timeOfDay: "afternoon", totalHours: 0, items: [] },
+      { timeOfDay: "evening", totalHours: 0, items: [] },
+    ],
+  });
+
   if (normalizedItinerary.length === 0) {
-    normalizedItinerary.push({
-      day: 1,
-      area: "",
-      totalHours: 0,
-      slots: [
-        {
-          timeOfDay: "morning",
-          totalHours: 0,
-          items: [],
-        },
-      ],
-    });
+    normalizedItinerary.push(emptyDay(1));
   }
+
+  // Use requested days as canonical: pad or trim itinerary so output has exactly that many days
+  while (normalizedItinerary.length < requestedDays) {
+    normalizedItinerary.push(emptyDay(normalizedItinerary.length + 1));
+  }
+  if (normalizedItinerary.length > requestedDays) {
+    normalizedItinerary.length = requestedDays;
+  }
+  const numDays = normalizedItinerary.length;
 
   const totalStops = normalizedItinerary.reduce(
     (sum, d) => sum + d.slots.reduce((s, slot) => s + slot.items.length, 0),
     0
   );
   const totalHours = normalizedItinerary.reduce((sum, d) => sum + d.totalHours, 0);
-  const numDays = normalizedItinerary.length;
+
+  const assistantMessage =
+    typeof raw.message === "string" && raw.message.trim()
+      ? raw.message.trim().slice(0, 500)
+      : undefined;
 
   return {
     destination,
@@ -128,6 +142,7 @@ function validateAndNormalizePlan(raw, context) {
       maxStopsPerDay: pace === "fast" ? 5 : pace === "relaxed" ? 3 : 4,
     },
     itinerary: normalizedItinerary,
+    ...(assistantMessage && { assistantMessage }),
   };
 }
 
@@ -135,43 +150,54 @@ function validateAndNormalizePlan(raw, context) {
  * Build system + user prompt for the model.
  */
 function buildPrompt(messages, context) {
+  const requestedDays = context.preferredDays != null ? context.preferredDays : (context.days || 3);
   const ctx = {
     destination: context.destination || "unknown",
-    days: context.days || 3,
+    days: requestedDays,
     pace: context.pace || "balanced",
     hasCurrentItinerary: Array.isArray(context.currentItinerary) && context.currentItinerary.length > 0,
   };
-  const system = `You are a trip planning assistant. You produce a day-by-day itinerary as a single JSON object.
+  const system = `You are a friendly, knowledgeable trip planning assistant. You produce a day-by-day itinerary as a single JSON object and add a short conversational "message" when the user asks a question or when you change the plan.
 
-Rules:
+CRITICAL RULES:
 - Respond with ONLY valid JSON, no markdown or code fences.
-- Top-level keys: destination (string), pace (string: relaxed|balanced|fast), days (number 1-10), generatedAt (ISO date string), isFallback (false), meta (object with totalStops, avgStopsPerDay, avgHoursPerDay, maxHoursPerDay, maxStopsPerDay), itinerary (array).
+- You MUST output exactly ${ctx.days} day(s) in the itinerary: the "itinerary" array MUST have exactly ${ctx.days} objects (one per day). The user has requested this; do not ignore it. If you have fewer days, add new day objects; if more, trim to ${ctx.days}.
+- Top-level keys: destination (string), pace (string: relaxed|balanced|fast), days (number: must be ${ctx.days}), generatedAt (ISO date string), isFallback (false), meta (object with totalStops, avgStopsPerDay, avgHoursPerDay, maxHoursPerDay, maxStopsPerDay), itinerary (array of exactly ${ctx.days} day objects). Include "message" (string) for a brief reply to the user.
 - Each itinerary item: day (1-based number), area (string), totalHours (number), slots (array).
 - Each slot: timeOfDay ("morning"|"afternoon"|"evening"), totalHours (number), items (array).
 - Each item: name (string), category (one of: landmark, museum, park, food, viewpoint, neighborhood, market, experience, nightlife, relax), durationHours (number).
-- Default context: destination "${ctx.destination}", ${ctx.days} days, pace ${ctx.pace}. If the user's messages ask to change the number of days (e.g. "shorten to 3 days", "make it 5 days"), the destination, or the pace (e.g. "more relaxed", "faster"), apply those changes and output the updated itinerary.`;
+
+Context: destination "${ctx.destination}", ${ctx.days} days, pace ${ctx.pace}.
+
+When the user asks to CHANGE the trip (e.g. "make it 5 days", "shorten to 3 days", "more relaxed"): apply the change and output an itinerary with exactly the requested number of days. Set "days" to that number. Add a short "message" confirming the change (e.g. "I've updated it to 5 days and added two more days of activities.").
+
+When the user asks a QUESTION or opinion (e.g. "is this a good trip?", "how good is my plan?", "what do you think?"): your "message" MUST be a direct, short answer that evaluates or advises. BAD: "Here's your 3-day X plan with 12 stops (6 hrs/day)." GOOD: "This plan looks solid—good mix of activities and about 6 hrs/day is sustainable. Ask to add days or change pace if you want." Return the current itinerary unchanged (same days and content).`;
   const userParts = [
-    `Default context: destination=${ctx.destination}, days=${ctx.days}, pace=${ctx.pace}.`,
+    `Context: destination=${ctx.destination}, days=${ctx.days}, pace=${ctx.pace}.`,
   ];
   for (const m of messages) {
-    if (m.role === "user" && m.content) userParts.push(`User: ${m.content}`);
-    if (m.role === "assistant" && m.content) userParts.push(`Assistant: ${m.content}`);
+    if (m && String(m.role).toLowerCase() === "user" && m.content) userParts.push(`User: ${m.content}`);
+    if (m && String(m.role).toLowerCase() === "assistant" && m.content) userParts.push(`Assistant: ${m.content}`);
   }
   userParts.push(
-    "Reply with the complete itinerary as a single JSON object only (no explanation before or after)."
+    "Reply with the complete JSON only. Use exactly " + ctx.days + " day(s) in itinerary. Include a \"message\" that answers the user's question or confirms the change (never a generic restatement of the plan)."
   );
   return { system, user: userParts.join("\n") };
 }
+
+const FETCH_TIMEOUT_MS = Number(process.env.TRIP_AGENT_FETCH_TIMEOUT_MS) || 8_000;
 
 /**
  * Call Gemini API once. Returns { ok, data, status, errText }.
  */
 async function callGeminiOnce(apiKey, body) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${encodeURIComponent(apiKey)}`;
+  const signal = AbortSignal.timeout ? AbortSignal.timeout(FETCH_TIMEOUT_MS) : undefined;
   const res = await fetch(url, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    signal,
   });
   const errText = await res.text();
   if (!res.ok) {
@@ -235,6 +261,7 @@ async function geminiGenerateTripFromChat(messages, context, apiKey) {
  * Returns { ok, data, status, errText }.
  */
 async function callGroqOnce(apiKey, body) {
+  const signal = AbortSignal.timeout ? AbortSignal.timeout(FETCH_TIMEOUT_MS) : undefined;
   const res = await fetch("https://api.groq.com/openai/v1/chat/completions", {
     method: "POST",
     headers: {
@@ -242,6 +269,7 @@ async function callGroqOnce(apiKey, body) {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify(body),
+    signal,
   });
   const errText = await res.text();
   if (!res.ok) {
@@ -256,7 +284,7 @@ async function callGroqOnce(apiKey, body) {
   return { ok: true, data };
 }
 
-const GROQ_MODEL = "llama-3.1-70b-versatile";
+const GROQ_MODEL = process.env.GROQ_MODEL || "llama-3.3-70b-versatile";
 
 /**
  * Groq adapter: OpenAI-compatible chat completions, parses JSON from response.
@@ -325,23 +353,35 @@ function createTripAgentAdapter(provider, apiKey) {
   return null;
 }
 
+function isRealApiKey(key) {
+  if (!key || typeof key !== "string") return false;
+  const k = key.trim();
+  if (!k.length) return false;
+  const lower = k.toLowerCase();
+  if (lower.includes("your-") && lower.includes("api-key")) return false;
+  if (lower === "xxx" || lower === "xxx..." || k === "sk-...") return false;
+  return true;
+}
+
 /**
- * Get ordered list of configured adapters to try (Gemini first, then Groq).
- * Each entry is { name, generateTripFromChat }. Use in sequence; on first success return.
+ * Get ordered list of configured adapters to try (Groq first — fast, then Gemini as fallback).
+ * Skips placeholder keys so we don't wait on invalid config.
  */
 function getTripAgentAdapters() {
   const adapters = [];
+  const groqKey = (process.env.GROQ_API_KEY || "").trim();
+  if (isRealApiKey(groqKey)) {
+    const groq = createTripAgentAdapter("groq", groqKey);
+    if (groq) adapters.push(groq);
+  }
   const geminiKey =
     process.env.TRIP_AGENT_API_KEY && process.env.TRIP_AGENT_PROVIDER === "gemini"
       ? process.env.TRIP_AGENT_API_KEY
       : process.env.GEMINI_API_KEY || "";
-  const gemini = createTripAgentAdapter("gemini", geminiKey);
-  if (gemini) adapters.push(gemini);
-
-  const groqKey = process.env.GROQ_API_KEY || "";
-  const groq = createTripAgentAdapter("groq", groqKey);
-  if (groq) adapters.push(groq);
-
+  if (isRealApiKey(geminiKey)) {
+    const gemini = createTripAgentAdapter("gemini", geminiKey.trim());
+    if (gemini) adapters.push(gemini);
+  }
   return adapters;
 }
 

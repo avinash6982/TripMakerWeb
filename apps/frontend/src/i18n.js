@@ -81,9 +81,14 @@ const resources = {
           fallback:
             "Showing a general plan because this destination is not in our starter dataset yet.",
           agentUnavailable:
-            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
+            "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
+          agentUnavailableWithReply:
+            "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
           assistantSummary: "Here's your {{days}}-day {{destination}} plan with {{stops}} stops ({{hours}} hrs/day).",
-          assistantFallback: "Suggested itinerary (AI was temporarily limited—edit below or try again in a few minutes).",
+          assistantShortFallback: "Got it. Ask to add more days or change the pace if you'd like.",
+          assistantFallback: "Suggested itinerary (we tried all AI providers; edit below or try again in a few minutes).",
+          aiUnconfigured:
+            "The AI assistant isn't set up yet. Add a Gemini or Groq API key in the backend (see docs) to get personalized replies, change days or pace, and ask questions about your trip. Below is a suggested itinerary you can edit.",
         },
         map: {
           title: "Map preview",
@@ -676,7 +681,9 @@ const resources = {
           fallback:
             "यह गंतव्य हमारे शुरुआती डेटा में नहीं है, इसलिए सामान्य योजना दिखाई गई है।",
           agentUnavailable:
-            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
+            "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
+          agentUnavailableWithReply:
+            "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
         },
         map: {
           title: "मैप प्रीव्यू",
@@ -1079,7 +1086,9 @@ const resources = {
           fallback:
             "ഈ ലക്ഷ്യസ്ഥാനം ഡാറ്റാസെറ്റിൽ ഇല്ലാത്തതിനാൽ പൊതുവായ പ്ലാൻ ആണ്.",
           agentUnavailable:
-            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
+            "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
+          agentUnavailableWithReply:
+            "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
         },
         map: {
           title: "മാപ്പ് പ്രിവ്യൂ",
@@ -1479,7 +1488,9 @@ const resources = {
           generated: "تم إنشاؤها من اقتراحات غير متصلة.",
           fallback: "نعرض خطة عامة لأن الوجهة غير موجودة في بياناتنا الأولية.",
           agentUnavailable:
-            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
+            "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
+          agentUnavailableWithReply:
+            "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
         },
         map: {
           title: "معاينة الخريطة",
@@ -1879,7 +1890,9 @@ const resources = {
           fallback:
             "Mostramos un plan general porque este destino aún no está en nuestro conjunto inicial.",
           agentUnavailable:
-            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
+            "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
+          agentUnavailableWithReply:
+            "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
         },
         map: {
           title: "Vista previa del mapa",
@@ -2290,7 +2303,9 @@ const resources = {
           fallback:
             "Wir zeigen einen allgemeinen Plan, da dieses Ziel noch nicht im Datensatz ist.",
           agentUnavailable:
-            "We used a suggested itinerary because the AI assistant was temporarily limited. You can edit it or try again in a few minutes.",
+            "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
+          agentUnavailableWithReply:
+            "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
         },
         map: {
           title: "Kartenvorschau",

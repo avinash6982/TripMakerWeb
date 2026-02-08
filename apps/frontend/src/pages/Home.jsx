@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MapView from "../components/MapView";
 import { getPlaceSuggestionsForDestination } from "../data/placeSuggestions";
@@ -22,6 +22,7 @@ const paceOptions = [
 
 const Home = () => {
   const { t } = useTranslation();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [formState, setFormState] = useState({
     destination: "",
     days: 3,
@@ -48,6 +49,36 @@ const Home = () => {
   const [agentContext, setAgentContext] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentChatInput, setAgentChatInput] = useState("");
+  const agentMessagesEndRef = useRef(null);
+
+  useEffect(() => {
+    agentMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [agentMessages, agentLoading]);
+
+  // Allow opening AI chat via URL for testing (e.g. /home?openAIChat=1&destination=Kochi)
+  useEffect(() => {
+    const open = searchParams.get("openAIChat");
+    const dest = searchParams.get("destination")?.trim();
+    if (open === "1" && dest) {
+      setFormState((prev) => ({ ...prev, destination: dest }));
+      const days = Math.min(10, Math.max(1, Number(searchParams.get("days")) || 3));
+      const pace = searchParams.get("pace") || "balanced";
+      setAgentContext({ destination: dest, days, pace });
+      setAgentMessages([]);
+      setShowAIChat(true);
+      // Clear URL params after a tick so chat opens first (helps testing and avoids bookmarking params)
+      const timeoutId = setTimeout(() => {
+        setSearchParams((prev) => {
+          prev.delete("openAIChat");
+          prev.delete("destination");
+          prev.delete("days");
+          prev.delete("pace");
+          return prev;
+        }, { replace: true });
+      }, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps -- run once on mount
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -145,20 +176,33 @@ const Home = () => {
       });
       setPlan(planResponse);
       setEditingDay(null);
-      const assistantContent = planResponse.agentUnavailable
-        ? t("tripPlanner.results.assistantFallback")
-        : t("tripPlanner.results.assistantSummary", {
-            days: planResponse.days,
-            destination: planResponse.destination || agentContext.destination,
-            stops: planResponse.meta?.totalStops ?? 0,
-            hours: planResponse.meta?.avgHoursPerDay ?? 0,
-          });
+      setAgentContext((prev) =>
+        prev
+          ? {
+              ...prev,
+              destination: planResponse.destination || prev.destination,
+              days: planResponse.days ?? prev.days,
+              pace: planResponse.pace || prev.pace,
+            }
+          : null
+      );
+      const assistantContent =
+        (planResponse.assistantMessage && String(planResponse.assistantMessage).trim()) ||
+        (planResponse.aiUnconfigured
+          ? t("tripPlanner.results.aiUnconfigured")
+          : planResponse.agentUnavailable
+            ? t("tripPlanner.results.assistantFallback")
+            : t("tripPlanner.results.assistantShortFallback"));
       setAgentMessages((prev) => [
         ...prev,
         { role: "assistant", content: assistantContent },
       ]);
       if (planResponse.agentUnavailable) {
-        setMessage(t("tripPlanner.results.agentUnavailable"));
+        setMessage(
+          planResponse.assistantMessage && String(planResponse.assistantMessage).trim()
+            ? t("tripPlanner.results.agentUnavailableWithReply")
+            : t("tripPlanner.results.agentUnavailable")
+        );
       }
       loadMapForDestination(planResponse.destination || agentContext.destination);
     } catch (error) {
@@ -396,7 +440,7 @@ const Home = () => {
                     {agentContext.destination} · {agentContext.days} {agentContext.days === 1 ? "day" : "days"} · {t(`tripPlanner.pace.${agentContext.pace}`)}
                   </p>
                 )}
-                <div className="trip-agent-chat-messages">
+                <div className="trip-agent-chat-messages" role="log" aria-live="polite">
                   {agentMessages.map((m, i) => (
                     <div key={i} className={`trip-agent-msg trip-agent-msg-${m.role}`}>
                       <span className="trip-agent-msg-role">{m.role === "user" ? "You" : "AI"}</span>
@@ -409,9 +453,11 @@ const Home = () => {
                       <span className="trip-agent-msg-content">…</span>
                     </div>
                   )}
+                  <div ref={agentMessagesEndRef} aria-hidden="true" />
                 </div>
                 <form className="trip-agent-chat-form" onSubmit={handleAgentSend}>
                   <input
+                    id="agent-chat-input"
                     type="text"
                     value={agentChatInput}
                     onChange={(e) => setAgentChatInput(e.target.value)}
@@ -428,7 +474,10 @@ const Home = () => {
                   </button>
                 </form>
                 {message && (
-                  <p className="message error" role="alert">
+                  <p
+                    className={`message ${message === t("tripPlanner.results.agentUnavailableWithReply") ? "info" : "error"}`}
+                    role="alert"
+                  >
                     {message}
                   </p>
                 )}
@@ -555,7 +604,14 @@ const Home = () => {
                 <p className="planner-note">{t("tripPlanner.results.fallback")}</p>
               )}
               {plan.agentUnavailable && (
-                <p className="planner-note">{t("tripPlanner.results.agentUnavailable")}</p>
+                <p className="planner-note">
+                  {plan.assistantMessage && String(plan.assistantMessage).trim()
+                    ? t("tripPlanner.results.agentUnavailableWithReply")
+                    : t("tripPlanner.results.agentUnavailable")}
+                </p>
+              )}
+              {plan.aiUnconfigured && (
+                <p className="planner-note">{t("tripPlanner.results.aiUnconfigured")}</p>
               )}
               <div className="planner-save-row">
                 <button

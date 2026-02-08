@@ -448,12 +448,26 @@ const TripDetail = () => {
       });
       const updated = await fetchTrip(trip.id);
       setTrip(updated);
+      const assistantContent =
+        (planResponse.assistantMessage && String(planResponse.assistantMessage).trim()) ||
+        (planResponse.aiUnconfigured
+          ? t("tripPlanner.results.aiUnconfigured")
+          : planResponse.agentUnavailable
+            ? t("tripPlanner.results.assistantFallback")
+            : t("tripPlanner.results.assistantShortFallback"));
       setAgentMessages((prev) => [
         ...prev,
-        { role: "assistant", content: t("tripPlanner.results.title") },
+        { role: "assistant", content: assistantContent },
       ]);
       if (planResponse.agentUnavailable) {
-        setAgentNotice(t("tripPlanner.results.agentUnavailable"));
+        setAgentNotice(
+          planResponse.assistantMessage && String(planResponse.assistantMessage).trim()
+            ? t("tripPlanner.results.agentUnavailableWithReply")
+            : t("tripPlanner.results.agentUnavailable")
+        );
+      }
+      if (planResponse.aiUnconfigured) {
+        setAgentNotice(t("tripPlanner.results.aiUnconfigured"));
       }
     } catch (err) {
       setAgentError(err?.message || "Update failed.");
