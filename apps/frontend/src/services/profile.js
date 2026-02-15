@@ -1,4 +1,4 @@
-import { requestJson } from "./auth";
+import { requestJson, requestWithAuth } from "./auth";
 
 const PROFILE_STORAGE_KEY = "waypoint.profile";
 
@@ -39,10 +39,10 @@ export const clearStoredProfile = () => {
 };
 
 export const fetchProfile = (userId) =>
-  requestJson(`/profile/${userId}`, { method: "GET" }, "Unable to load profile.");
+  requestWithAuth(`/profile/${userId}`, { method: "GET" }, "Unable to load profile.");
 
 export const updateProfile = (userId, payload) =>
-  requestJson(
+  requestWithAuth(
     `/profile/${userId}`,
     {
       method: "PUT",

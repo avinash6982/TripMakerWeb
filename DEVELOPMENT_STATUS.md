@@ -1,6 +1,6 @@
 # 🚧 Development Status
 
-> **Last Updated:** February 8, 2026  
+> **Last Updated:** February 15, 2026  
 > **Current Phase:** MVP4 (AI Trip Agent) implemented  
 > **Next phase:** MVP5 (Marketplace) when approved. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for AI setup and usage.
 
@@ -25,6 +25,13 @@
 ---
 
 ## ✅ Today's Completed Tasks
+
+### February 15, 2026 (Full evaluation + auth/session)
+- **Evaluation:** Full app evaluation (docs, API, browser, responsiveness, mobile). See [EVALUATION_REPORT.md](EVALUATION_REPORT.md). Verified: auth, session expiry, AI agent with real keys, route/doc alignment; applied login layout tweak for short viewports.
+- **Session expiry:** On any 401 from authenticated API calls, frontend clears user/profile storage, redirects to `/login?reason=session_expired`, and shows a clear message (“Your session has expired. Please log in again.”) in all 6 languages.
+- **Authenticated requests:** Added `requestWithAuth()` in `auth.js`; trips and profile services use it so 401 is handled in one place.
+- **MongoDB startup:** When `MONGODB_URI` is set, backend waits for MongoDB (up to 15s) before listening, so production uses MongoDB from first request and accounts persist. If connect fails, falls back to file storage and retries MongoDB in background.
+- **Docs:** API_REFERENCE (session expiry), MONGODB_SETUP (startup behavior), DEVELOPMENT_STATUS updated.
 
 ### February 6, 2026 (MVP3 fixes – web)
 - Gallery: comments as toggleable sidebar (same UI as Trip Detail).

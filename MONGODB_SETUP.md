@@ -58,8 +58,8 @@
 
 ### 5. Run the app
 
-- **With `MONGODB_URI` set:** Backend uses MongoDB. Start with `npm run dev` (from repo root) or `npm run dev` in `apps/backend/`. On first run, the dev user is seeded into MongoDB.
-- **Without `MONGODB_URI`:** Backend falls back to file-based storage (`data/users.json` locally; ephemeral on Render).
+- **With `MONGODB_URI` set:** Backend waits for MongoDB (up to 15s) at startup, then uses it for all user/trip storage. This ensures accounts persist from the first request and avoids losing users if the server had started with file storage first. Start with `npm run dev` (from repo root) or `npm run dev` in `apps/backend/`. On first run, the dev user is seeded into MongoDB. If MongoDB is unavailable at startup, the server still starts using file storage and retries MongoDB in the background every 30s.
+- **Without `MONGODB_URI`:** Backend uses file-based storage (`data/users.json` locally; ephemeral on Render).
 
 ### 6. (Optional) Migrate existing file data to MongoDB
 
@@ -92,4 +92,4 @@ If you have important data in `data/users.json` and want it in MongoDB:
 - **Authentication failed:** Check username/password in the URI; URL-encode special characters in the password.
 - **Database not found:** The app creates the database and collections on first use; ensure the backend has run at least once with `MONGODB_URI` set.
 - **Still using file storage:** Ensure `MONGODB_URI` is set in the same environment where the backend runs (e.g. same `.env` file, or Render env vars saved and redeployed).
-- **Render: TLS / "tlsv1 alert internal error":** The app now starts the HTTP server first, then connects to MongoDB in the background and retries every 30s. The deploy will succeed and the service will stay up. In Atlas, ensure **Network Access** allows **0.0.0.0/0** (so Render’s outbound IPs can connect). Check Render logs for "MongoDB connect failed (will retry in 30s)" and later "Switched to MongoDB storage" when it connects. Until then, the app uses file storage (ephemeral on Render). If you previously set **NODE_VERSION=18** for the backend to work around TLS, you can remove it and use the default Node; the app no longer blocks startup on MongoDB.
+- **Render: TLS / "tlsv1 alert internal error":** When `MONGODB_URI` is set, the backend tries to connect to MongoDB first (up to 15s). If that succeeds, all storage uses MongoDB from startup so accounts persist. If it fails (e.g. TLS or network), the server starts with file storage and retries MongoDB in the background every 30s. In Atlas, ensure **Network Access** allows **0.0.0.0/0**. Check Render logs for "Using MongoDB storage from startup" or "MongoDB connect failed (will retry in 30s)" and later "Switched to MongoDB storage".

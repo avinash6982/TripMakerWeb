@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getStoredUser, loginUser, setStoredUser } from "../services/auth";
 import { fetchProfile, saveProfile } from "../services/profile";
@@ -7,6 +7,7 @@ import { fetchProfile, saveProfile } from "../services/profile";
 const Login = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [formState, setFormState] = useState({ email: "", password: "" });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
@@ -15,8 +16,15 @@ const Login = () => {
     const user = getStoredUser();
     if (user) {
       navigate("/home", { replace: true });
+      return;
     }
-  }, [navigate]);
+    const reason = searchParams.get("reason");
+    if (reason === "session_expired") {
+      setMessage(t("auth.messages.sessionExpired"));
+      setStatus("error");
+      setSearchParams({}, { replace: true });
+    }
+  }, [navigate, searchParams, setSearchParams, t]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;

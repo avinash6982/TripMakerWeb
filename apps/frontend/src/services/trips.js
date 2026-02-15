@@ -1,10 +1,13 @@
+import { requestWithAuth } from "./auth";
+
 const DEFAULT_API_BASE = "/api";
 const API_BASE_URL = (import.meta.env.VITE_API_URL || DEFAULT_API_BASE).replace(/\/$/, "");
 
 /** Base URL for API (used for media redirects). */
 export const getApiBaseUrl = () => API_BASE_URL;
 
-const getAuthHeaders = () => {
+/** Auth headers for non-JSON or external redirects (e.g. presigned URL uploads). */
+export const getAuthHeaders = () => {
   try {
     const raw = typeof window !== "undefined" && window.localStorage?.getItem("waypoint.user");
     const user = raw ? JSON.parse(raw) : null;
@@ -17,30 +20,12 @@ const getAuthHeaders = () => {
   }
 };
 
-const requestJson = async (path, options, fallbackMessage = "Request failed.") => {
-  const response = await fetch(`${API_BASE_URL}${path}`, {
-    ...options,
-    headers: { ...getAuthHeaders(), ...options?.headers },
-  });
-  let data = null;
-  try {
-    data = await response.json();
-  } catch {
-    data = null;
-  }
-  if (!response.ok) {
-    const message = data?.error || data?.message || fallbackMessage;
-    throw new Error(message);
-  }
-  return data;
-};
-
 /**
  * Create a trip (save plan).
  * @param {{ name: string, destination: string, itinerary: Array, days?: number, pace?: string }} payload
  */
 export const createTrip = (payload) =>
-  requestJson(
+  requestWithAuth(
     "/trips",
     {
       method: "POST",
@@ -60,10 +45,7 @@ export const fetchFeed = async (params) => {
   if (params?.limit) search.set("limit", String(params.limit));
   const qs = search.toString();
   const path = `/trips/feed${qs ? `?${qs}` : ""}`;
-  const res = await fetch(`${API_BASE_URL}${path}`, { headers: getAuthHeaders() });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(data?.error || "Unable to load feed.");
-  return data;
+  return requestWithAuth(path, { method: "GET" }, "Unable to load feed.");
 };
 
 /**
@@ -72,20 +54,20 @@ export const fetchFeed = async (params) => {
  */
 export const fetchTrips = (params) => {
   const search = params?.status ? `?status=${encodeURIComponent(params.status)}` : "";
-  return requestJson(`/trips${search}`, { method: "GET" }, "Unable to load trips.");
+  return requestWithAuth(`/trips${search}`, { method: "GET" }, "Unable to load trips.");
 };
 
 /**
  * Get a single trip by ID.
  */
 export const fetchTrip = (id) =>
-  requestJson(`/trips/${id}`, { method: "GET" }, "Unable to load trip.");
+  requestWithAuth(`/trips/${id}`, { method: "GET" }, "Unable to load trip.");
 
 /**
  * Update a trip (partial: name, destination, days, pace, status, itinerary).
  */
 export const updateTrip = (id, payload) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${id}`,
     {
       method: "PUT",
@@ -98,13 +80,13 @@ export const updateTrip = (id, payload) =>
  * Delete a trip.
  */
 export const deleteTrip = (id) =>
-  requestJson(`/trips/${id}`, { method: "DELETE" }, "Unable to delete trip.");
+  requestWithAuth(`/trips/${id}`, { method: "DELETE" }, "Unable to delete trip.");
 
 /**
  * Archive a trip (sets status to archived).
  */
 export const archiveTrip = (id) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${id}/archive`,
     { method: "PATCH" },
     "Unable to archive trip."
@@ -114,7 +96,7 @@ export const archiveTrip = (id) =>
  * Unarchive a trip (sets status back to upcoming).
  */
 export const unarchiveTrip = (id) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${id}/unarchive`,
     { method: "PATCH" },
     "Unable to unarchive trip."
@@ -126,7 +108,7 @@ export const unarchiveTrip = (id) =>
  * @param {string} role - viewer | editor
  */
 export const createInvite = (tripId, role = "viewer") =>
-  requestJson(
+  requestWithAuth(
     `/trips/${tripId}/invite`,
     { method: "POST", body: JSON.stringify({ role }) },
     "Unable to create invite."
@@ -136,7 +118,7 @@ export const createInvite = (tripId, role = "viewer") =>
  * Redeem invite code (MVP2).
  */
 export const redeemInvite = (code) =>
-  requestJson(
+  requestWithAuth(
     "/invite/redeem",
     { method: "POST", body: JSON.stringify({ code }) },
     "Invalid or expired invite code."
@@ -148,7 +130,7 @@ export const redeemInvite = (code) =>
  * @param {string} userId - Collaborator's user ID to remove
  */
 export const removeCollaborator = (tripId, userId) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${tripId}/collaborators/${encodeURIComponent(userId)}`,
     { method: "DELETE" },
     "Unable to remove collaborator."
@@ -160,7 +142,7 @@ export const removeCollaborator = (tripId, userId) =>
  * @param {{ title: string, description?: string, category?: string, imageKey?: string, assigneeUserId?: string }} payload
  */
 export const addPrerequisite = (tripId, payload) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${tripId}/prerequisites`,
     { method: "POST", body: JSON.stringify(payload) },
     "Unable to add prerequisite."
@@ -173,7 +155,7 @@ export const addPrerequisite = (tripId, payload) =>
  * @param {{ title?: string, description?: string, category?: string, imageKey?: string }} payload
  */
 export const updatePrerequisite = (tripId, itemId, payload) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${tripId}/prerequisites/${encodeURIComponent(itemId)}`,
     { method: "PUT", body: JSON.stringify(payload) },
     "Unable to update prerequisite."
@@ -186,7 +168,7 @@ export const updatePrerequisite = (tripId, itemId, payload) =>
  * @param {{ assigneeUserId?: string | null, status?: 'pending' | 'done' }} payload
  */
 export const patchPrerequisite = (tripId, itemId, payload) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${tripId}/prerequisites/${encodeURIComponent(itemId)}`,
     { method: "PATCH", body: JSON.stringify(payload) },
     "Unable to update prerequisite."
@@ -198,7 +180,7 @@ export const patchPrerequisite = (tripId, itemId, payload) =>
  * @param {string} itemId
  */
 export const deletePrerequisite = (tripId, itemId) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${tripId}/prerequisites/${encodeURIComponent(itemId)}`,
     { method: "DELETE" },
     "Unable to delete prerequisite."
@@ -215,7 +197,7 @@ export const fetchTripMessages = (tripId, params = {}) => {
   if (params?.offset != null) search.set("offset", String(params.offset));
   const qs = search.toString();
   const path = `/trips/${tripId}/messages${qs ? `?${qs}` : ""}`;
-  return requestJson(path, { method: "GET" }, "Unable to load messages.");
+  return requestWithAuth(path, { method: "GET" }, "Unable to load messages.");
 };
 
 /**
@@ -224,7 +206,7 @@ export const fetchTripMessages = (tripId, params = {}) => {
  * @param {string} contentType - e.g. image/jpeg
  */
 export const getUploadPresign = (size, contentType) =>
-  requestJson(
+  requestWithAuth(
     "/upload/presign",
     {
       method: "POST",
@@ -241,7 +223,7 @@ export const getUploadPresign = (size, contentType) =>
 export const postTripMessage = (tripId, payload) => {
   const body = { text: String(payload?.text ?? "").trim() };
   if (payload?.imageKey) body.imageKey = String(payload.imageKey).trim();
-  return requestJson(
+  return requestWithAuth(
     `/trips/${tripId}/messages`,
     { method: "POST", body: JSON.stringify(body) },
     "Unable to send message."
@@ -253,14 +235,14 @@ export const postTripMessage = (tripId, payload) => {
  * @param {string} tripId
  */
 export const likeTrip = (tripId) =>
-  requestJson(`/trips/${tripId}/like`, { method: "POST" }, "Unable to like trip.");
+  requestWithAuth(`/trips/${tripId}/like`, { method: "POST" }, "Unable to like trip.");
 
 /**
  * Unlike a public trip (MVP3).
  * @param {string} tripId
  */
 export const unlikeTrip = (tripId) =>
-  requestJson(`/trips/${tripId}/like`, { method: "DELETE" }, "Unable to unlike trip.");
+  requestWithAuth(`/trips/${tripId}/like`, { method: "DELETE" }, "Unable to unlike trip.");
 
 /**
  * Get comments for a trip (MVP3).
@@ -273,7 +255,7 @@ export const fetchTripComments = (tripId, params = {}) => {
   if (params?.offset != null) search.set("offset", String(params.offset));
   const qs = search.toString();
   const path = `/trips/${tripId}/comments${qs ? `?${qs}` : ""}`;
-  return requestJson(path, { method: "GET" }, "Unable to load comments.");
+  return requestWithAuth(path, { method: "GET" }, "Unable to load comments.");
 };
 
 /**
@@ -284,7 +266,7 @@ export const fetchTripComments = (tripId, params = {}) => {
 export const postTripComment = (tripId, payload) => {
   const body = { text: String(payload?.text ?? "").trim() };
   if (payload?.imageKey) body.imageKey = String(payload.imageKey).trim();
-  return requestJson(
+  return requestWithAuth(
     `/trips/${tripId}/comments`,
     { method: "POST", body: JSON.stringify(body) },
     "Unable to post comment."
@@ -296,7 +278,7 @@ export const postTripComment = (tripId, payload) => {
  * @param {string} tripId
  */
 export const fetchGallery = (tripId) =>
-  requestJson(`/trips/${tripId}/gallery`, { method: "GET" }, "Unable to load gallery.");
+  requestWithAuth(`/trips/${tripId}/gallery`, { method: "GET" }, "Unable to load gallery.");
 
 /**
  * Add image to trip gallery (MVP3.9).
@@ -304,7 +286,7 @@ export const fetchGallery = (tripId) =>
  * @param {{ imageKey: string }} payload
  */
 export const postGalleryImage = (tripId, payload) =>
-  requestJson(
+  requestWithAuth(
     `/trips/${tripId}/gallery`,
     { method: "POST", body: JSON.stringify({ imageKey: String(payload?.imageKey ?? "").trim() }) },
     "Unable to add image."
@@ -316,7 +298,7 @@ export const postGalleryImage = (tripId, payload) =>
  * @param {string} imageId
  */
 export const likeGalleryImage = (tripId, imageId) =>
-  requestJson(`/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/like`, { method: "POST" }, "Unable to like.");
+  requestWithAuth(`/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/like`, { method: "POST" }, "Unable to like.");
 
 /**
  * Unlike a gallery image (MVP3.9).
@@ -324,7 +306,7 @@ export const likeGalleryImage = (tripId, imageId) =>
  * @param {string} imageId
  */
 export const unlikeGalleryImage = (tripId, imageId) =>
-  requestJson(`/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/like`, { method: "DELETE" }, "Unable to unlike.");
+  requestWithAuth(`/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/like`, { method: "DELETE" }, "Unable to unlike.");
 
 /**
  * Fetch comments for a gallery image (MVP3.9).
@@ -338,7 +320,7 @@ export const fetchGalleryImageComments = (tripId, imageId, params = {}) => {
   if (params?.offset != null) search.set("offset", String(params.offset));
   const qs = search.toString();
   const path = `/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/comments${qs ? `?${qs}` : ""}`;
-  return requestJson(path, { method: "GET" }, "Unable to load comments.");
+  return requestWithAuth(path, { method: "GET" }, "Unable to load comments.");
 };
 
 /**
@@ -350,7 +332,7 @@ export const fetchGalleryImageComments = (tripId, imageId, params = {}) => {
 export const postGalleryImageComment = (tripId, imageId, payload) => {
   const body = { text: String(payload?.text ?? "").trim() };
   if (payload?.imageKey) body.imageKey = String(payload.imageKey).trim();
-  return requestJson(
+  return requestWithAuth(
     `/trips/${tripId}/gallery/${encodeURIComponent(imageId)}/comments`,
     { method: "POST", body: JSON.stringify(body) },
     "Unable to post comment."

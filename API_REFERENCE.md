@@ -47,6 +47,11 @@ Authorization: Bearer <jwt_token>
 - **Default:** 7 days
 - **Configurable via:** `JWT_EXPIRES_IN` environment variable
 
+### Session expiry (frontend)
+- Protected endpoints return **401** when the token is missing, invalid, or expired.
+- The frontend treats any **401** on an authenticated request as session expiry: it clears stored user and profile, redirects to `/login?reason=session_expired`, and shows a translated message (e.g. "Your session has expired. Please log in again.").
+- Users can log in again with the same account; accounts persist when using MongoDB (see `MONGODB_SETUP.md`).
+
 ---
 
 ## Endpoints
