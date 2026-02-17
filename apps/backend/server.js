@@ -3744,13 +3744,38 @@ app.use((err, _req, res, _next) => {
 // START SERVER
 // ============================================================================
 
+const MONGODB_CONNECT_TIMEOUT_MS = 15000; // 15s: wait for MongoDB before listen when MONGODB_URI is set
+
+async function connectMongoWithTimeout() {
+  const dbModule = require("./lib/db");
+  return Promise.race([
+    dbModule.connect(),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error("MongoDB connection timeout")), MONGODB_CONNECT_TIMEOUT_MS)
+    ),
+  ]);
+}
+
 async function start() {
-  // Use file storage first so readUsers/writeUsers are always set
+  // Use file storage so readUsers/writeUsers are always set
   readUsers = readUsersFile;
   writeUsers = writeUsersFile;
   await seedDevUser();
 
-  // Listen immediately so Render detects an open port (avoids "No open ports" deploy failure)
+  if (process.env.MONGODB_URI) {
+    try {
+      await connectMongoWithTimeout();
+      const dbModule = require("./lib/db");
+      readUsers = dbModule.readUsers.bind(dbModule);
+      writeUsers = dbModule.writeUsers.bind(dbModule);
+      await seedDevUser();
+      console.log("✅ Using MongoDB storage from startup");
+    } catch (err) {
+      console.warn("MongoDB initial connect failed (using file storage; will retry in background):", err.message);
+      connectMongoInBackground();
+    }
+  }
+
   app.listen(PORT, () => {
     console.log(`🚀 Auth server listening on port ${PORT}`);
     console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
@@ -3763,9 +3788,10 @@ async function start() {
     }
     if (!process.env.MONGODB_URI) {
       console.log("📁 Storage: file-based (set MONGODB_URI to use MongoDB)");
+    } else if (readUsers === readUsersFile) {
+      console.log("📁 Storage: file-based (MongoDB will switch in when connected)");
     } else {
-      // Connect to MongoDB in background so TLS/network issues don't block startup
-      connectMongoInBackground();
+      console.log("📁 Storage: MongoDB");
     }
   });
 }

@@ -1,6 +1,6 @@
 # MVP1 Browser Test Checklist
 
-**Last Updated:** January 31, 2026  
+**Last Updated:** February 15, 2026  
 **Purpose:** Manual browser verification of all MVP1 features (1.1–1.13).  
 **MVP2:** See `MVP2_QA_CHECKLIST.md` for Discover feed, multi-day routes, sharing, and invite.
 
@@ -8,6 +8,20 @@
 **Test user:** `dev@tripmaker.com` / `DevUser123!`
 
 **Important:** After testing trip actions (Archive, Mark complete, Delete), confirm **no CORS errors** in the Console and **no "Failed to fetch"** on the page. If you see either, the backend CORS `methods` must include `PATCH` (and any other methods used by trip endpoints).
+
+**API smoke (optional):** Run `npm run test:smoke` to verify health, login, GET /trips, GET /profile, POST /trips/agent/chat.
+
+---
+
+## Viewport / responsive (multiple screen sizes)
+
+Verify at **320px**, **390px**, **768px**, **1280px** width (DevTools → device toolbar or resize window):
+
+- [ ] **Login:** Form and "Log in" button in view; no horizontal scroll.
+- [ ] **Home:** "Your Next Adventure" card, destination/days/pace inputs, "Generate plan" / "Plan with AI" visible; bottom nav (mobile) not overlapping content.
+- [ ] **Feed:** Hero, filter bar (stacked on narrow; Filter icon-only on small), trip cards, bottom nav.
+- [ ] **Trips:** List or empty state, "Create new trip", bottom nav.
+- [ ] **Profile:** Form and Save visible; bottom nav.
 
 ---
 

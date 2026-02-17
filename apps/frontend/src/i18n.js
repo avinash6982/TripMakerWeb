@@ -40,7 +40,7 @@ const resources = {
         heroCopyBody: "Enter a city and we will draft a day-by-day flow for you.",
         form: {
           destinationLabel: "Destination",
-          destinationPlaceholder: "e.g. Paris, Tokyo, New York",
+          destinationPlaceholder: "e.g. Paris, Tokyo",
           daysLabel: "Days",
           paceLabel: "Pace",
         },
@@ -77,6 +77,7 @@ const resources = {
           totalTime: "Total time: {{hours}} hrs",
           hoursShort: "{{hours}} hrs",
           itemMeta: "{{hours}} hrs · {{category}}",
+          placeName: "Place name",
           generated: "Generated from offline suggestions.",
           fallback:
             "Showing a general plan because this destination is not in our starter dataset yet.",
@@ -179,6 +180,7 @@ const resources = {
         chatPlaceholder: "Type a message...",
         chatSend: "Send",
         attachImage: "Attach image",
+        dropzonePrompt: "Drop image here or click to choose",
         removeImage: "Remove image",
         imageTooLarge: "Image must be 5 MB or less.",
         transportation: "Transportation",
@@ -284,7 +286,7 @@ const resources = {
         subtitle: "Public trips from the community",
         empty: "No public trips yet.",
         filterPlaceholder: "Filter by destination...",
-        interestPlaceholder: "Filter by interest (e.g. food, history)...",
+        interestPlaceholder: "Interest (e.g. food, history)",
         filter: "Filter",
         by: "by",
         days: "{{count}} days",
@@ -517,6 +519,7 @@ const resources = {
           loginSuccess: "Login successful.",
           registerSuccess: "Account created. You can now log in.",
           profileHint: "Account created. Update your profile details next.",
+          sessionExpired: "Your session has expired. Please log in again.",
         },
         login: {
           eyebrow: "Welcome back",
@@ -935,6 +938,7 @@ const resources = {
           loginSuccess: "लॉग इन सफल।",
           registerSuccess: "खाता बनाया गया। अब लॉग इन करें।",
           profileHint: "खाता बनाया गया। अब अपनी प्रोफ़ाइल अपडेट करें।",
+          sessionExpired: "आपका सत्र समाप्त हो गया। कृपया फिर से लॉग इन करें।",
         },
         login: {
           eyebrow: "फिर से स्वागत है",
@@ -1338,6 +1342,7 @@ const resources = {
           loginSuccess: "ലോഗിൻ വിജയിച്ചു.",
           registerSuccess: "അക്കൗണ്ട് സൃഷ്ടിച്ചു. ലോഗിൻ ചെയ്യുക.",
           profileHint: "അക്കൗണ്ട് സൃഷ്ടിച്ചു. പ്രൊഫൈൽ അപ്ഡേറ്റ് ചെയ്യുക.",
+          sessionExpired: "നിങ്ങളുടെ സെഷൻ കാലഹരണമായി. ദയവായി വീണ്ടും ലോഗിൻ ചെയ്യുക.",
         },
         login: {
           eyebrow: "സ്വാഗതം",
@@ -1741,6 +1746,7 @@ const resources = {
           loginSuccess: "تم تسجيل الدخول بنجاح.",
           registerSuccess: "تم إنشاء الحساب. يمكنك تسجيل الدخول الآن.",
           profileHint: "تم إنشاء الحساب. حدّث ملفك الشخصي الآن.",
+          sessionExpired: "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
         },
         login: {
           eyebrow: "مرحبًا بعودتك",
@@ -2152,6 +2158,7 @@ const resources = {
           loginSuccess: "Inicio de sesión exitoso.",
           registerSuccess: "Cuenta creada. Ya puedes iniciar sesión.",
           profileHint: "Cuenta creada. Actualiza tu perfil.",
+          sessionExpired: "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.",
         },
         login: {
           eyebrow: "Bienvenido de vuelta",
@@ -2565,6 +2572,7 @@ const resources = {
           loginSuccess: "Anmeldung erfolgreich.",
           registerSuccess: "Konto erstellt. Du kannst dich jetzt anmelden.",
           profileHint: "Konto erstellt. Bitte Profil vervollständigen.",
+          sessionExpired: "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
         },
         login: {
           eyebrow: "Willkommen zurück",

@@ -1,4 +1,10 @@
 const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
+
+/** Required by Nominatim usage policy: identify the application. */
+const NOMINATIM_HEADERS = {
+  Accept: "application/json",
+  "User-Agent": "TripMaker-Waypoint/1.0 (Trip planning app; https://github.com/avinash6982/TripMakerWeb)",
+};
 const STATIC_DESTINATIONS = [
   {
     label: "Paris, France",
@@ -81,7 +87,7 @@ export const getDestinationCoordinates = async (destination) => {
     q: destination,
   });
   const response = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
-    headers: { Accept: "application/json" },
+    headers: NOMINATIM_HEADERS,
   });
 
   if (!response.ok) {
@@ -133,6 +139,9 @@ export const buildOpenStreetMapLink = ({ lat, lon }) =>
 /** In-memory cache for place geocoding (Nominatim 1 req/sec policy). */
 const placeCache = new Map();
 
+/** Cache for place search suggestions (query + region). */
+const searchCache = new Map();
+
 /**
  * For Nominatim, use a short region (e.g. "India") when the plan destination is a long
  * multi-place name like "Ladakh, Spiti & Manali", so queries like "Leh Palace, India" succeed.
@@ -142,6 +151,43 @@ function getGeocodeRegion(destination) {
   if (!key) return destination || "";
   if (key.includes("ladakh") || key.includes("spiti") || key.includes("manali")) return "India";
   return String(destination || "").trim();
+}
+
+/**
+ * Search for places by name (Nominatim). Returns suggestions for typeahead.
+ * Respects 1 req/sec: use with debounce (e.g. 1.2s). Results cached by query+destination.
+ * @param {string} query - User input (min 2 chars)
+ * @param {string} destination - Trip destination for context (e.g. "Paris")
+ * @param {number} limit - Max results (default 5)
+ * @returns {Promise<Array<{ displayName: string, shortName: string }>>}
+ */
+export async function searchPlaces(query, destination, limit = 5) {
+  const q = String(query || "").trim();
+  if (q.length < 2) return [];
+  const region = getGeocodeRegion(destination);
+  const cacheKey = `${normalizeKey(q)}|${normalizeKey(region)}`;
+  if (searchCache.has(cacheKey)) {
+    return searchCache.get(cacheKey);
+  }
+  const searchQuery = `${q}, ${region}`.trim();
+  const params = new URLSearchParams({
+    format: "json",
+    limit: String(limit),
+    q: searchQuery,
+  });
+  const response = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
+    headers: NOMINATIM_HEADERS,
+  });
+  if (!response.ok) return [];
+  const results = await response.json();
+  if (!Array.isArray(results)) return [];
+  const items = results.slice(0, limit).map((r) => {
+    const displayName = r.display_name || "";
+    const shortName = displayName.split(",")[0]?.trim() || displayName;
+    return { displayName, shortName };
+  });
+  searchCache.set(cacheKey, items);
+  return items;
 }
 
 /**
@@ -166,7 +212,7 @@ export const geocodePlace = async (placeName, destination) => {
     q: query,
   });
   const response = await fetch(`${NOMINATIM_URL}?${params.toString()}`, {
-    headers: { Accept: "application/json" },
+    headers: NOMINATIM_HEADERS,
   });
 
   if (!response.ok) {

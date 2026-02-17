@@ -9,6 +9,7 @@
   "scripts": {
     "web": "npm run dev --workspace=apps/frontend",
     "test:sanity": "node test-mvp2-sanity.js",
+    "test:smoke": "node scripts/smoke-api.js",
     "dev": "concurrently \"npm run dev --workspace=apps/backend\" \"npm run dev --workspace=apps/frontend\"",
     "dev:frontend": "npm run dev --workspace=apps/frontend",
     "dev:backend": "npm run dev --workspace=apps/backend",

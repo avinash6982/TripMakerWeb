@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MapView from "../components/MapView";
-import { getPlaceSuggestionsForDestination } from "../data/placeSuggestions";
+import PlaceAutocomplete from "../components/PlaceAutocomplete";
 import {
   buildOpenStreetMapLink,
   collectPlaceNamesByDay,
@@ -467,10 +467,18 @@ const Home = () => {
                   />
                   <button
                     type="submit"
-                    className="btn primary"
+                    className="trip-detail-chat-icon-btn trip-detail-chat-send"
                     disabled={agentLoading || !agentChatInput.trim()}
+                    aria-label={t("tripPlanner.aiChat.send")}
+                    title={t("tripPlanner.aiChat.send")}
                   >
-                    {agentLoading ? t("tripPlanner.aiChat.sending") : t("tripPlanner.aiChat.send")}
+                    <span className="trip-detail-chat-icon" aria-hidden>
+                      {agentLoading ? (
+                        <span className="trip-detail-chat-loading">⋯</span>
+                      ) : (
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                      )}
+                    </span>
                   </button>
                 </form>
                 {message && (
@@ -667,11 +675,6 @@ const Home = () => {
                   </>
                 )}
               </div>
-              <datalist id="activity-place-suggestions">
-                {getPlaceSuggestionsForDestination(plan.destination).map((place) => (
-                  <option key={place} value={place} />
-                ))}
-              </datalist>
               <div className="planner-days">
                 {plan.itinerary.map((day, dayIndex) => (
                   <article className="planner-day" key={`day-${day.day}`}>
@@ -733,18 +736,18 @@ const Home = () => {
                                   key={`day-${day.day}-slot-${slot.timeOfDay}-item-${itemIndex}`}
                                 >
                                   {editingDay === dayIndex ? (
-                                    <input
-                                      type="text"
+                                    <PlaceAutocomplete
                                       value={item.name}
-                                      list="activity-place-suggestions"
-                                      onChange={(event) =>
+                                      onChange={(value) =>
                                         handleItemChange(
                                           dayIndex,
                                           slotIndex,
                                           itemIndex,
-                                          event.target.value
+                                          value
                                         )
                                       }
+                                      destination={plan.destination}
+                                      aria-label={t("tripPlanner.results.placeName", "Place name")}
                                     />
                                   ) : (
                                     <span className="planner-item-name">{item.name}</span>

@@ -105,6 +105,8 @@ const TripDetail = () => {
   const [agentNotice, setAgentNotice] = useState("");
   const prereqAssignPopoverRef = useRef(null);
   const actionsMenuRef = useRef(null);
+  const prereqFileInputRef = useRef(null);
+  const [prereqDropzoneDragging, setPrereqDropzoneDragging] = useState(false);
 
   /** Update only prerequisites in trip state to avoid map re-renders (keeps destination/itinerary refs stable). */
   const setTripPrerequisitesOnly = (updated) => {
@@ -1236,7 +1238,7 @@ const TripDetail = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </Link>
           <div className="page-header-title-wrap">
-            <h1 className="page-header-title">{editMode ? t("trips.editTrip", "Edit trip") : trip.name}</h1>
+            <h1 id={editMode ? "edit-trip-heading" : undefined} className="page-header-title">{editMode ? t("trips.editTrip", "Edit trip") : trip.name}</h1>
             {!editMode && (
               <span className="trip-status-badge trip-status-badge-header" data-status={trip.status || "upcoming"}>
                 {t(`trips.status.${trip.status || "upcoming"}`)}
@@ -1244,7 +1246,7 @@ const TripDetail = () => {
             )}
           </div>
           {isOwner && editMode ? (
-            <div className="page-header-actions">
+            <div className="page-header-actions trip-detail-edit-actions">
               <button type="button" className="btn ghost btn-sm" onClick={() => { setEditMode(false); setEditForm({ name: trip.name, destination: trip.destination, days: trip.days }); }} disabled={actionLoading}>
                 {t("trips.cancel")}
               </button>
@@ -1376,62 +1378,67 @@ const TripDetail = () => {
         </header>
 
           {isOwner && editMode ? (
-            <form id="trip-detail-edit-form" onSubmit={handleSaveEdit} className="trip-detail-edit-form">
-              <div className="field">
-                <label>{t("tripPlanner.saveTrip.nameLabel")}</label>
-                <input
-                  value={editForm.name}
-                  onChange={(e) =>
-                    setEditForm((f) => ({ ...f, name: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>{t("tripPlanner.form.destinationLabel")}</label>
-                <input
-                  value={editForm.destination}
-                  onChange={(e) =>
-                    setEditForm((f) => ({ ...f, destination: e.target.value }))
-                  }
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>{t("tripPlanner.form.daysLabel")}</label>
-                <input
-                  type="number"
-                  min={1}
-                  max={10}
-                  value={editForm.days === "" ? "" : editForm.days}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "") {
-                      setEditForm((f) => ({ ...f, days: "" }));
-                      return;
+            <section className="trip-detail-edit-section" aria-labelledby="edit-trip-heading">
+              <form id="trip-detail-edit-form" onSubmit={handleSaveEdit} className="trip-detail-edit-form">
+                <div className="field">
+                  <label htmlFor="trip-detail-edit-name">{t("tripPlanner.saveTrip.nameLabel")}</label>
+                  <input
+                    id="trip-detail-edit-name"
+                    value={editForm.name}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, name: e.target.value }))
                     }
-                    const n = Number(v);
-                    if (!Number.isFinite(n)) return;
-                    setEditForm((f) => ({
-                      ...f,
-                      days: Math.min(10, Math.max(1, Math.round(n))),
-                    }));
-                  }}
-                  onBlur={() => {
-                    setEditForm((f) => {
-                      if (f.days === "" || f.days == null) {
-                        return { ...f, days: 1 };
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="trip-detail-edit-destination">{t("tripPlanner.form.destinationLabel")}</label>
+                  <input
+                    id="trip-detail-edit-destination"
+                    value={editForm.destination}
+                    onChange={(e) =>
+                      setEditForm((f) => ({ ...f, destination: e.target.value }))
+                    }
+                    required
+                  />
+                </div>
+                <div className="field">
+                  <label htmlFor="trip-detail-edit-days">{t("tripPlanner.form.daysLabel")}</label>
+                  <input
+                    id="trip-detail-edit-days"
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={editForm.days === "" ? "" : editForm.days}
+                    onChange={(e) => {
+                      const v = e.target.value;
+                      if (v === "") {
+                        setEditForm((f) => ({ ...f, days: "" }));
+                        return;
                       }
-                      const n = Number(f.days);
-                      return {
+                      const n = Number(v);
+                      if (!Number.isFinite(n)) return;
+                      setEditForm((f) => ({
                         ...f,
-                        days: Number.isFinite(n) ? Math.min(10, Math.max(1, Math.round(n))) : 1,
-                      };
-                    });
-                  }}
-                />
-              </div>
-            </form>
+                        days: Math.min(10, Math.max(1, Math.round(n))),
+                      }));
+                    }}
+                    onBlur={() => {
+                      setEditForm((f) => {
+                        if (f.days === "" || f.days == null) {
+                          return { ...f, days: 1 };
+                        }
+                        const n = Number(f.days);
+                        return {
+                          ...f,
+                          days: Number.isFinite(n) ? Math.min(10, Math.max(1, Math.round(n))) : 1,
+                        };
+                      });
+                    }}
+                  />
+                </div>
+              </form>
+            </section>
           ) : (
             <>
               {!editMode && trip.id && (
@@ -2166,19 +2173,44 @@ const TripDetail = () => {
                 </div>
               )}
               <div className="field">
-                <label htmlFor="prereq-image">{t("trips.attachImage")} (optional)</label>
-                <input
-                  id="prereq-image"
-                  type="file"
-                  accept="image/jpeg,image/png,image/gif,image/webp"
-                  onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    setPrereqFormImageFile(f || null);
-                    e.target.value = "";
+                <label id="prereq-image-label">{t("trips.attachImage")} (optional)</label>
+                <div
+                  className={`file-dropzone ${prereqDropzoneDragging ? "is-dragging" : ""} ${prereqFormImageFile ? "file-dropzone-has-file" : ""}`}
+                  onClick={() => prereqFileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); e.stopPropagation(); setPrereqDropzoneDragging(true); }}
+                  onDragLeave={(e) => { e.preventDefault(); setPrereqDropzoneDragging(false); }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setPrereqDropzoneDragging(false);
+                    if (prereqSaving) return;
+                    const f = e.dataTransfer?.files?.[0];
+                    if (f && /^image\/(jpeg|png|gif|webp)$/i.test(f.type)) setPrereqFormImageFile(f);
                   }}
-                  disabled={prereqSaving}
-                />
-                {prereqFormImageFile && <span className="muted small">{prereqFormImageFile.name}</span>}
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); prereqFileInputRef.current?.click(); } }}
+                  aria-labelledby="prereq-image-label"
+                  aria-describedby={prereqFormImageFile ? "prereq-image-filename" : undefined}
+                >
+                  <input
+                    ref={prereqFileInputRef}
+                    id="prereq-image"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0];
+                      setPrereqFormImageFile(f || null);
+                      e.target.value = "";
+                    }}
+                    disabled={prereqSaving}
+                    aria-label={t("trips.attachImage")}
+                  />
+                  {prereqFormImageFile ? (
+                    <span id="prereq-image-filename" className="muted small">{prereqFormImageFile.name}</span>
+                  ) : (
+                    <span>{t("trips.dropzonePrompt", "Drop image here or click to choose")}</span>
+                  )}
+                </div>
               </div>
               <div className="modal-actions">
                 <button type="submit" className="btn primary" disabled={prereqSaving || !prereqFormTitle.trim()}>
@@ -2375,10 +2407,18 @@ const TripDetail = () => {
                 />
                 <button
                   type="submit"
-                  className="btn primary"
+                  className="trip-detail-chat-icon-btn trip-detail-chat-send"
                   disabled={agentLoading || !agentChatInput.trim()}
+                  aria-label={t("tripPlanner.aiChat.send")}
+                  title={t("tripPlanner.aiChat.send")}
                 >
-                  {agentLoading ? t("tripPlanner.aiChat.sending") : t("tripPlanner.aiChat.send")}
+                  <span className="trip-detail-chat-icon" aria-hidden>
+                    {agentLoading ? (
+                      <span className="trip-detail-chat-loading">⋯</span>
+                    ) : (
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                    )}
+                  </span>
                 </button>
               </form>
               {agentError && (
