@@ -44,7 +44,7 @@ const Home = () => {
   const [saveTripName, setSaveTripName] = useState("");
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveMessage, setSaveMessage] = useState("");
-  const [showAIChat, setShowAIChat] = useState(false);
+  const [showAIChat, setShowAIChat] = useState(true);
   const [agentMessages, setAgentMessages] = useState([]);
   const [agentContext, setAgentContext] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
@@ -154,10 +154,18 @@ const Home = () => {
     setStatus("idle");
   };
 
-  const handleAgentSend = async (e) => {
+  const handleAgentSend = async (e, overrideText) => {
     e?.preventDefault();
-    const text = (agentChatInput || "").trim();
-    if (!text || !agentContext || agentLoading) return;
+    const text = (overrideText != null ? String(overrideText) : agentChatInput || "").trim();
+    if (!text || agentLoading) return;
+    const baseContext = agentContext || {
+      destination: formState.destination.trim() || plan?.destination || "Your trip",
+      days: Math.min(
+        10,
+        Math.max(1, Number(formState.days != null && formState.days !== "" ? formState.days : plan?.days || 3))
+      ),
+      pace: (plan?.pace || formState.pace || "balanced"),
+    };
     const userMessage = { role: "user", content: text };
     const nextMessages = [...agentMessages, userMessage];
     setAgentMessages(nextMessages);
@@ -168,24 +176,19 @@ const Home = () => {
       const planResponse = await chatWithTripAgent({
         messages: nextMessages,
         context: {
-          destination: plan?.destination ?? agentContext.destination,
-          days: plan?.days ?? agentContext.days,
-          pace: plan?.pace ?? agentContext.pace,
+          destination: plan?.destination ?? baseContext.destination,
+          days: plan?.days ?? baseContext.days,
+          pace: plan?.pace ?? baseContext.pace,
           currentItinerary: plan?.itinerary,
         },
       });
       setPlan(planResponse);
       setEditingDay(null);
-      setAgentContext((prev) =>
-        prev
-          ? {
-              ...prev,
-              destination: planResponse.destination || prev.destination,
-              days: planResponse.days ?? prev.days,
-              pace: planResponse.pace || prev.pace,
-            }
-          : null
-      );
+      setAgentContext({
+        destination: planResponse.destination || baseContext.destination,
+        days: planResponse.days ?? baseContext.days,
+        pace: planResponse.pace || baseContext.pace,
+      });
       const assistantContent =
         (planResponse.assistantMessage && String(planResponse.assistantMessage).trim()) ||
         (planResponse.aiUnconfigured
@@ -213,7 +216,6 @@ const Home = () => {
   };
 
   const handleStartOver = () => {
-    setShowAIChat(false);
     setPlan(null);
     setAgentMessages([]);
     setAgentContext(null);
@@ -418,79 +420,190 @@ const Home = () => {
   return (
     <main className="home-page">
       <section className="home-hero">
-        <div className="container">
-          <div className="home-hero-card">
-            <h2>{t("tripPlanner.heroTitle")}</h2>
-            {showAIChat ? (
-              <div className="trip-agent-chat">
-                <div className="trip-agent-chat-header">
-                  <span className="trip-agent-chat-title">{t("tripPlanner.aiChat.title")}</span>
-                  <button
-                    type="button"
-                    className="btn small ghost"
-                    onClick={handleStartOver}
-                    disabled={agentLoading}
-                  >
-                    {t("tripPlanner.aiChat.startOver")}
-                  </button>
-                </div>
-                <p className="trip-agent-chat-intro">{t("tripPlanner.aiChat.intro")}</p>
-                {agentContext && (
-                  <p className="muted trip-agent-chat-context">
-                    {agentContext.destination} · {agentContext.days} {agentContext.days === 1 ? "day" : "days"} · {t(`tripPlanner.pace.${agentContext.pace}`)}
-                  </p>
-                )}
-                <div className="trip-agent-chat-messages" role="log" aria-live="polite">
-                  {agentMessages.map((m, i) => (
-                    <div key={i} className={`trip-agent-msg trip-agent-msg-${m.role}`}>
-                      <span className="trip-agent-msg-role">{m.role === "user" ? "You" : "AI"}</span>
-                      <span className="trip-agent-msg-content">{m.content}</span>
+        <div
+          className={`container ${showAIChat ? "home-hero-ai-layout" : ""} ${showAIChat && plan ? "home-hero-ai-layout--with-plan" : ""}`}
+        >
+          {showAIChat ? (
+            <>
+              <div className="home-hero-card home-hero-chat">
+                <h2>{t("tripPlanner.heroTitle")}</h2>
+                <div className="trip-agent-chat">
+                  <div className="trip-agent-chat-header">
+                    <span className="trip-agent-chat-title">{t("tripPlanner.aiChat.title")}</span>
+                    <button
+                      type="button"
+                      className="btn small ghost"
+                      onClick={handleStartOver}
+                      disabled={agentLoading}
+                    >
+                      {t("tripPlanner.aiChat.startOver")}
+                    </button>
+                  </div>
+                  <p className="trip-agent-chat-intro">{t("tripPlanner.aiChat.intro")}</p>
+                  <div className="home-hero-quick-start" aria-label={t("tripPlanner.quickStart")}>
+                    <span className="home-hero-quick-start-label">{t("tripPlanner.quickStart")}</span>
+                    <div className="home-hero-quick-start-pills">
+                      <button
+                        type="button"
+                        className="home-hero-quick-pill"
+                        onClick={() => handleAgentSend(null, "Make it family friendly")}
+                        disabled={agentLoading}
+                      >
+                        {t("tripPlanner.quickStartPills.familyFriendly")}
+                      </button>
+                      <button
+                        type="button"
+                        className="home-hero-quick-pill"
+                        onClick={() => handleAgentSend(null, "Keep it budget-friendly")}
+                        disabled={agentLoading}
+                      >
+                        {t("tripPlanner.quickStartPills.budgetTravel")}
+                      </button>
+                      <button
+                        type="button"
+                        className="home-hero-quick-pill"
+                        onClick={() => handleAgentSend(null, "Add hidden gems and local spots")}
+                        disabled={agentLoading}
+                      >
+                        {t("tripPlanner.quickStartPills.hiddenGems")}
+                      </button>
+                      <button
+                        type="button"
+                        className="home-hero-quick-pill home-hero-quick-pill-custom"
+                        onClick={() => document.getElementById("agent-chat-input")?.focus()}
+                        aria-label={t("tripPlanner.quickStartPills.customFilter")}
+                      >
+                        {t("tripPlanner.quickStartPills.customFilter")}
+                      </button>
                     </div>
-                  ))}
-                  {agentLoading && (
-                    <div className="trip-agent-msg trip-agent-msg-assistant">
-                      <span className="trip-agent-msg-role">AI</span>
-                      <span className="trip-agent-msg-content">…</span>
-                    </div>
+                  </div>
+                  {agentContext && (
+                    <p className="muted trip-agent-chat-context">
+                      {agentContext.destination} · {agentContext.days} {agentContext.days === 1 ? "day" : "days"} · {t(`tripPlanner.pace.${agentContext.pace}`)}
+                    </p>
                   )}
-                  <div ref={agentMessagesEndRef} aria-hidden="true" />
+                  <div className="trip-agent-chat-messages" role="log" aria-live="polite">
+                    {agentMessages.map((m, i) => (
+                      <div key={i} className={`trip-agent-msg trip-agent-msg-${m.role}`}>
+                        <span className="trip-agent-msg-role">{m.role === "user" ? "You" : "AI"}</span>
+                        <span className="trip-agent-msg-content">{m.content}</span>
+                      </div>
+                    ))}
+                    {agentLoading && (
+                      <div className="trip-agent-msg trip-agent-msg-assistant">
+                        <span className="trip-agent-msg-role">AI</span>
+                        <span className="trip-agent-msg-content">…</span>
+                      </div>
+                    )}
+                    <div ref={agentMessagesEndRef} aria-hidden="true" />
+                  </div>
+                  <form className="trip-agent-chat-form" onSubmit={handleAgentSend}>
+                    <input
+                      id="agent-chat-input"
+                      type="text"
+                      value={agentChatInput}
+                      onChange={(e) => setAgentChatInput(e.target.value)}
+                      placeholder={agentContext ? t("tripPlanner.aiChat.refinePlaceholder") : t("tripPlanner.aiChat.placeholder")}
+                      disabled={agentLoading}
+                      aria-label={agentContext ? t("tripPlanner.aiChat.refinePlaceholder") : t("tripPlanner.aiChat.placeholder")}
+                    />
+                    <button
+                      type="submit"
+                      className="trip-detail-chat-icon-btn trip-detail-chat-send"
+                      disabled={agentLoading || !agentChatInput.trim()}
+                      aria-label={t("tripPlanner.aiChat.send")}
+                      title={t("tripPlanner.aiChat.send")}
+                    >
+                      <span className="trip-detail-chat-icon" aria-hidden>
+                        {agentLoading ? (
+                          <span className="trip-detail-chat-loading">⋯</span>
+                        ) : (
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                        )}
+                      </span>
+                    </button>
+                  </form>
+                  {message && (
+                    <p
+                      className={`message ${message === t("tripPlanner.results.agentUnavailableWithReply") ? "info" : "error"}`}
+                      role="alert"
+                    >
+                      {message}
+                    </p>
+                  )}
                 </div>
-                <form className="trip-agent-chat-form" onSubmit={handleAgentSend}>
-                  <input
-                    id="agent-chat-input"
-                    type="text"
-                    value={agentChatInput}
-                    onChange={(e) => setAgentChatInput(e.target.value)}
-                    placeholder={t("tripPlanner.aiChat.placeholder")}
-                    disabled={agentLoading}
-                    aria-label={t("tripPlanner.aiChat.placeholder")}
-                  />
-                  <button
-                    type="submit"
-                    className="trip-detail-chat-icon-btn trip-detail-chat-send"
-                    disabled={agentLoading || !agentChatInput.trim()}
-                    aria-label={t("tripPlanner.aiChat.send")}
-                    title={t("tripPlanner.aiChat.send")}
-                  >
-                    <span className="trip-detail-chat-icon" aria-hidden>
-                      {agentLoading ? (
-                        <span className="trip-detail-chat-loading">⋯</span>
-                      ) : (
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                      )}
-                    </span>
-                  </button>
-                </form>
-                {message && (
-                  <p
-                    className={`message ${message === t("tripPlanner.results.agentUnavailableWithReply") ? "info" : "error"}`}
-                    role="alert"
-                  >
-                    {message}
-                  </p>
+              </div>
+              <div
+                className={`home-hero-plan-panel ${!(plan && summary) ? "home-hero-plan-panel--empty" : ""}`}
+                aria-live="polite"
+              >
+                {plan && summary ? (
+                  <div className="home-hero-plan-preview">
+                    <h3 className="home-hero-plan-preview-title">
+                      {t("tripPlanner.results.summary", {
+                        days: summary.days,
+                        destination: summary.destination,
+                      })}
+                    </h3>
+                    <p className="muted">
+                      {t("tripPlanner.results.pace", { pace: summary.paceLabel })} · {t("tripPlanner.results.meta", { hours: summary.hours, stops: summary.stops })}
+                    </p>
+                    <a href="#planner-output" className="btn ghost small home-hero-plan-scroll">
+                      {t("tripPlanner.planPanel.previewCaption")}
+                    </a>
+                  </div>
+                ) : (
+                  <div className="home-hero-plan-empty">
+                    <h3 className="home-hero-plan-empty-title">{t("tripPlanner.planPanel.emptyTitle")}</h3>
+                    <p className="home-hero-plan-empty-hint">{t("tripPlanner.planPanel.emptyHint")}</p>
+                  </div>
                 )}
               </div>
-            ) : (
+              {plan && (
+                <aside className="home-hero-sidebar" aria-label={t("tripPlanner.trendingDestinations")}>
+                  <section className="home-hero-sidebar-section">
+                    <h3 className="home-hero-sidebar-title">{t("tripPlanner.routeOverview")}</h3>
+                    <div className="home-hero-route-placeholder">
+                      {mapState.data ? (
+                        <a
+                          href={buildOpenStreetMapLink(mapState.data)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="home-hero-map-link"
+                        >
+                          {t("tripPlanner.map.open")}
+                        </a>
+                      ) : (
+                        <span className="muted">{mapState.message || t("tripPlanner.map.loading")}</span>
+                      )}
+                    </div>
+                  </section>
+                  <section className="home-hero-sidebar-section">
+                    <h3 className="home-hero-sidebar-title">{t("tripPlanner.trendingDestinations")}</h3>
+                    <ul className="home-hero-trending-list">
+                      {["Paris", "Tokyo", "Kyoto", "Barcelona", "Rome", "Lisbon"].map((dest) => (
+                        <li key={dest}>
+                          <button
+                            type="button"
+                            className="home-hero-trending-item"
+                            onClick={() => {
+                              setAgentChatInput(`${plan.days || 3} days in ${dest}`);
+                              document.getElementById("agent-chat-input")?.focus();
+                            }}
+                          >
+                            {dest}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  </section>
+                </aside>
+              )}
+            </>
+          ) : (
+            <>
+          <div className="home-hero-card">
+            <h2>{t("tripPlanner.heroTitle")}</h2>
             <form className="planner-form" onSubmit={handleSubmit}>
               <div className="field planner-field-with-icon">
                 <label htmlFor="trip-destination">{t("tripPlanner.form.destinationLabel")}</label>
@@ -571,7 +684,6 @@ const Home = () => {
               </div>
               <p className="form-helper">{t("tripPlanner.helper")}</p>
             </form>
-            )}
           </div>
           <div className="home-hero-copy">
             <h2>{t("tripPlanner.heroCopyTitle")}</h2>
@@ -582,11 +694,13 @@ const Home = () => {
               <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2L15 22L11 13L2 9L22 2Z"/></svg>
             </div>
           </div>
+            </>
+          )}
         </div>
       </section>
-      <section className="container planner-grid">
-        <div className="planner-output" style={{ gridColumn: "1 / -1" }}>
-          {plan && summary ? (
+      {plan && summary ? (
+        <section id="planner-output" className="container planner-grid" tabIndex={-1}>
+          <div className="planner-output" style={{ gridColumn: "1 / -1" }}>
             <>
               <div className="planner-summary">
                 <div>
@@ -830,14 +944,18 @@ const Home = () => {
                 </div>
               )}
             </>
-          ) : (
+          </div>
+        </section>
+      ) : !showAIChat ? (
+        <section className="container planner-grid" tabIndex={-1}>
+          <div className="planner-output" style={{ gridColumn: "1 / -1" }}>
             <div className="planner-empty">
               <h2>{t("tripPlanner.empty.title")}</h2>
               <p className="muted">{t("tripPlanner.empty.copy")}</p>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        </section>
+      ) : null}
     </main>
   );
 };

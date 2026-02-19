@@ -2,8 +2,8 @@
 
 **Visual trip planning platform for the entire journey: Plan → Execute → Remember**
 
-> **Current Phase:** MVP1 - Trip Planning Foundation (25% complete)  
-> **Status:** ✅ Production deployed | 🔄 Active development  
+> **Current Phase:** Presentable to stakeholders / tester feedback (MVP1–MVP4 complete)  
+> **Status:** ✅ Production deployed | 🔄 Tester feedback & fixes  
 > **Demo:** https://tripmaker-63b1.onrender.com (or your Render URL)
 
 ---

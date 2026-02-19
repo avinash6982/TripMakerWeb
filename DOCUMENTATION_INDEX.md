@@ -58,12 +58,14 @@
 | **[MVP1_BROWSER_TEST_CHECKLIST.md](MVP1_BROWSER_TEST_CHECKLIST.md)** | Browser verification (MVP1 flows) | Per task |
 | **[MVP2_QA_CHECKLIST.md](MVP2_QA_CHECKLIST.md)** | MVP2 verification (map, feed, invite) | Per task |
 | **[TEST_USER.md](TEST_USER.md)** | Dev user credentials | Never |
+| **[scripts/README.md](scripts/README.md)** | Scripts (UI review via browser MCP; optional Playwright) | Rarely |
 
 ### Cursor AI Integration
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
 | **[.cursorrules](.cursorrules)** | Main Cursor AI rules | Per pattern |
 | **[.cursor/rules/mvp-development-discipline.mdc](.cursor/rules/mvp-development-discipline.mdc)** | MVP phases and principles | Weekly |
+| **[.cursor/rules/browser-for-ui-review.mdc](.cursor/rules/browser-for-ui-review.mdc)** | Use Cursor browser (MCP) for UI review; not Playwright | Rarely |
 | **[.cursor/rules/documentation-maintenance.mdc](.cursor/rules/documentation-maintenance.mdc)** | Doc update automation | Rarely |
 | **[.cursor/rules/zero-cost-constraint.mdc](.cursor/rules/zero-cost-constraint.mdc)** | Free service enforcement | Rarely |
 | **[.cursor/rules/trip-features.mdc](.cursor/rules/trip-features.mdc)** | Trip feature patterns | Per feature |

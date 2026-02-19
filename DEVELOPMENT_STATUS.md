@@ -1,15 +1,15 @@
 # 🚧 Development Status
 
-> **Last Updated:** February 15, 2026  
-> **Current Phase:** MVP4 (AI Trip Agent) implemented  
-> **Next phase:** MVP5 (Marketplace) when approved. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for AI setup and usage.
+> **Last Updated:** February 18, 2026  
+> **Current Phase:** Presentable to stakeholders / tester feedback  
+> **Next phase:** Address tester feedback one by one; then MVP5 (Marketplace) when approved. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for AI setup and usage.
 
 ---
 
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**MVP4 (AI Trip Agent) implemented.** Plan with AI on Home and Trip Detail (FAB): chat to create/refine itineraries, change days/pace/destination, and ask questions. Backend tries Gemini then Groq; parses user message for requested days; returns `assistantMessage` for conversational replies and `aiUnconfigured` when no API keys so the UI can explain setup. **Optional:** MongoDB for production (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
+**App presentable for stakeholders and testers.** Development from our side is feature-complete for MVP1–MVP4. We are now collecting feedback from testers and fixing issues one by one. MVP5 (Marketplace) will start only after explicit approval.
 
 **Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
@@ -25,6 +25,11 @@
 ---
 
 ## ✅ Today's Completed Tasks
+
+### February 18, 2026 (Presentable / tester feedback readiness)
+- **Home layout (with plan):** Fixed broken UI when a plan exists. Three-column hero (chat | trip preview | sidebar) now applies correctly via CSS specificity (`.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan`). Explicit grid-column for chat, plan panel, and sidebar; stacked at 900px with `grid-column: auto`. Hero no longer collapses: `flex: 0 0 auto` and `min-height: min(70vh, 640px)` so "Your draft itinerary" and Save trip appear below the fold. `.home-page > .planner-grid { flex-shrink: 0 }` so planner section never overlaps the hero.
+- **UI review workflow:** Prefer Cursor browser (MCP) for UI review at multiple screen sizes; Playwright script remains optional. Added `.cursor/rules/browser-for-ui-review.mdc`; updated `scripts/README.md`.
+- **Docs:** DEVELOPMENT_STATUS, MVP_ROADMAP, README updated for presentable/tester phase.
 
 ### February 15, 2026 (Full evaluation + auth/session)
 - **Evaluation:** Full app evaluation (docs, API, browser, responsiveness, mobile). See [EVALUATION_REPORT.md](EVALUATION_REPORT.md). Verified: auth, session expiry, AI agent with real keys, route/doc alignment; applied login layout tweak for short viewports.
@@ -86,12 +91,12 @@
 
 ---
 
-## 🔬 Current Focus: MVP4 complete — next MVP5
+## 🔬 Current Focus: Presentable / tester feedback
 
-**Objective:** MVP4 (AI Trip Agent) is implemented and complete. Next phase is MVP5 (Marketplace); start only when you explicitly approve. MongoDB implementation is complete; set `MONGODB_URI` to use it in production.
+**Objective:** App is ready to show to stakeholders and regular users. Development is complete on our side; we are gathering tester feedback and fixing issues one by one. Do not start MVP5 (Marketplace) until explicitly approved.
 
-**Status:** MVP1–MVP4 complete. Design Optimization complete. Additional features (Prerequisites) complete. Next: MVP5 (Marketplace) when you approve.  
-**Reference:** MVP_ROADMAP.md, MVP_PLAN.md, [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md), MONGODB_SETUP.md (optional).
+**Status:** MVP1–MVP4 complete. Design Optimization complete. Home layout with plan fixed. Next: address tester feedback; then MVP5 when you approve.  
+**Reference:** MVP_ROADMAP.md, MVP_PLAN.md, [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md), MONGODB_SETUP.md (optional), [MVP1_BROWSER_TEST_CHECKLIST.md](MVP1_BROWSER_TEST_CHECKLIST.md) for verification.
 
 ---
 

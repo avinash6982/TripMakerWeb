@@ -1,0 +1,35 @@
+---
+description: Use Cursor browser (MCP) for UI review and testing; do not use Playwright
+alwaysApply: true
+---
+
+# UI Review and Testing: Use Browser (MCP)
+
+## Principle
+
+**Use the Cursor IDE browser (MCP: cursor-ide-browser) for reviewing and testing the UI.** Do not use Playwright or other headless/scripted browser automation for routine UI checks.
+
+## When to Use the Browser
+
+- **Reviewing a screen or flow:** Open the app in the browser, navigate, resize viewport, take snapshots/screenshots.
+- **Checking layout at multiple sizes:** Use `browser_resize` for desktop (e.g. 1280×800), tablet (e.g. 768×1024), mobile (e.g. 375×667), then capture screenshots or snapshots.
+- **Verifying “with and without” states:** e.g. Home without a trip vs Home with a plan; use the browser to log in, perform actions (e.g. chat to create a trip), then review at different viewport sizes.
+- **After layout/CSS changes:** Confirm no regressions and that the intended layout (hero, columns, scroll, spacing) looks correct.
+
+## Workflow
+
+1. **Navigate** to the app (e.g. `http://localhost:5173`).
+2. **Log in** if needed (dev user: `dev@tripmaker.com` / `DevUser123!`).
+3. **Resize** as needed (`browser_resize` for desktop, tablet, mobile).
+4. **Capture** state with `browser_snapshot` (for structure/refs) and/or `browser_take_screenshot` (for visual review).
+5. **Interact** (click, fill, type) using refs from the snapshot when you need to change state (e.g. send a chat message to create a trip), then capture again at each size.
+
+## Do Not Use
+
+- Playwright (or similar) scripts for routine UI review or to “see how the UI breaks” unless the user explicitly asks for a runnable script.
+- Relying on Playwright as the primary way to verify the home screen or other flows.
+
+## Scripts
+
+- The `scripts/playwright-home-chat.mjs` script remains in the repo for optional/legacy use but is **not** the default for UI review.
+- Prefer browser MCP for multi–screen-size review (desktop, tablet, mobile) and for “with/without trip” scenarios.

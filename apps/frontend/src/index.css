@@ -13,16 +13,22 @@
 
 html {
   -webkit-tap-highlight-color: transparent;
+  height: 100%;
 }
 
 body {
   margin: 0;
+  min-height: 100%;
   font-family: var(--font-sans);
   color: var(--text);
   background: var(--bg);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+}
+
+#root {
+  min-height: 100%;
 }
 
 img {
@@ -169,10 +175,22 @@ ul {
   }
 }
 
+/* Flex column so header + main don’t exceed 100vh (avoids unwanted page scroll when logged out on Discover) */
 .auth-shell {
   min-height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: linear-gradient(160deg, var(--color-bg) 0%, #e0f2fe 30%, #ecfeff 50%, #f0fdfa 70%, var(--color-bg) 100%);
   background-size: cover;
+}
+
+.auth-shell > .auth-header {
+  flex-shrink: 0;
+}
+
+.auth-shell > main {
+  flex: 1;
+  min-height: 0;
 }
 
 .auth-header-full .nav {
@@ -893,19 +911,48 @@ button.text-link {
 
 .home-page {
   background: var(--bg);
-  padding: 0 0 5rem;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
 }
 
 .home-hero {
   background: linear-gradient(135deg, #e0f2fe 0%, #ecfeff 40%, #f0fdfa 70%, #e0f2fe 100%);
-  padding: var(--space-10) 0 var(--space-12);
-  margin-bottom: 2rem;
+  padding: var(--space-12) 0 var(--space-12);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* AI layout: minimal padding so chat + itinerary use full viewport; chat flush left */
+.home-hero:has(.home-hero-ai-layout) {
+  padding: var(--space-4) 0 0 0;
+}
+
+/* Clear gap below sticky header so hero doesn’t sit flush on reload / scroll to top */
+.home-page .home-hero {
+  padding-top: var(--space-16);
+}
+
+.home-page .home-hero:has(.home-hero-ai-layout) {
+  padding-top: var(--space-4);
+}
+
+/* When a plan exists, keep hero from collapsing so planner output doesn’t overlap (flex gives hero 0 when planner is tall) */
+.home-hero:has(.home-hero-ai-layout--with-plan) {
+  flex: 0 0 auto;
+  min-height: min(70vh, 640px);
 }
 
 @media (max-width: 767px) {
   .home-hero {
+    padding-top: var(--space-10);
     padding-bottom: var(--space-6);
-    margin-bottom: 1rem;
   }
 
   .home-page .planner-grid {
@@ -1157,6 +1204,254 @@ button.text-link {
   opacity: 0.9;
 }
 
+/* AI mode: full width so chat sticks left, full height; override .container centering */
+.home-hero .container.home-hero-ai-layout {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 var(--space-4) var(--space-4) var(--space-4);
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: stretch;
+}
+
+/* Three-column layout when plan exists: chat | itinerary | sidebar (Route + Trending). Same specificity as base so this overrides 2-column. */
+.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan {
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr) minmax(220px, 280px);
+}
+
+/* Keep each hero area in its column when plan exists */
+.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-chat {
+  grid-column: 1;
+}
+.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-plan-panel {
+  grid-column: 2;
+}
+.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-sidebar {
+  grid-column: 3;
+}
+
+/* Stack chat + plan panel + sidebar below 900px (tablet/mobile) */
+@media (max-width: 900px) {
+  .home-hero .container.home-hero-ai-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan {
+    grid-template-columns: 1fr;
+  }
+
+  .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-chat,
+  .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-plan-panel,
+  .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-sidebar {
+    grid-column: auto;
+  }
+}
+
+/* Right sidebar: Route Overview + Trending Destinations */
+.home-hero-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+  min-height: 0;
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-card);
+  padding: var(--space-6);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  overflow-y: auto;
+}
+.home-hero-sidebar-section {
+  flex-shrink: 0;
+}
+.home-hero-sidebar-title {
+  margin: 0 0 var(--space-3);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+.home-hero-route-placeholder {
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+}
+.home-hero-map-link {
+  color: var(--color-primary);
+  font-weight: 500;
+}
+.home-hero-map-link:hover {
+  text-decoration: underline;
+}
+.home-hero-trending-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.home-hero-trending-item {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+.home-hero-trending-item:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-muted, rgba(15, 118, 110, 0.08));
+  color: var(--color-primary);
+}
+
+.home-hero-chat {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Chat card: uniform border radius (matches plan panel and .home-hero-card) */
+.home-hero-ai-layout .home-hero-chat {
+  border-radius: var(--radius-card);
+}
+
+.home-hero-chat .trip-agent-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+/* Quick Start filter pills (industry-standard chat UX) */
+.home-hero-quick-start {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+.home-hero-quick-start-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.home-hero-quick-start-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.home-hero-quick-pill {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-full);
+  border: 1px solid var(--border);
+  background: var(--color-bg-elevated);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s, color 0.2s;
+}
+.home-hero-quick-pill:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  background: var(--color-primary-muted, rgba(15, 118, 110, 0.08));
+  color: var(--color-primary);
+}
+.home-hero-quick-pill:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.home-hero-quick-pill-custom {
+  border-style: dashed;
+}
+
+/* Input row: same horizontal padding as panel content, bottom-aligned with uniform padding */
+.home-hero-chat .trip-agent-chat-form {
+  margin-top: auto;
+  padding: var(--space-3) 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.home-hero-chat .trip-agent-chat-messages {
+  flex: 1;
+  min-height: 120px;
+  overflow-y: auto;
+}
+
+.home-hero-plan-panel {
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-card);
+  padding: var(--space-8);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.home-hero-plan-panel--empty {
+  justify-content: center;
+}
+
+
+.home-hero-plan-empty {
+  text-align: center;
+  padding: var(--space-6) var(--space-4);
+}
+
+.home-hero-plan-empty-title {
+  margin: 0 0 var(--space-3);
+  font-size: 1.25rem;
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+}
+
+.home-hero-plan-empty-hint {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  max-width: 28ch;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.5;
+}
+
+.home-hero-plan-preview {
+  padding: var(--space-4) 0;
+}
+
+.home-hero-plan-preview-title {
+  margin: 0 0 var(--space-2);
+  font-size: 1.25rem;
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+}
+
+.home-hero-plan-preview p {
+  margin: 0 0 var(--space-4);
+  font-size: var(--text-sm);
+}
+
+.home-hero-plan-scroll {
+  display: inline-block;
+}
+
+#planner-output {
+  scroll-margin-top: 1.5rem;
+}
+
 .btn-cta {
   background: linear-gradient(90deg, var(--color-primary) 0%, var(--color-accent) 100%);
   color: #fff;
@@ -1181,8 +1476,14 @@ button.text-link {
   gap: 0.5rem;
 }
 
+/* Draft itinerary below the hero; never overlap (hero has flex: 0 0 auto + min-height when plan exists) */
+.home-page > .planner-grid {
+  flex-shrink: 0;
+}
+
 .planner-grid {
   margin-top: 2rem;
+  padding-bottom: 5rem;
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 2rem;
@@ -1702,7 +2003,7 @@ button.text-link {
 /* Feed / Discover page (MVP2) – discovery-style layout */
 .feed-page {
   padding: 0 0 var(--space-8);
-  min-height: 100vh;
+  /* No min-height: 100vh here; parent (auth-shell or app-content) already provides full-height context to avoid double height and unwanted scroll */
 }
 
 .feed-section {
@@ -5304,9 +5605,30 @@ button.text-link {
   color: #d1fae5;
 }
 
+/* App: exactly one viewport tall; app-content is the scroll container so no body scroll / misalignment */
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app > .site-header {
+  flex-shrink: 0;
+}
+
+.app > .mobile-nav {
+  flex-shrink: 0;
+}
+
 .app-content {
-  min-height: 100vh;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
   padding-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
   /* mobile adds padding via .app--mobile */
 }
 

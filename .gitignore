@@ -30,6 +30,8 @@ out/
 # Testing
 coverage/
 .nyc_output/
+scripts/playwright-home-chat-result.png
+scripts/playwright-home-chat-error.png
 
 # Misc
 *.log

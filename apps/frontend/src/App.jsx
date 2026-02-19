@@ -1,4 +1,5 @@
-import { Navigate, Route, Routes } from "react-router-dom";
+import { useEffect } from "react";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AuthLayout from "./layouts/AuthLayout";
 import SiteLayout from "./layouts/SiteLayout";
 import Home from "./pages/Home";
@@ -31,9 +32,32 @@ const FeedLayoutSwitch = () => {
   return user ? <SiteLayout /> : <AuthLayout />;
 };
 
+/** Scroll window to top on every route change and on initial load so reload/land always starts at top. */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && "scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const appContent = document.querySelector(".app-content");
+    if (appContent) appContent.scrollTop = 0;
+  }, [pathname]);
+
+  return null;
+}
+
 const App = () => {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       <Route element={<AuthLayout />}>
         <Route index element={<IndexRedirect />} />
         <Route path="login" element={<Login />} />
@@ -57,7 +81,8 @@ const App = () => {
         />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+      </Routes>
+    </>
   );
 };
 
