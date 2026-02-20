@@ -34,6 +34,25 @@ Use these credentials for:
 
 ---
 
+## CI / QA test runs (TEST_EMAIL / TEST_PASSWORD)
+
+For full Playwright coverage (auth + nav + home), the test suite expects **TEST_EMAIL** and **TEST_PASSWORD** environment variables. Use either:
+
+1. **Dev user (no signup):**  
+   `TEST_EMAIL=dev@tripmaker.com` and `TEST_PASSWORD=DevUser123!`  
+   This user is auto-seeded and works in local and deployed environments.
+
+2. **QA accounts from handoff:**  
+   After a testing phase, the handoff doc (e.g. `TripMaker-testing/observations/FIRST-DEV-AGENT-HANDOFF.md`) may list one or more test accounts. Use any of those for `TEST_EMAIL` / `TEST_PASSWORD`. Do not commit production passwords.
+
+**Example (dev user):**
+```bash
+TEST_EMAIL=dev@tripmaker.com TEST_PASSWORD=DevUser123! npm run test:report
+```
+*(Run from the **testing** repo with the app at `http://localhost:5173`.)*
+
+---
+
 ## Test URLs
 
 - **Production App:** https://trip-maker-pink.vercel.app

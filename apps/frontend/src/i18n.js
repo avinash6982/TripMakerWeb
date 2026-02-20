@@ -26,6 +26,7 @@ const resources = {
       labels: {
         language: "Language",
         loading: "Loading...",
+        close: "Close",
       },
       home: {
         title: "Home",
@@ -143,6 +144,7 @@ const resources = {
         aiChat: {
           title: "Plan with AI",
           intro: "Chat to create or refine your itinerary. Ask for more days, different pace, or specific places.",
+          firstTimeHint: "Type something like \"3 days in Paris\" and press Send.",
           placeholder: "e.g. Add a day for wine tasting, or make it more relaxed...",
           refinePlaceholder: "Refine your trip...",
           send: "Send",
@@ -530,11 +532,14 @@ const resources = {
       auth: {
         messages: {
           required: "Email and password are required.",
-          passwordMismatch: "Passwords do not match.",
+          passwordMismatch: "Passwords don't match.",
+          invalidCredentials: "Invalid email or password.",
           loginSuccess: "Login successful.",
           registerSuccess: "Account created. You can now log in.",
           profileHint: "Account created. Update your profile details next.",
           sessionExpired: "Your session has expired. Please log in again.",
+          welcomeBack: "Welcome back!",
+          welcomeNew: "Account created! Plan your first trip below.",
         },
         login: {
           eyebrow: "Welcome back",
@@ -656,6 +661,7 @@ const resources = {
       labels: {
         language: "भाषा",
         loading: "लोड हो रहा है...",
+        close: "बंद करें",
       },
       home: {
         title: "होम",
@@ -954,6 +960,8 @@ const resources = {
           registerSuccess: "खाता बनाया गया। अब लॉग इन करें।",
           profileHint: "खाता बनाया गया। अब अपनी प्रोफ़ाइल अपडेट करें।",
           sessionExpired: "आपका सत्र समाप्त हो गया। कृपया फिर से लॉग इन करें।",
+          welcomeBack: "वापस स्वागत है!",
+          welcomeNew: "खाता बन गया! नीचे अपनी पहली यात्रा की योजना बनाएं।",
         },
         login: {
           eyebrow: "फिर से स्वागत है",
@@ -1062,6 +1070,7 @@ const resources = {
       labels: {
         language: "ഭാഷ",
         loading: "ലോഡിംഗ്...",
+        close: "അടയ്ക്കുക",
       },
       home: {
         title: "ഹോം",
@@ -1358,6 +1367,8 @@ const resources = {
           registerSuccess: "അക്കൗണ്ട് സൃഷ്ടിച്ചു. ലോഗിൻ ചെയ്യുക.",
           profileHint: "അക്കൗണ്ട് സൃഷ്ടിച്ചു. പ്രൊഫൈൽ അപ്ഡേറ്റ് ചെയ്യുക.",
           sessionExpired: "നിങ്ങളുടെ സെഷൻ കാലഹരണമായി. ദയവായി വീണ്ടും ലോഗിൻ ചെയ്യുക.",
+          welcomeBack: "വീണ്ടും സ്വാഗതം!",
+          welcomeNew: "അക്കൗണ്ട് സൃഷ്ടിച്ചു! താഴെ നിങ്ങളുടെ ആദ്യ യാത്ര പ്ലാൻ ചെയ്യുക.",
         },
         login: {
           eyebrow: "സ്വാഗതം",
@@ -1466,6 +1477,7 @@ const resources = {
       labels: {
         language: "اللغة",
         loading: "جار التحميل...",
+        close: "إغلاق",
       },
       home: {
         title: "الرئيسية",
@@ -1762,6 +1774,8 @@ const resources = {
           registerSuccess: "تم إنشاء الحساب. يمكنك تسجيل الدخول الآن.",
           profileHint: "تم إنشاء الحساب. حدّث ملفك الشخصي الآن.",
           sessionExpired: "انتهت صلاحية جلستك. يرجى تسجيل الدخول مرة أخرى.",
+          welcomeBack: "مرحباً بعودتك!",
+          welcomeNew: "تم إنشاء الحساب! خطّط لرحلتك الأولى أدناه.",
         },
         login: {
           eyebrow: "مرحبًا بعودتك",
@@ -1868,6 +1882,7 @@ const resources = {
       labels: {
         language: "Idioma",
         loading: "Cargando...",
+        close: "Cerrar",
       },
       home: {
         title: "Inicio",
@@ -2174,6 +2189,8 @@ const resources = {
           registerSuccess: "Cuenta creada. Ya puedes iniciar sesión.",
           profileHint: "Cuenta creada. Actualiza tu perfil.",
           sessionExpired: "Tu sesión ha expirado. Por favor, inicia sesión de nuevo.",
+          welcomeBack: "¡Bienvenido de nuevo!",
+          welcomeNew: "¡Cuenta creada! Planifica tu primer viaje abajo.",
         },
         login: {
           eyebrow: "Bienvenido de vuelta",
@@ -2282,6 +2299,7 @@ const resources = {
       labels: {
         language: "Sprache",
         loading: "Wird geladen...",
+        close: "Schließen",
       },
       home: {
         title: "Start",
@@ -2588,6 +2606,8 @@ const resources = {
           registerSuccess: "Konto erstellt. Du kannst dich jetzt anmelden.",
           profileHint: "Konto erstellt. Bitte Profil vervollständigen.",
           sessionExpired: "Deine Sitzung ist abgelaufen. Bitte melde dich erneut an.",
+          welcomeBack: "Willkommen zurück!",
+          welcomeNew: "Konto erstellt! Plane unten deine erste Reise.",
         },
         login: {
           eyebrow: "Willkommen zurück",

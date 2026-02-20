@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import MapView from "../components/MapView";
 import PlaceAutocomplete from "../components/PlaceAutocomplete";
@@ -22,7 +22,10 @@ const paceOptions = [
 
 const Home = () => {
   const { t } = useTranslation();
+  const location = useLocation();
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const [welcomeDismissed, setWelcomeDismissed] = useState(false);
   const [formState, setFormState] = useState({
     destination: "",
     days: 3,
@@ -417,8 +420,32 @@ const Home = () => {
     };
   }, [plan, t]);
 
+  const welcomeBack = location.state?.welcomeBack === true && !welcomeDismissed;
+  const welcomeNew = location.state?.welcomeNew === true && !welcomeDismissed;
+  const showWelcomeBanner = welcomeBack || welcomeNew;
+
+  const dismissWelcome = () => {
+    setWelcomeDismissed(true);
+    navigate(location.pathname, { replace: true, state: {} });
+  };
+
   return (
     <main className="home-page">
+      {showWelcomeBanner && (
+        <div className="home-welcome-banner" role="status">
+          <span>
+            {welcomeBack ? t("auth.messages.welcomeBack") : t("auth.messages.welcomeNew")}
+          </span>
+          <button
+            type="button"
+            className="home-welcome-banner-dismiss"
+            onClick={dismissWelcome}
+            aria-label={t("labels.close")}
+          >
+            ×
+          </button>
+        </div>
+      )}
       <section className="home-hero">
         <div
           className={`container ${showAIChat ? "home-hero-ai-layout" : ""} ${showAIChat && plan ? "home-hero-ai-layout--with-plan" : ""}`}
@@ -440,6 +467,11 @@ const Home = () => {
                     </button>
                   </div>
                   <p className="trip-agent-chat-intro">{t("tripPlanner.aiChat.intro")}</p>
+                  {agentMessages.length === 0 && !agentContext && (
+                    <p className="trip-agent-chat-first-hint" role="status">
+                      {t("tripPlanner.aiChat.firstTimeHint")}
+                    </p>
+                  )}
                   <div className="home-hero-quick-start" aria-label={t("tripPlanner.quickStart")}>
                     <span className="home-hero-quick-start-label">{t("tripPlanner.quickStart")}</span>
                     <div className="home-hero-quick-start-pills">
@@ -553,7 +585,7 @@ const Home = () => {
                     </a>
                   </div>
                 ) : (
-                  <div className="home-hero-plan-empty">
+                  <div className="home-hero-plan-empty" data-testid="home-itinerary-placeholder">
                     <h3 className="home-hero-plan-empty-title">{t("tripPlanner.planPanel.emptyTitle")}</h3>
                     <p className="home-hero-plan-empty-hint">{t("tripPlanner.planPanel.emptyHint")}</p>
                   </div>

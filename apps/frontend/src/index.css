@@ -884,6 +884,21 @@ button.text-link {
   color: #991b1b;
 }
 
+/* Auth: prominent error so invalid login / password mismatch are visible (Recommendations POV) */
+.auth-form .message.error {
+  margin: 0.75rem 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid #fecaca;
+}
+
+.auth-form .message.success {
+  margin: 0.75rem 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid #bbf7d0;
+}
+
 .message.success {
   background: #dcfce7;
   color: #166534;
@@ -907,6 +922,34 @@ button.text-link {
 
 .auth-footer a {
   color: var(--primary);
+}
+
+/* Welcome banner after login or signup (Recommendations POV: success toast / welcome) */
+.home-welcome-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-muted, rgba(15, 118, 110, 0.12));
+  color: var(--color-primary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.home-welcome-banner-dismiss {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+}
+.home-welcome-banner-dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .home-page {
@@ -1589,6 +1632,13 @@ button.text-link {
   margin: 0;
   font-size: 0.95rem;
   color: var(--color-text-muted);
+  line-height: 1.4;
+}
+.trip-agent-chat-first-hint {
+  margin: 0.5rem 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  font-weight: 500;
   line-height: 1.4;
 }
 
