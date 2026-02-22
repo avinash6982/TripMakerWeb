@@ -39,6 +39,7 @@ const resources = {
         heroTitle: "Plan Your Adventure",
         heroCopyTitle: "Start with a destination.",
         quickStart: "Quick Start",
+        quickAction: "Quick Action",
         quickStartPills: {
           familyFriendly: "Family Friendly",
           budgetTravel: "Budget Travel",
@@ -93,6 +94,7 @@ const resources = {
           hoursShort: "{{hours}} hrs",
           itemMeta: "{{hours}} hrs · {{category}}",
           placeName: "Place name",
+          stopsShort: "{{count}} stops",
           generated: "Generated from offline suggestions.",
           fallback:
             "Showing a general plan because this destination is not in our starter dataset yet.",

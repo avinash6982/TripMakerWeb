@@ -23,6 +23,11 @@
   --color-border: #e2e8f0;
   --color-border-strong: #cbd5e1;
 
+  /* Scrollbar – minimal, uniform across scrollables */
+  --color-scrollbar-track: transparent;
+  --color-scrollbar-thumb: rgba(15, 23, 42, 0.22);
+  --color-scrollbar-thumb-hover: rgba(15, 23, 42, 0.38);
+
   /* Semantic (keep for compatibility) */
   --primary: var(--color-primary);
   --primary-dark: var(--color-primary-hover);

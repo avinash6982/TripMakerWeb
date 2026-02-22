@@ -5,6 +5,7 @@ import MapView from "../components/MapView";
 import PlaceAutocomplete from "../components/PlaceAutocomplete";
 import {
   buildOpenStreetMapLink,
+  buildOpenStreetMapSearchLink,
   collectPlaceNamesByDay,
   DESTINATION_SUGGESTIONS,
   geocodePlace,
@@ -53,10 +54,26 @@ const Home = () => {
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentChatInput, setAgentChatInput] = useState("");
   const agentMessagesEndRef = useRef(null);
+  const [dayAccordionExpanded, setDayAccordionExpanded] = useState(() => new Set());
 
   useEffect(() => {
     agentMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [agentMessages, agentLoading]);
+
+  useEffect(() => {
+    if (plan?.itinerary?.length) {
+      setDayAccordionExpanded(new Set(plan.itinerary.map((_, i) => i)));
+    }
+  }, [plan]);
+
+  const toggleDayAccordion = (dayIndex) => {
+    setDayAccordionExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(dayIndex)) next.delete(dayIndex);
+      else next.add(dayIndex);
+      return next;
+    });
+  };
 
   // Allow opening AI chat via URL for testing (e.g. /home?openAIChat=1&destination=Kochi)
   useEffect(() => {
@@ -466,68 +483,84 @@ const Home = () => {
                       {t("tripPlanner.aiChat.startOver")}
                     </button>
                   </div>
-                  <p className="trip-agent-chat-intro">{t("tripPlanner.aiChat.intro")}</p>
-                  {agentMessages.length === 0 && !agentContext && (
-                    <p className="trip-agent-chat-first-hint" role="status">
-                      {t("tripPlanner.aiChat.firstTimeHint")}
-                    </p>
-                  )}
-                  <div className="home-hero-quick-start" aria-label={t("tripPlanner.quickStart")}>
-                    <span className="home-hero-quick-start-label">{t("tripPlanner.quickStart")}</span>
-                    <div className="home-hero-quick-start-pills">
-                      <button
-                        type="button"
-                        className="home-hero-quick-pill"
-                        onClick={() => handleAgentSend(null, "Make it family friendly")}
-                        disabled={agentLoading}
-                      >
-                        {t("tripPlanner.quickStartPills.familyFriendly")}
-                      </button>
-                      <button
-                        type="button"
-                        className="home-hero-quick-pill"
-                        onClick={() => handleAgentSend(null, "Keep it budget-friendly")}
-                        disabled={agentLoading}
-                      >
-                        {t("tripPlanner.quickStartPills.budgetTravel")}
-                      </button>
-                      <button
-                        type="button"
-                        className="home-hero-quick-pill"
-                        onClick={() => handleAgentSend(null, "Add hidden gems and local spots")}
-                        disabled={agentLoading}
-                      >
-                        {t("tripPlanner.quickStartPills.hiddenGems")}
-                      </button>
-                      <button
-                        type="button"
-                        className="home-hero-quick-pill home-hero-quick-pill-custom"
-                        onClick={() => document.getElementById("agent-chat-input")?.focus()}
-                        aria-label={t("tripPlanner.quickStartPills.customFilter")}
-                      >
-                        {t("tripPlanner.quickStartPills.customFilter")}
-                      </button>
-                    </div>
-                  </div>
                   {agentContext && (
                     <p className="muted trip-agent-chat-context">
                       {agentContext.destination} · {agentContext.days} {agentContext.days === 1 ? "day" : "days"} · {t(`tripPlanner.pace.${agentContext.pace}`)}
                     </p>
                   )}
-                  <div className="trip-agent-chat-messages" role="log" aria-live="polite">
-                    {agentMessages.map((m, i) => (
-                      <div key={i} className={`trip-agent-msg trip-agent-msg-${m.role}`}>
-                        <span className="trip-agent-msg-role">{m.role === "user" ? "You" : "AI"}</span>
-                        <span className="trip-agent-msg-content">{m.content}</span>
-                      </div>
-                    ))}
-                    {agentLoading && (
-                      <div className="trip-agent-msg trip-agent-msg-assistant">
-                        <span className="trip-agent-msg-role">AI</span>
-                        <span className="trip-agent-msg-content">…</span>
+                  <div className="trip-agent-chat-scroll">
+                    <div className="trip-agent-chat-messages" role="log" aria-live="polite">
+                      {agentMessages.length === 0 && (
+                        <div className="trip-agent-chat-empty-state">
+                          <p className="trip-agent-chat-intro">{t("tripPlanner.aiChat.intro")}</p>
+                          {!agentContext && (
+                            <p className="trip-agent-chat-first-hint" role="status">
+                              {t("tripPlanner.aiChat.firstTimeHint")}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {agentMessages.map((m, i) => (
+                        <div key={i} className={`trip-agent-msg trip-agent-msg-${m.role}`}>
+                          <span className="trip-agent-msg-role">{m.role === "user" ? "You" : "AI"}</span>
+                          <span className="trip-agent-msg-content">{m.content}</span>
+                        </div>
+                      ))}
+                      {agentLoading && (
+                        <div className="trip-agent-msg trip-agent-msg-assistant">
+                          <span className="trip-agent-msg-role">AI</span>
+                          <span className="trip-agent-msg-content">…</span>
+                        </div>
+                      )}
+                      <div ref={agentMessagesEndRef} aria-hidden="true" />
+                    </div>
+                    {agentMessages.length > 0 && (
+                      <div className="trip-agent-quick-actions" aria-label={t("tripPlanner.quickAction")}>
+                        <span className="trip-agent-quick-actions-label">{t("tripPlanner.quickAction")}</span>
+                        <div className="trip-agent-quick-actions-pills">
+                          <button
+                            type="button"
+                            className="home-hero-quick-pill"
+                            onClick={() => handleAgentSend(null, "Make it family friendly")}
+                            disabled={agentLoading}
+                          >
+                            {t("tripPlanner.quickStartPills.familyFriendly")}
+                          </button>
+                          <button
+                            type="button"
+                            className="home-hero-quick-pill"
+                            onClick={() => handleAgentSend(null, "Keep it budget-friendly")}
+                            disabled={agentLoading}
+                          >
+                            {t("tripPlanner.quickStartPills.budgetTravel")}
+                          </button>
+                          <button
+                            type="button"
+                            className="home-hero-quick-pill"
+                            onClick={() => handleAgentSend(null, "Add hidden gems and local spots")}
+                            disabled={agentLoading}
+                          >
+                            {t("tripPlanner.quickStartPills.hiddenGems")}
+                          </button>
+                          <button
+                            type="button"
+                            className="home-hero-quick-pill home-hero-quick-pill-custom"
+                            onClick={() => document.getElementById("agent-chat-input")?.focus()}
+                            aria-label={t("tripPlanner.quickStartPills.customFilter")}
+                          >
+                            {t("tripPlanner.quickStartPills.customFilter")}
+                          </button>
+                        </div>
                       </div>
                     )}
-                    <div ref={agentMessagesEndRef} aria-hidden="true" />
+                    {message && (
+                      <p
+                        className={`message ${message === t("tripPlanner.results.agentUnavailableWithReply") ? "info" : "error"}`}
+                        role="alert"
+                      >
+                        {message}
+                      </p>
+                    )}
                   </div>
                   <form className="trip-agent-chat-form" onSubmit={handleAgentSend}>
                     <input
@@ -555,14 +588,6 @@ const Home = () => {
                       </span>
                     </button>
                   </form>
-                  {message && (
-                    <p
-                      className={`message ${message === t("tripPlanner.results.agentUnavailableWithReply") ? "info" : "error"}`}
-                      role="alert"
-                    >
-                      {message}
-                    </p>
-                  )}
                 </div>
               </div>
               <div
@@ -570,19 +595,257 @@ const Home = () => {
                 aria-live="polite"
               >
                 {plan && summary ? (
-                  <div className="home-hero-plan-preview">
-                    <h3 className="home-hero-plan-preview-title">
-                      {t("tripPlanner.results.summary", {
-                        days: summary.days,
-                        destination: summary.destination,
+                  <div className="home-hero-plan-content">
+                    <div className="home-hero-plan-header">
+                      <div className="planner-summary">
+                        <div className="planner-summary-main">
+                          <h2 className="home-hero-plan-content-title">{t("tripPlanner.results.title")}</h2>
+                          <p className="muted home-hero-plan-subtitle">
+                            {t("tripPlanner.results.summary", {
+                              days: summary.days,
+                              destination: summary.destination,
+                            })}
+                          </p>
+                        </div>
+                        <div className="planner-summary-meta">
+                          <span>{t("tripPlanner.results.pace", { pace: summary.paceLabel })}</span>
+                          <span>
+                            {t("tripPlanner.results.meta", {
+                              hours: summary.hours,
+                              stops: summary.stops,
+                            })}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="planner-save-row">
+                        <button
+                          className="btn primary"
+                          type="button"
+                          onClick={() => {
+                            setSaveTripName(plan.destination ? `${plan.destination} trip` : "");
+                            setSaveModalOpen(true);
+                            setSaveMessage("");
+                            setSaveStatus("idle");
+                          }}
+                        >
+                          {t("tripPlanner.actions.saveTrip")}
+                        </button>
+                      </div>
+                    </div>
+                    <div className="home-hero-plan-days">
+                      {plan.itinerary.map((day, dayIndex) => {
+                        const isExpanded = dayAccordionExpanded.has(dayIndex);
+                        return (
+                          <article
+                            className={`planner-day planner-day-accordion ${isExpanded ? "planner-day--expanded" : "planner-day--collapsed"}`}
+                            key={`day-${day.day}`}
+                          >
+                            <header
+                              className="planner-day-header planner-day-accordion-header"
+                              onClick={() => toggleDayAccordion(dayIndex)}
+                              role="button"
+                              tabIndex={0}
+                              aria-expanded={isExpanded}
+                              aria-controls={`planner-day-body-${dayIndex}`}
+                              id={`planner-day-heading-${dayIndex}`}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter" || e.key === " ") {
+                                  e.preventDefault();
+                                  toggleDayAccordion(dayIndex);
+                                }
+                              }}
+                            >
+                              <div className="planner-day-accordion-title">
+                                <div>
+                                  <h3>{t("tripPlanner.results.dayLabel", { day: day.day })}</h3>
+                                  <div className="planner-day-meta">
+                                    {day.area && (
+                                      <span>
+                                        {t("tripPlanner.results.focus", { area: day.area })}
+                                      </span>
+                                    )}
+                                    <span>
+                                      {t("tripPlanner.results.totalTime", { hours: day.totalHours })}
+                                    </span>
+                                    <span>
+                                      {t("tripPlanner.results.stopsShort", {
+                                        count: day.slots.reduce((n, s) => n + s.items.length, 0),
+                                      })}
+                                    </span>
+                                  </div>
+                                </div>
+                              </div>
+                              <div className="planner-day-accordion-right">
+                                <div className="planner-day-actions" onClick={(e) => e.stopPropagation()}>
+                                  <button
+                                    className="btn small ghost"
+                                    type="button"
+                                    onClick={() => handleRegenerateDay(dayIndex)}
+                                    disabled={regeneratingDay === dayIndex}
+                                  >
+                                    {regeneratingDay === dayIndex
+                                      ? t("tripPlanner.actions.regeneratingDay")
+                                      : t("tripPlanner.actions.regenerateDay")}
+                                  </button>
+                                  <button
+                                    className="btn small ghost"
+                                    type="button"
+                                    onClick={() => toggleEditDay(dayIndex)}
+                                  >
+                                    {editingDay === dayIndex
+                                      ? t("tripPlanner.actions.doneEditing")
+                                      : t("tripPlanner.actions.editDay")}
+                                  </button>
+                                </div>
+                                <span
+                                  className="planner-day-accordion-chevron"
+                                  aria-hidden
+                                >
+                                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                                </span>
+                              </div>
+                            </header>
+                            <div
+                              id={`planner-day-body-${dayIndex}`}
+                              role="region"
+                              aria-labelledby={`planner-day-heading-${dayIndex}`}
+                              className="planner-day-accordion-body"
+                            >
+                              <div className="planner-slots">
+                            {day.slots.map((slot, slotIndex) => (
+                              <section className="planner-slot" key={`${day.day}-${slot.timeOfDay}`}>
+                                <div className="planner-slot-header">
+                                  <h4>{t(`tripPlanner.slots.${slot.timeOfDay}`)}</h4>
+                                  <span className="planner-slot-hours">
+                                    {t("tripPlanner.results.hoursShort", {
+                                      hours: slot.totalHours,
+                                    })}
+                                  </span>
+                                </div>
+                                <ul className="planner-items">
+                                  {slot.items.map((item, itemIndex) => {
+                                    const categoryLabel = t(`tripPlanner.categories.${item.category}`, {
+                                      defaultValue: item.category,
+                                    });
+                                    const marker = itineraryMarkers.find((m) => m.name === item.name);
+                                    const mapHref =
+                                      marker && Number.isFinite(marker.lat) && Number.isFinite(marker.lng)
+                                        ? buildOpenStreetMapLink({ lat: marker.lat, lon: marker.lng })
+                                        : buildOpenStreetMapSearchLink(item.name, plan.destination);
+                                    return (
+                                      <li
+                                        className="planner-item"
+                                        key={`day-${day.day}-slot-${slot.timeOfDay}-item-${itemIndex}`}
+                                      >
+                                        {editingDay === dayIndex ? (
+                                          <PlaceAutocomplete
+                                            value={item.name}
+                                            onChange={(value) =>
+                                              handleItemChange(
+                                                dayIndex,
+                                                slotIndex,
+                                                itemIndex,
+                                                value
+                                              )
+                                            }
+                                            destination={plan.destination}
+                                            aria-label={t("tripPlanner.results.placeName", "Place name")}
+                                          />
+                                        ) : (
+                                          <span className="planner-item-name">{item.name}</span>
+                                        )}
+                                        <div className="planner-item-right">
+                                          <span className="planner-item-meta">
+                                            {t("tripPlanner.results.itemMeta", {
+                                              hours: item.durationHours,
+                                              category: categoryLabel,
+                                            })}
+                                          </span>
+                                          {mapHref && (
+                                            <a
+                                              href={mapHref}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="planner-item-map-link"
+                                              title={t("tripPlanner.map.open")}
+                                              aria-label={t("tripPlanner.map.open")}
+                                            >
+                                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                            </a>
+                                          )}
+                                        </div>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              </section>
+                            ))}
+                              </div>
+                            </div>
+                          </article>
+                        );
                       })}
-                    </h3>
-                    <p className="muted">
-                      {t("tripPlanner.results.pace", { pace: summary.paceLabel })} · {t("tripPlanner.results.meta", { hours: summary.hours, stops: summary.stops })}
-                    </p>
-                    <a href="#planner-output" className="btn ghost small home-hero-plan-scroll">
-                      {t("tripPlanner.planPanel.previewCaption")}
-                    </a>
+                    </div>
+                    <p className="planner-note">{t("tripPlanner.results.generated")}</p>
+                    {saveModalOpen && (
+                      <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="save-trip-title">
+                        <div className="modal-card">
+                          <h2 id="save-trip-title">{t("tripPlanner.saveTrip.title")}</h2>
+                          {saveStatus === "success" ? (
+                            <>
+                              <p className="message success">{saveMessage}</p>
+                              <div className="modal-actions">
+                                <Link className="btn primary" to="/trips">
+                                  {t("tripPlanner.saveTrip.viewMyTrips")}
+                                </Link>
+                                <button className="btn ghost" type="button" onClick={closeSaveModal}>
+                                  {t("tripPlanner.actions.doneEditing")}
+                                </button>
+                              </div>
+                            </>
+                          ) : (
+                            <form onSubmit={handleSaveTrip}>
+                              <div className="field">
+                                <label htmlFor="save-trip-name">{t("tripPlanner.saveTrip.nameLabel")}</label>
+                                <input
+                                  id="save-trip-name"
+                                  type="text"
+                                  value={saveTripName}
+                                  onChange={(e) => setSaveTripName(e.target.value)}
+                                  placeholder={t("tripPlanner.saveTrip.namePlaceholder")}
+                                  disabled={saveStatus === "loading"}
+                                  autoFocus
+                                />
+                              </div>
+                              {saveMessage && (
+                                <p className={`message ${saveStatus === "error" ? "error" : "success"}`} role="alert">
+                                  {saveMessage}
+                                </p>
+                              )}
+                              <div className="modal-actions">
+                                <button
+                                  className="btn primary"
+                                  type="submit"
+                                  disabled={saveStatus === "loading"}
+                                >
+                                  {saveStatus === "loading"
+                                    ? t("tripPlanner.saveTrip.saving")
+                                    : t("tripPlanner.actions.saveTrip")}
+                                </button>
+                                <button
+                                  className="btn ghost"
+                                  type="button"
+                                  onClick={closeSaveModal}
+                                  disabled={saveStatus === "loading"}
+                                >
+                                  Cancel
+                                </button>
+                              </div>
+                            </form>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="home-hero-plan-empty" data-testid="home-itinerary-placeholder">
@@ -595,18 +858,41 @@ const Home = () => {
                 <aside className="home-hero-sidebar" aria-label={t("tripPlanner.trendingDestinations")}>
                   <section className="home-hero-sidebar-section">
                     <h3 className="home-hero-sidebar-title">{t("tripPlanner.routeOverview")}</h3>
-                    <div className="home-hero-route-placeholder">
-                      {mapState.data ? (
-                        <a
-                          href={buildOpenStreetMapLink(mapState.data)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="home-hero-map-link"
-                        >
-                          {t("tripPlanner.map.open")}
-                        </a>
-                      ) : (
-                        <span className="muted">{mapState.message || t("tripPlanner.map.loading")}</span>
+                    <div className="home-hero-sidebar-map-wrap">
+                      {mapState.status === "loading" && (
+                        <div className="home-hero-route-placeholder">
+                          <span className="muted">{t("tripPlanner.map.loading")}</span>
+                        </div>
+                      )}
+                      {mapState.status === "error" && (
+                        <div className="home-hero-route-placeholder">
+                          <p className="message error" role="alert">{mapState.message}</p>
+                        </div>
+                      )}
+                      {mapState.status === "empty" && (
+                        <div className="home-hero-route-placeholder">
+                          <span className="muted">{mapState.message}</span>
+                        </div>
+                      )}
+                      {mapState.status === "ready" && mapState.data && (
+                        <>
+                          <div className="home-hero-sidebar-map">
+                            <MapView
+                              center={{ lat: mapState.data.lat, lon: mapState.data.lon }}
+                              destinationLabel={mapState.data.label || plan.destination}
+                              itineraryMarkers={itineraryMarkers}
+                              dayRoutes={dayRoutes}
+                            />
+                          </div>
+                          <a
+                            href={buildOpenStreetMapLink(mapState.data)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="home-hero-map-link home-hero-sidebar-map-link"
+                          >
+                            {t("tripPlanner.map.open")}
+                          </a>
+                        </>
                       )}
                     </div>
                   </section>
@@ -730,7 +1016,7 @@ const Home = () => {
           )}
         </div>
       </section>
-      {plan && summary ? (
+      {plan && summary && !showAIChat ? (
         <section id="planner-output" className="container planner-grid" tabIndex={-1}>
           <div className="planner-output" style={{ gridColumn: "1 / -1" }}>
             <>
@@ -876,6 +1162,11 @@ const Home = () => {
                               const categoryLabel = t(`tripPlanner.categories.${item.category}`, {
                                 defaultValue: item.category,
                               });
+                              const marker = itineraryMarkers.find((m) => m.name === item.name);
+                              const mapHref =
+                                marker && Number.isFinite(marker.lat) && Number.isFinite(marker.lng)
+                                  ? buildOpenStreetMapLink({ lat: marker.lat, lon: marker.lng })
+                                  : buildOpenStreetMapSearchLink(item.name, plan.destination);
                               return (
                                 <li
                                   className="planner-item"
@@ -898,12 +1189,26 @@ const Home = () => {
                                   ) : (
                                     <span className="planner-item-name">{item.name}</span>
                                   )}
-                                  <span className="planner-item-meta">
-                                    {t("tripPlanner.results.itemMeta", {
-                                      hours: item.durationHours,
-                                      category: categoryLabel,
-                                    })}
-                                  </span>
+                                  <div className="planner-item-right">
+                                    <span className="planner-item-meta">
+                                      {t("tripPlanner.results.itemMeta", {
+                                        hours: item.durationHours,
+                                        category: categoryLabel,
+                                      })}
+                                    </span>
+                                    {mapHref && (
+                                      <a
+                                        href={mapHref}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="planner-item-map-link"
+                                        title={t("tripPlanner.map.open")}
+                                        aria-label={t("tripPlanner.map.open")}
+                                      >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                      </a>
+                                    )}
+                                  </div>
                                 </li>
                               );
                             })}
