@@ -50,8 +50,6 @@ const Register = () => {
         password: formState.password,
       });
       setStoredUser(data);
-      setMessage(t("auth.messages.profileHint"));
-      setStatus("success");
       setFormState((prev) => ({ ...prev, password: "", confirmPassword: "" }));
       try {
         const profile = await fetchProfile(data.id);
@@ -62,7 +60,7 @@ const Register = () => {
       } catch (error) {
         // Ignore profile fetch failures after registration.
       }
-      navigate("/profile", { replace: true });
+      navigate("/home", { replace: true, state: { welcomeNew: true } });
     } catch (error) {
       setStatus("error");
       setMessage(error.message);
@@ -123,11 +121,17 @@ const Register = () => {
               <div
                 className={`message ${status === "error" ? "error" : "success"}`}
                 role={status === "error" ? "alert" : "status"}
+                aria-live={status === "error" ? "assertive" : "polite"}
               >
                 {message}
               </div>
             )}
-            <button className="btn primary full" type="submit" disabled={status === "loading"}>
+            <button
+              className="btn primary full"
+              type="submit"
+              disabled={status === "loading"}
+              aria-busy={status === "loading"}
+            >
               {status === "loading" ? t("auth.register.loading") : t("auth.register.button")}
             </button>
           </form>

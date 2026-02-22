@@ -136,6 +136,16 @@ export const buildStaticMapUrl = ({ lat, lon }) => {
 export const buildOpenStreetMapLink = ({ lat, lon }) =>
   `https://www.openstreetmap.org/?mlat=${lat}&mlon=${lon}#map=12/${lat}/${lon}`;
 
+/**
+ * Build OpenStreetMap search URL for a place in a destination (no geocoding needed).
+ * Opens OSM search so the user can see the location or get directions.
+ */
+export const buildOpenStreetMapSearchLink = (placeName, destination) => {
+  const q = [String(placeName || "").trim(), String(destination || "").trim()].filter(Boolean).join(", ");
+  if (!q) return null;
+  return `https://www.openstreetmap.org/search?query=${encodeURIComponent(q)}`;
+};
+
 /** In-memory cache for place geocoding (Nominatim 1 req/sec policy). */
 const placeCache = new Map();
 

@@ -11,7 +11,9 @@
   box-sizing: border-box;
 }
 
+/* Slightly smaller base (85%) for a tighter, less large feel; 1rem ≈ 13.6px when browser default is 16px */
 html {
+  font-size: 85%;
   -webkit-tap-highlight-color: transparent;
   height: 100%;
 }
@@ -44,6 +46,29 @@ a {
 ul {
   margin: 0;
   padding: 0;
+}
+
+/* Custom minimal scrollbar – applied to all scrollables for uniform look across platforms */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: var(--color-scrollbar-track);
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb);
+  border-radius: 4px;
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--color-scrollbar-thumb-hover);
+}
+*::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 .container {
@@ -884,6 +909,21 @@ button.text-link {
   color: #991b1b;
 }
 
+/* Auth: prominent error so invalid login / password mismatch are visible (Recommendations POV) */
+.auth-form .message.error {
+  margin: 0.75rem 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid #fecaca;
+}
+
+.auth-form .message.success {
+  margin: 0.75rem 0 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  border: 1px solid #bbf7d0;
+}
+
 .message.success {
   background: #dcfce7;
   color: #166534;
@@ -909,6 +949,34 @@ button.text-link {
   color: var(--primary);
 }
 
+/* Welcome banner after login or signup (Recommendations POV: success toast / welcome) */
+.home-welcome-banner {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--color-primary-muted, rgba(15, 118, 110, 0.12));
+  color: var(--color-primary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+.home-welcome-banner-dismiss {
+  flex-shrink: 0;
+  padding: 0.25rem 0.5rem;
+  font-size: 1.25rem;
+  line-height: 1;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+}
+.home-welcome-banner-dismiss:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
 .home-page {
   background: var(--bg);
   padding: 0;
@@ -917,6 +985,9 @@ button.text-link {
   flex: 1;
   min-height: 0;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 .home-hero {
@@ -927,11 +998,19 @@ button.text-link {
   display: flex;
   flex-direction: column;
   width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 /* AI layout: minimal padding so chat + itinerary use full viewport; chat flush left */
 .home-hero:has(.home-hero-ai-layout) {
   padding: var(--space-4) 0 0 0;
+}
+
+/* Fill viewport height whenever AI layout is shown (with or without plan) so no gray gap at bottom */
+.home-hero:has(.home-hero-ai-layout) {
+  flex: 1 1 0;
+  min-height: min(70vh, 640px);
 }
 
 /* Clear gap below sticky header so hero doesn’t sit flush on reload / scroll to top */
@@ -945,7 +1024,7 @@ button.text-link {
 
 /* When a plan exists, keep hero from collapsing so planner output doesn’t overlap (flex gives hero 0 when planner is tall) */
 .home-hero:has(.home-hero-ai-layout--with-plan) {
-  flex: 0 0 auto;
+  flex: 1 1 0;
   min-height: min(70vh, 640px);
 }
 
@@ -955,12 +1034,52 @@ button.text-link {
     padding-bottom: var(--space-6);
   }
 
+  .home-page .home-hero:has(.home-hero-ai-layout--with-plan) {
+    min-height: min(60vh, 520px);
+  }
+
   .home-page .planner-grid {
     margin-top: 1rem;
   }
 
   .home-hero-card {
     padding: var(--space-5) var(--space-4);
+  }
+
+  /* AI layout: slightly tighter horizontal padding on very small screens */
+  .home-hero .container.home-hero-ai-layout {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+  }
+
+  /* Plan header: ensure Save trip is touch-friendly; allow wrapping */
+  .home-hero-plan-header .planner-save-row .btn.primary {
+    min-height: 44px;
+    padding: 0.6rem 1rem;
+  }
+
+  /* Accordion day header: comfortable tap target */
+  .planner-day-accordion .planner-day-accordion-header {
+    min-height: 44px;
+    padding: var(--space-1) 0;
+  }
+
+  /* Day action buttons: touch-friendly */
+  .planner-day-actions .btn.small.ghost {
+    min-height: 44px;
+    padding: 0.5rem 0.75rem;
+  }
+
+  /* Planner item: stack name above meta+map on narrow so nothing overflows */
+  .home-hero-plan-days .planner-item {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+  .home-hero-plan-days .planner-item-right {
+    flex-wrap: wrap;
+  }
+  .home-hero-plan-days .planner-item-meta {
+    white-space: normal;
   }
 
   .planner-form input,
@@ -1209,7 +1328,7 @@ button.text-link {
   flex: 1;
   min-height: 0;
   width: 100%;
-  max-width: none;
+  max-width: 100%;
   margin: 0;
   padding: 0 var(--space-4) var(--space-4) var(--space-4);
   min-width: 0;
@@ -1217,14 +1336,21 @@ button.text-link {
   grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
   gap: var(--space-4);
   align-items: stretch;
+  overflow-x: hidden;
 }
 
-/* Three-column layout when plan exists: chat | itinerary | sidebar (Route + Trending). Same specificity as base so this overrides 2-column. */
+/* Three-column layout when plan exists: chat | itinerary | sidebar (Route + Trending).
+   Middle column capped so it doesn't dominate; map/sidebar gets remaining space as screen grows. */
 .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan {
-  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr) minmax(220px, 280px);
+  grid-template-columns: minmax(280px, 420px) minmax(280px, 500px) minmax(220px, 1fr);
 }
 
-/* Keep each hero area in its column when plan exists */
+/* Keep each hero area in its column when plan exists; prevent grid overflow */
+.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-chat,
+.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-plan-panel,
+.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-sidebar {
+  min-width: 0;
+}
 .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-chat {
   grid-column: 1;
 }
@@ -1239,6 +1365,9 @@ button.text-link {
 @media (max-width: 900px) {
   .home-hero .container.home-hero-ai-layout {
     grid-template-columns: 1fr;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
   }
 
   .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan {
@@ -1250,17 +1379,72 @@ button.text-link {
   .home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan > .home-hero-sidebar {
     grid-column: auto;
   }
+
+  /* Mobile when no plan yet: single full-height chat widget; hide itinerary and sidebar */
+  .home-hero .container.home-hero-ai-layout:not(.home-hero-ai-layout--with-plan) {
+    grid-template-rows: 1fr;
+  }
+  .home-hero .container.home-hero-ai-layout:not(.home-hero-ai-layout--with-plan) .home-hero-plan-panel,
+  .home-hero .container.home-hero-ai-layout:not(.home-hero-ai-layout--with-plan) .home-hero-sidebar {
+    display: none;
+  }
+  .home-hero .container.home-hero-ai-layout:not(.home-hero-ai-layout--with-plan) .home-hero-chat {
+    min-height: 0;
+  }
+
+  /* Stacked: give plan panel a max-height so day list scrolls inside; keeps flow usable */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel {
+    max-height: 65vh;
+    min-height: 280px;
+  }
+
+  /* Chat and sidebar get min height so they're visible when stacked */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-chat {
+    min-height: 240px;
+  }
 }
 
-/* Right sidebar: Route Overview + Trending Destinations */
+/* Very small phones: trip flow remains usable */
+@media (max-width: 480px) {
+  .home-hero .container.home-hero-ai-layout {
+    padding-left: var(--space-2);
+    padding-right: var(--space-2);
+  }
+
+  .home-hero-ai-layout .home-hero-chat,
+  .home-hero-plan-panel,
+  .home-hero-sidebar {
+    padding: var(--space-3);
+  }
+
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel {
+    max-height: 55vh;
+    min-height: 220px;
+  }
+
+  .home-hero-plan-content .home-hero-plan-content-title {
+    font-size: 1rem;
+  }
+
+  .home-hero-quick-start-pills {
+    gap: var(--space-2);
+  }
+
+  .home-hero-quick-pill {
+    font-size: var(--text-sm);
+    padding: 0.5rem 0.75rem;
+  }
+}
+
+/* Right sidebar: Route Overview + Trending Destinations (same padding as chat and plan panel) */
 .home-hero-sidebar {
   display: flex;
   flex-direction: column;
-  gap: var(--space-6);
+  gap: var(--space-4);
   min-height: 0;
   background: var(--color-bg-elevated);
   border-radius: var(--radius-card);
-  padding: var(--space-6);
+  padding: var(--space-4);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
   overflow-y: auto;
@@ -1284,6 +1468,48 @@ button.text-link {
   padding: var(--space-4);
   text-align: center;
 }
+
+/* Sidebar: map lives in the third card with fixed height */
+.home-hero-sidebar-map-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+}
+.home-hero-sidebar-map {
+  height: 220px;
+  min-height: 180px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  background: var(--color-bg);
+}
+.home-hero-sidebar-map .leaflet-container {
+  height: 100%;
+  width: 100%;
+}
+.home-hero-sidebar-map-link {
+  font-size: var(--text-sm);
+}
+
+/* Third card: embedded map preview (Route Overview) */
+.home-hero-sidebar-map-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.home-hero-sidebar-map-wrap .map-view-container {
+  height: 200px;
+  min-height: 200px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+.home-hero-sidebar-map-link {
+  display: inline-block;
+  font-size: var(--text-sm);
+}
+
 .home-hero-map-link {
   color: var(--color-primary);
   font-weight: 500;
@@ -1321,11 +1547,16 @@ button.text-link {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
 }
 
-/* Chat card: uniform border radius (matches plan panel and .home-hero-card) */
+/* Chat card: uniform border radius and padding (match plan panel and sidebar) */
 .home-hero-ai-layout .home-hero-chat {
   border-radius: var(--radius-card);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;
 }
 
 .home-hero-chat .trip-agent-chat {
@@ -1333,6 +1564,17 @@ button.text-link {
   display: flex;
   flex-direction: column;
   min-height: 0;
+}
+
+/* Scrollable area: messages + quick actions + status; form stays fixed at bottom */
+.home-hero-chat .trip-agent-chat-scroll {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 /* Quick Start filter pills (industry-standard chat UX) */
@@ -1376,35 +1618,84 @@ button.text-link {
   border-style: dashed;
 }
 
-/* Input row: same horizontal padding as panel content, bottom-aligned with uniform padding */
+/* Input row: always at bottom of chat card (form is last child) */
 .home-hero-chat .trip-agent-chat-form {
-  margin-top: auto;
+  flex-shrink: 0;
   padding: var(--space-3) 0 0;
   border-top: 1px solid var(--border);
 }
 
-.home-hero-chat .trip-agent-chat-messages {
-  flex: 1;
+.home-hero-chat .trip-agent-chat-scroll .trip-agent-chat-messages {
+  flex: 1 1 0;
   min-height: 120px;
-  overflow-y: auto;
+  max-height: none;
+  overflow-y: visible;
 }
 
 .home-hero-plan-panel {
   background: var(--color-bg-elevated);
   border-radius: var(--radius-card);
-  padding: var(--space-8);
+  padding: var(--space-4);
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
+}
+/* Single compact row: summary (title + meta) + Save trip button */
+.home-hero-plan-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  flex-shrink: 0;
+}
+.home-hero-plan-header .planner-summary {
+  flex: 1;
+  min-width: 0;
+  gap: var(--space-3);
+  align-items: center;
+}
+.home-hero-plan-header .planner-summary-main {
+  min-width: 0;
+}
+.home-hero-plan-header .home-hero-plan-content-title,
+.home-hero-plan-header .home-hero-plan-subtitle {
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+.home-hero-plan-header .planner-summary-main .home-hero-plan-content-title {
+  margin: 0 0 var(--space-1);
+}
+.home-hero-plan-subtitle {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+.home-hero-plan-header .planner-save-row {
+  flex-shrink: 0;
+  margin: 0;
+}
+.home-hero-plan-panel .home-hero-plan-preview,
+.home-hero-plan-panel .home-hero-plan-empty {
+  flex: 1 1 0;
+  min-height: 0;
   overflow-y: auto;
 }
 
+/* Empty state: give panel enough height so "Your itinerary will appear here" is visible and not cramped */
 .home-hero-plan-panel--empty {
   justify-content: center;
+  min-height: 220px;
+  flex: 1 1 0;
 }
 
+/* No internal scroll in empty state; content fits within panel */
+.home-hero-plan-panel--empty .home-hero-plan-empty {
+  overflow: visible;
+  flex: 0 0 auto;
+}
 
 .home-hero-plan-empty {
   text-align: center;
@@ -1437,15 +1728,44 @@ button.text-link {
   font-size: 1.25rem;
   font-weight: var(--font-bold);
   color: var(--color-text);
+  word-break: break-word;
 }
 
 .home-hero-plan-preview p {
   margin: 0 0 var(--space-4);
   font-size: var(--text-sm);
+  word-break: break-word;
 }
 
 .home-hero-plan-scroll {
   display: inline-block;
+}
+
+/* Full itinerary content inside the middle card (scrollable) */
+.home-hero-plan-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-height: 0;
+  flex: 1 1 0;
+}
+.home-hero-plan-content .home-hero-plan-content-title {
+  margin: 0 0 var(--space-1);
+  font-size: 1.125rem;
+  font-weight: var(--font-bold);
+  color: var(--color-text);
+}
+.home-hero-plan-content .planner-note {
+  flex-shrink: 0;
+}
+/* Day list is the scrollable region so it contains content and doesn't stretch the panel */
+.home-hero-plan-days {
+  display: grid;
+  gap: 1.5rem;
+  min-height: 0;
+  flex: 1 1 0;
+  overflow-y: auto;
+  align-content: start;
 }
 
 #planner-output {
@@ -1591,6 +1911,13 @@ button.text-link {
   color: var(--color-text-muted);
   line-height: 1.4;
 }
+.trip-agent-chat-first-hint {
+  margin: 0.5rem 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-primary);
+  font-weight: 500;
+  line-height: 1.4;
+}
 
 .trip-agent-chat-context {
   margin: 0;
@@ -1615,6 +1942,41 @@ button.text-link {
 
 .trip-agent-chat-messages:empty {
   min-height: 180px;
+}
+
+/* Empty state: intro + hint inside the chat messages container; center-aligned */
+.trip-agent-chat-empty-state {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  align-items: center;
+  text-align: center;
+}
+.trip-agent-chat-empty-state .trip-agent-chat-intro,
+.trip-agent-chat-empty-state .trip-agent-chat-first-hint {
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 28ch;
+}
+
+/* Quick Action bar: outside chat container, shown only after first user message */
+.trip-agent-quick-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--border);
+}
+.trip-agent-quick-actions-label {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+.trip-agent-quick-actions-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
 }
 
 .trip-agent-msg {
@@ -1682,9 +2044,9 @@ button.text-link {
   flex-shrink: 0;
 }
 
-/* On mobile, keep chat form above the bottom tab bar */
+/* On mobile: Trip Detail panel chat reserves space above tab bar (home chat uses app-content padding) */
 @media (max-width: 767px) {
-  .trip-agent-chat {
+  .trip-agent-panel-inner .trip-agent-chat {
     padding-bottom: calc(var(--tabbar-height-safe, 64px) + 0.5rem);
   }
 }
@@ -1773,10 +2135,11 @@ button.text-link {
 }
 
 .planner-summary-meta {
-  display: grid;
-  gap: 0.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
   color: var(--muted);
-  font-size: 0.95rem;
+  font-size: 0.875rem;
 }
 
 .planner-note {
@@ -5259,17 +5622,31 @@ button.text-link {
   background: #fff;
   border-radius: 18px;
   border: 1px solid var(--border);
-  padding: 1.5rem;
+  padding: var(--space-4);
   box-shadow: 0 12px 28px rgba(15, 23, 42, 0.06);
   display: grid;
-  gap: 1rem;
+  gap: var(--space-3);
+}
+.planner-day h3 {
+  margin: 0 0 var(--space-1) 0;
+}
+.planner-day-meta {
+  margin: 0;
+}
+
+/* Accordion cards: lighter shadow to avoid double-shadow band between stacked items */
+.planner-day-accordion {
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+}
+.planner-day-accordion.planner-day--expanded {
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
 .planner-day-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-3);
   flex-wrap: wrap;
 }
 
@@ -5287,16 +5664,68 @@ button.text-link {
   gap: 0.75rem;
 }
 
+/* Accordion day (AI layout): collapsible, initially expanded */
+.planner-day-accordion .planner-day-accordion-header {
+  cursor: pointer;
+  user-select: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.planner-day-accordion .planner-day-accordion-header:hover {
+  color: var(--color-primary);
+}
+.planner-day-accordion-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex: 1;
+  min-width: 0;
+}
+.planner-day-accordion-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.planner-day-accordion-chevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+  transition: transform 0.3s ease, color 0.2s;
+}
+.planner-day--collapsed .planner-day-accordion-chevron {
+  transform: rotate(-90deg);
+}
+.planner-day-accordion .planner-day-accordion-header:hover .planner-day-accordion-chevron {
+  color: var(--color-primary);
+}
+/* Smooth expand/collapse: animate grid-template-rows instead of display:none */
+.planner-day-accordion-body {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 0.3s ease;
+  overflow: hidden;
+}
+.planner-day-accordion-body > .planner-slots {
+  min-height: 0;
+}
+.planner-day--collapsed .planner-day-accordion-body {
+  grid-template-rows: 0fr;
+}
+
+/* Keep header identical in collapsed/expanded: no padding or typography overrides per state */
+
 .planner-slots {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-3);
 }
 
 .planner-slot {
   border-top: 1px solid var(--border);
-  padding-top: 1rem;
+  padding-top: var(--space-3);
   display: grid;
-  gap: 0.5rem;
+  gap: var(--space-2);
 }
 
 .planner-slot:first-child {
@@ -5308,7 +5737,10 @@ button.text-link {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-2);
+}
+.planner-slot-header h4 {
+  margin: 0 0 var(--space-1) 0;
 }
 
 .planner-slot-hours {
@@ -5403,10 +5835,36 @@ button.text-link {
   font-weight: 600;
 }
 
+.planner-item-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+
 .planner-item-meta {
   color: var(--muted);
   font-size: 0.85rem;
   white-space: nowrap;
+}
+
+.planner-item-map-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  color: var(--color-text-muted);
+  transition: color 0.2s, background 0.2s;
+}
+.planner-item-map-link:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-muted, rgba(14, 165, 233, 0.1));
+}
+.planner-item-map-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .planner-empty {
@@ -5806,6 +6264,14 @@ button.text-link {
     padding-bottom: var(--tabbar-height-safe);
   }
 
+  /* Home: full-height widget and no gray strip – extend gradient into padding, no bottom padding on page */
+  .app-content:has(.home-page) {
+    background: linear-gradient(135deg, #e0f2fe 0%, #ecfeff 40%, #f0fdfa 70%, #e0f2fe 100%);
+  }
+  .app-content:has(.home-page) .home-page {
+    padding-bottom: 0;
+  }
+
   .app-content {
     padding-bottom: var(--tabbar-height-safe);
   }
@@ -5840,6 +6306,14 @@ button.text-link {
     padding-left: var(--space-3);
     padding-right: var(--space-3);
     width: min(var(--container-max), 96%);
+  }
+
+  /* Home AI layout: keep full width so no empty strip on mobile */
+  .home-hero .container.home-hero-ai-layout {
+    width: 100%;
+    max-width: 100%;
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
   }
 
   .auth-card {

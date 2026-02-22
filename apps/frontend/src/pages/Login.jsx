@@ -48,8 +48,6 @@ const Login = () => {
         password: formState.password,
       });
       setStoredUser(data);
-      setMessage(t("auth.messages.loginSuccess"));
-      setStatus("success");
       try {
         const profile = await fetchProfile(data.id);
         saveProfile(profile);
@@ -59,10 +57,15 @@ const Login = () => {
       } catch (error) {
         // Ignore profile failures for login.
       }
-      navigate("/home", { replace: true });
+      navigate("/home", { replace: true, state: { welcomeBack: true } });
     } catch (error) {
       setStatus("error");
-      setMessage(error.message);
+      const msg = error?.message || "";
+      setMessage(
+        /incorrect|invalid|credentials|wrong password/i.test(msg)
+          ? t("auth.messages.invalidCredentials")
+          : msg
+      );
     }
   };
 
@@ -105,11 +108,17 @@ const Login = () => {
               <div
                 className={`message ${status === "error" ? "error" : "success"}`}
                 role={status === "error" ? "alert" : "status"}
+                aria-live={status === "error" ? "assertive" : "polite"}
               >
                 {message}
               </div>
             )}
-            <button className="btn primary full" type="submit" disabled={status === "loading"}>
+            <button
+              className="btn primary full"
+              type="submit"
+              disabled={status === "loading"}
+              aria-busy={status === "loading"}
+            >
               {status === "loading" ? t("auth.login.loading") : t("auth.login.button")}
             </button>
           </form>
