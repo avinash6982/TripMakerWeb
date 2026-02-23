@@ -627,6 +627,7 @@ const TripDetail = () => {
             )}
           </div>
         </div>
+        <div className="trip-detail-prereq-body">
         {prereqList.length === 0 ? (
           <p className="muted trip-detail-prereq-empty">{t("trips.prerequisitesEmpty")}</p>
         ) : filteredList.length === 0 ? (
@@ -1154,6 +1155,7 @@ const TripDetail = () => {
           )}
           </>
         )}
+        </div>
       </div>
     );
   };

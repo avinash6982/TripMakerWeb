@@ -1,15 +1,30 @@
 # 🚧 Development Status
 
 > **Last Updated:** February 2026  
-> **Current Phase:** UI Enhancement (mobile focus) + feedback-driven fixes  
-> **Next phase:** Continue UI Enhancement (trip view on mobile; **edit trip removed** — will be replaced by AI chat–based edit in MVP4+). MVP5 (Marketplace) only when you approve. A future phase **MVP4+ AI Capability Enhancements** is documented (trip creation AI, **AI chat–based edit trip**, ongoing AI, rich AI insights); not started until approved. See [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md), [MVP_ROADMAP.md](MVP_ROADMAP.md), [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
+> **Current Phase:** UI work paused; ready for next phase  
+> **Next:** MVP5 (Marketplace) when you approve; or optional: R2 (image uploads), MongoDB (persistent storage). **MVP4+ AI Capability Enhancements** (AI edit trip, rich insights) is documented; start only when approved. See [MVP_ROADMAP.md](MVP_ROADMAP.md), [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md).
+
+---
+
+## ✅ Recent completed (UI wrap-up – Feb 2026)
+
+- **Header icons:** Unified styling app-wide: Trips page archive/menu buttons use `.page-header-action-round` (same border/bg as back button); no more `btn ghost` in page headers.
+- **Redeem code:** Removed full-width mobile block; redeem is only in the header ⋮ menu on mobile (desktop unchanged).
+- **Trip cards:** Removed dedicated "View" button; whole card is a link. Global `.touchable` utility (opacity on hover/active) applied to trip and feed cards for consistent tap feedback.
+- **List + tab bar:** Trips and Feed get extra bottom padding on mobile so the last item scrolls fully above the bottom tab bar.
+- **Page header structure:** Profile has `.page-header-actions` placeholder; Feed uses `.page-header-spacer` when not logged in; Feed title is `<h1>`. Same three-slot layout (back/spacer | title | actions) everywhere.
+- **Trip detail header:** Title no longer grows to push badge right; badge sits next to title. Actions group gap set to `0.5rem` to match other headers.
+- **Gap below app navbar:** All pages use `var(--space-4)` top padding for consistent spacing. Trip detail desktop: `padding-top: var(--space-6)` on main and `padding-top: var(--space-4)` on `.trip-detail-main` so spacing matches /trips and /profile.
+- **Prerequisites (desktop):** Prerequisites section height matches Map widget; list scrolls when content grows (`.trip-detail-prereq-body` + flex/overflow).
+
+**Note:** Image upload (trip cover, gallery, chat) returns 503 until **Cloudflare R2** is configured. Set `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` in backend env (see [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md) § R2 CORS).
 
 ---
 
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**UI Enhancement (mobile focus):** Improve and enhance the UI with a focus on mobile screens. We work flow-by-flow: login, register, and trip creation are done; next is trip view, then other flows as needed. **Edit trip** (form-based) has been removed; trip editing will be implemented as **AI chat–based edit** in the MVP4+ AI Capability Enhancements phase. All changes are mobile-only where possible; desktop stays unchanged. MVP5 (Marketplace) will start only after explicit approval.
+**UI Enhancement (mobile focus) – paused.** Login, register, trip creation, and header/list/trip-detail consistency are done. Further UI work (trip view polish, etc.) can resume anytime. **Edit trip** (form-based) removed; **AI chat–based edit** is in MVP4+ AI Capability Enhancements. **MVP5 (Marketplace)** starts only after your explicit approval.
 
 **Reference:** [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md), [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
@@ -83,17 +98,22 @@
 
 ## 🎯 Next Tasks (Priority Order)
 
-### UI Enhancement (mobile) – next flows
-1. **Trip view (Trip Detail):** Mobile layout, map placement, chat FAB, headers, list/detail views.
-2. **Edit trip:** Removed from current plan. Full **AI chat–based edit trip** will be implemented in **MVP4+ AI Capability Enhancements** (see MVP_ROADMAP.md).
-3. **Other flows (as needed):** Discover (Feed), Profile, My Trips, Gallery.
+### What’s next (pick one when ready)
+1. **MVP5 (Marketplace):** Transport pricing, accommodation suggestions, paid APIs. **Start only when you explicitly approve.**
+2. **Image uploads:** Configure **Cloudflare R2** (env vars + CORS) so trip cover, gallery, and chat images work (see RENDER_DEPLOYMENT_GUIDE.md).
+3. **MongoDB (optional):** Persistent users/trips in production (see MONGODB_SETUP.md).
+4. **Resume UI Enhancement:** Trip view polish, other flows as needed (see UI_ENHANCEMENT_MOBILE.md).
 
 ### When you approve
 1. **MVP5 (Marketplace):** Do not start until explicitly approved. Will introduce paid services (Skyscanner, accommodation APIs).
 2. **MVP4 usage:** Set `GEMINI_API_KEY` and/or `GROQ_API_KEY` in backend (see [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)) for personalized AI replies; without keys, users get static planner and a clear message.
 
-### Optional (before or during MVP4)
+### Optional
 - **MongoDB:** Implementation complete (users + trips in `lib/db.js`; migration script `apps/backend/scripts/migrate-file-to-mongo.js`). Create Atlas cluster, set `MONGODB_URI` locally and on Render; optionally run the migration script (see [MONGODB_SETUP.md](MONGODB_SETUP.md)).
+
+### Documentation (Feb 2026 wrap-up)
+- **Updated:** DEVELOPMENT_STATUS, MVP_ROADMAP, UI_ENHANCEMENT_MOBILE, .cursorrules. All reflect “UI work paused; ready for next phase.”
+- **No docs removed.** All 26 project .md files are kept (essential + reference). See [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md) for the full map.
 
 ### Completed
 - MVP1, MVP2, MVP3 (all features); Design Optimization; Additional features (Prerequisites).

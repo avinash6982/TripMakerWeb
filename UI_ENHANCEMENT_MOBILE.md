@@ -1,8 +1,8 @@
 # UI Enhancement (Mobile Focus)
 
-**Status:** In progress  
+**Status:** Paused (February 2026)  
 **Started:** February 2026  
-**Goal:** Improve and enhance the UI with a focus on mobile screens. Each flow is made usable, consistent, and polished on small viewports without breaking desktop.
+**Goal:** Improve and enhance the UI with a focus on mobile screens. Each flow is made usable, consistent, and polished on small viewports without breaking desktop. Work is paused; can resume anytime.
 
 **Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md) (phase listed there); [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) for current tasks.
 
@@ -41,9 +41,24 @@ All of the following are **mobile-only** (e.g. `@media (max-width: 900px)` or 48
 | **Day actions** | Regenerate and Edit day are **icon-only** on mobile (refresh and pencil icons); ~30% smaller (31×31px, 14px icon), no border; `aria-label` for accessibility. |
 | **App bar** | Waypoint logo vertically centered in the app bar on mobile (nav `align-items: center` at 600px; was `flex-start`). |
 
+### 3. My Trips, Trip Detail, Profile – header and list consistency
+
+App-wide consistency for page headers, list spacing, and touch feedback (mobile and desktop where applicable).
+
+| Area | Change |
+|------|--------|
+| **Header icons** | Trips page archive and menu buttons use `.page-header-action-round` (same grey border/circle as back button). No `btn ghost` in page headers. |
+| **Redeem code** | Removed full-width "Redeem code" block on mobile; action is only in header ⋮ menu. Desktop: unchanged (text button in header). |
+| **Trip cards** | Removed "View" button; entire card is a link to trip detail. Added global `.touchable` utility (opacity on hover/active) and applied to trip cards and feed cards. |
+| **List + tab bar** | Trips and Feed: extra bottom padding on mobile so last list item is fully visible above the bottom tab bar. |
+| **Page header structure** | Profile: added empty `.page-header-actions` span. Feed (no user): use `.page-header-spacer` (same size as back button) so title aligns; Feed title is `<h1>`. Same three-slot layout everywhere. |
+| **Trip detail header** | Title in `.page-header-title-wrap` uses `flex: 0 1 auto` so status badge sits next to title; actions group gap `0.5rem` to match other headers. |
+| **Gap below app navbar** | All pages: top padding `var(--space-4)`. Trip detail desktop: main `padding-top: var(--space-6)` and `.trip-detail-main` `padding-top: var(--space-4)` so spacing matches /trips and /profile. |
+| **Prerequisites (desktop)** | Prerequisites section height matches Map widget; list scrolls when content grows (`.trip-detail-prereq-body` + flex/overflow). |
+
 ---
 
-## Next (planned)
+## Next (planned, when resumed)
 
 - **Trip view (Trip Detail):** Mobile layout, map placement, chat FAB, header, and any list/detail views.
 - **Edit trip:** Removed from UI Enhancement. The form-based "Edit trip" (name, destination, days) has been removed from the app. **AI chat–based edit trip** will be implemented in **MVP4+ AI Capability Enhancements** (see MVP_ROADMAP.md).
@@ -71,4 +86,4 @@ We will continue to document each flow’s changes here and in DEVELOPMENT_STATU
 
 ---
 
-**Last Updated:** February 2026
+**Last Updated:** February 2026 (My Trips / Trip Detail / Profile consistency added)

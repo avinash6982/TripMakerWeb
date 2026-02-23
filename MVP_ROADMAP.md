@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
 **Last Updated:** February 2026  
-**Current Phase:** UI Enhancement (mobile focus) + feedback-driven fixes  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete. **Now:** UI Enhancement phase (mobile: login, register, trip creation done; next: trip view, edit). **Next:** MVP5 (Marketplace) when approved. Optional: MongoDB (see MONGODB_SETUP.md).
+**Current Phase:** UI work paused; ready for next phase  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete; UI Enhancement (login, register, trip creation, headers/lists/trip-detail consistency) done and paused. **Next:** MVP5 (Marketplace) when approved; or R2 (uploads), MongoDB (optional). See DEVELOPMENT_STATUS.md.
 
 ---
 
@@ -402,8 +402,9 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 ## Next Steps
 
 ### Immediate (now)
-1. **Database migration (optional):** Complete MongoDB setup (see [MONGODB_SETUP.md](MONGODB_SETUP.md)): create Atlas cluster, set `MONGODB_URI`, optionally run migration script. Backend already supports MongoDB when `MONGODB_URI` is set.
-2. Verify app against MongoDB (register, login, trips, prerequisites, chat, gallery) if using MongoDB.
+1. **Choose next focus:** MVP5 (Marketplace) when approved; or configure R2 for image uploads; or MongoDB for persistent storage. See [DEVELOPMENT_STATUS.md](DEVELOPMENT_STATUS.md) “What’s next.”
+2. **Database migration (optional):** Complete MongoDB setup (see [MONGODB_SETUP.md](MONGODB_SETUP.md)): create Atlas cluster, set `MONGODB_URI`, optionally run migration script. Backend already supports MongoDB when `MONGODB_URI` is set.
+3. **R2 (optional):** Set `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME` and bucket CORS so trip/gallery/chat image uploads work (see [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)).
 
 ### When you approve MVP4 (AI Trip Agent)
 1. Follow [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for task breakdown and implementation.

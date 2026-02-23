@@ -3935,6 +3935,23 @@ button.text-link {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  min-height: 0;
+}
+
+/* Desktop: prerequisites card matches map height, list scrolls */
+@media (min-width: 769px) {
+  .trip-detail-side-column .trip-detail-prerequisites {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .trip-detail-prereq-body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
 }
 
 @media (max-width: 768px) {

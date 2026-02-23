@@ -1,6 +1,6 @@
 # 🏗️ TripMaker Application Architecture
 
-**Last Updated:** February 2026 (MongoDB migration)  
+**Last Updated:** February 2026 (MongoDB migration; frontend UI standards: touchable, page header, spacing)  
 **Version:** 1.0.0  
 **Status:** Production-Ready
 
@@ -290,7 +290,9 @@ App (Router)
 
 **Design system:** `src/styles/variables.css` defines design tokens (colors, spacing, radius, shadows, typography). Global styles in `index.css` use these tokens for consistency.
 
-**Standard page header (app-wide):** Every main page uses a single-row header: round back button (left) + page title (centre, truncate) + primary CTA (right). CSS: `.page-header`, `.page-header-back`, `.page-header-title`, `.page-header-actions`. Back goes to Trips or Home depending on context. Used on Trip Detail, Trips, Feed, Profile, Trip Gallery.
+**Touchable feedback:** The `.touchable` utility provides consistent hover/active opacity (TouchableOpacity-style) for clickable cards and links. Used on trip cards, feed cards, and any element that should show tap/click feedback without a separate button.
+
+**Standard page header (app-wide):** Every main page uses a single-row header: round back button or `.page-header-spacer` (left) + page title (centre, truncate) + primary CTA or empty `.page-header-actions` (right). CSS: `.page-header`, `.page-header-back`, `.page-header-title`, `.page-header-title-wrap` (when title + badge), `.page-header-actions`, `.page-header-action-round`. All header icon actions use `.page-header-action-round` for consistent border and size. Used on Trip Detail, Trips, Feed, Profile, Trip Gallery. Top padding below the app navbar is consistent: `var(--space-4)` on all pages; Trip Detail desktop adds `padding-top` on main and `.trip-detail-main` so the gap matches.
 
 **Breakpoints:**
 - **Desktop (≥768px):** Top header with logo, horizontal nav links (Home, Trips, Feed, Profile), language selector, and logout. Content area full width up to `--container-max` (1120px).
