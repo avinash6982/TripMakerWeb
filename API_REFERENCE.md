@@ -352,6 +352,7 @@ curl -X POST http://localhost:3000/trips/agent/chat \
 
 - **Gather step:** Groq then Gemini (when keys set) or simple parsing (no keys) to extract destination/days/pace from messages and context. Itinerary is generated only when all three are set.
 - **Env:** `GEMINI_API_KEY` or `TRIP_AGENT_PROVIDER=gemini` + `TRIP_AGENT_API_KEY`; **Groq:** `GROQ_API_KEY`. When no keys are set, conversational gather still runs (with simple parsing) and the static planner is used for the final plan.
+- **Rate limits:** If the API returns 429 (rate limit), clients should show a "temporarily limited" message and suggest retrying in a minute. The frontend may retry `updateTrip` once after a delay on transient failures.
 - **Reference:** [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)
 
 ---

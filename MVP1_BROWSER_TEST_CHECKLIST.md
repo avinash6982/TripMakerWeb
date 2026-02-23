@@ -64,7 +64,7 @@ Verify at **320px**, **390px**, **768px**, **1280px** width (DevTools → device
 ## 5. Trip Detail & Actions (1.8–1.11)
 
 - [ ] **Trip detail:** Name, destination, days, status badge, full itinerary
-- [ ] **1.8 Edit:** Click Edit → Change name/destination/days → Save changes → Trip updates
+- [ ] **1.8 Edit (AI):** Open trip → Open AI insights / Plan with AI panel → Type e.g. "Make it more relaxed" or "Add a day for wine tasting" → Send → "Applying changes…" then "Trip updated"; itinerary updates. (Optional: `node scripts/playwright-edit-trip.mjs`)
 - [ ] **1.11 Mark complete:** Click "Mark complete" → Status becomes Completed; no "Failed to fetch"; no CORS errors in Console
 - [ ] **1.10 Archive:** Click Archive → Status becomes Archived; success message shown (not "Failed to fetch"); no CORS errors in Console
 - [ ] **Unarchive:** On an archived trip → Click **Unarchive** → Status becomes Upcoming; success message shown; no CORS errors
