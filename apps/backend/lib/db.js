@@ -13,8 +13,9 @@ let db = null;
 async function connect() {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error("MONGODB_URI is required to use MongoDB.");
-  // Force IPv4 to avoid TLS handshake issues from some clouds (e.g. Render + Node 22 + Atlas)
-  const options = { family: 4 };
+  // Avoid TLS "alert internal error" (e.g. on Render + Atlas): force IPv4 and disable
+  // Node's auto IPv4/IPv6 selection, which can trigger SSL handshake failures.
+  const options = { family: 4, autoSelectFamily: false };
   client = new MongoClient(uri, options);
   const maxAttempts = 3;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
