@@ -21,6 +21,7 @@ import {
   deletePrerequisite,
 } from "../services/trips";
 import { chatWithTripAgent } from "../services/tripAgent";
+import { hasValidItineraryShape, validateAndNormalizePlanForUpdate } from "../utils/tripPlanValidation";
 import { getStoredUser } from "../services/auth";
 import { getTransportHubsForDestination } from "../data/transportHubs";
 import MapView from "../components/MapView";
@@ -437,14 +438,10 @@ const TripDetail = () => {
           currentItinerary: trip.itinerary,
         },
       });
-      await updateTrip(trip.id, {
-        itinerary: planResponse.itinerary,
-        destination: planResponse.destination,
-        days: planResponse.days,
-        pace: planResponse.pace,
-      });
-      const updated = await fetchTrip(trip.id);
-      setTrip(updated);
+
+      const contextIncomplete = planResponse.contextIncomplete === true;
+      const hasValidItinerary = hasValidItineraryShape(planResponse);
+
       const assistantContent =
         (planResponse.assistantMessage && String(planResponse.assistantMessage).trim()) ||
         (planResponse.aiUnconfigured
@@ -452,10 +449,12 @@ const TripDetail = () => {
           : planResponse.agentUnavailable
             ? t("tripPlanner.results.assistantFallback")
             : t("tripPlanner.results.assistantShortFallback"));
+
       setAgentMessages((prev) => [
         ...prev,
         { role: "assistant", content: assistantContent },
       ]);
+
       if (planResponse.agentUnavailable) {
         setAgentNotice(
           planResponse.assistantMessage && String(planResponse.assistantMessage).trim()
@@ -465,6 +464,32 @@ const TripDetail = () => {
       }
       if (planResponse.aiUnconfigured) {
         setAgentNotice(t("tripPlanner.results.aiUnconfigured"));
+      }
+
+      if (!contextIncomplete && hasValidItinerary) {
+        const payload = validateAndNormalizePlanForUpdate(planResponse, trip);
+        if (payload) {
+          const tripName = (planResponse.name && String(planResponse.name).trim()) ? String(planResponse.name).trim().slice(0, 200) : undefined;
+          if (tripName) payload.name = tripName;
+          setAgentNotice(t("tripPlanner.results.applyingChanges"));
+          const maxAttempts = 2;
+          for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+              await updateTrip(trip.id, payload);
+              const updated = await fetchTrip(trip.id);
+              setTrip(updated);
+              setAgentNotice(t("tripPlanner.results.tripUpdated"));
+              break;
+            } catch (updateErr) {
+              if (attempt < maxAttempts) {
+                await new Promise((r) => setTimeout(r, 2000));
+              } else {
+                setAgentError(updateErr?.message || t("tripPlanner.status.error"));
+                setAgentNotice("");
+              }
+            }
+          }
+        }
       }
     } catch (err) {
       setAgentError(err?.message || "Update failed.");
@@ -2442,15 +2467,21 @@ const TripDetail = () => {
           {agentPanelOpen && (
             <div className="trip-agent-panel-overlay" onClick={() => setAgentPanelOpen(false)} aria-hidden />
           )}
-          <div className={`trip-agent-panel ${agentPanelOpen ? "trip-agent-panel-open" : ""}`}>
+          <div
+            className={`trip-agent-panel ${agentPanelOpen ? "trip-agent-panel-open" : ""}`}
+            role="dialog"
+            aria-modal={agentPanelOpen}
+            aria-labelledby="trip-agent-panel-title"
+            aria-label={t("tripPlanner.aiChat.title")}
+          >
             <div className="trip-agent-panel-inner">
               <div className="trip-agent-chat-header">
-                <span className="trip-agent-chat-title">{t("tripPlanner.aiChat.title")}</span>
+                <span id="trip-agent-panel-title" className="trip-agent-chat-title">{t("tripPlanner.aiChat.title")}</span>
                 <button
                   type="button"
                   className="btn ghost trip-agent-panel-close"
                   onClick={() => setAgentPanelOpen(false)}
-                  aria-label="Close"
+                  aria-label={t("labels.close")}
                 >
                   ×
                 </button>

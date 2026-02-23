@@ -234,8 +234,11 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 - **Proper AI use:** With `GEMINI_API_KEY` and/or `GROQ_API_KEY` set, the gather step and plan generation both use the configured adapters.
 - **Reference:** `apps/backend/lib/tripAgentGather.js`, `tripAgentHandler.js`; API response fields `contextIncomplete`, `suggestedContext` (see API_REFERENCE.md).
 
-#### 2. Trip edit / ongoing trip AI enhancements (planned)  
-   - **Fully functional AI chat–based edit trip:** The previous form-based "Edit trip" (name, destination, days) has been removed from the app. This phase will implement trip editing via the existing AI chat (Plan with AI) flow instead.  
+#### 2. Trip edit / ongoing trip AI enhancements — in progress
+
+- **AI chat–based edit trip:** Edit is implemented via the Trip Detail AI panel (Plan with AI). Backend skips the gather step when context has `currentItinerary` + full destination/days/pace (edit mode). AI prompt includes edit instructions (add/remove day, add activity, change pace) and the current itinerary for modification.
+- **Robustness:** Trip Detail does not call `updateTrip` when the API returns `contextIncomplete` or when the response has no valid itinerary; user sees the assistant message only. Valid itinerary is required (array, length ≥ 1, each day has slots) before persisting.
+- **UX:** "Applying changes…" and "Trip updated with your changes." notices; i18n keys added. Playwright script: `scripts/playwright-edit-trip.mjs`; browser checklist updated (MVP1_BROWSER_TEST_CHECKLIST.md). See `docs/AI_EDIT_TRIP_GOALS.md` for the full 10-round goal list and status.  
    - AI assistance when editing an existing trip or during an active trip.  
    - **Rich AI insights section on Trip Detail:** Replace or augment the simple title with feature-rich insights, e.g.:
      - "Hey, your trip is starting in 4 days"

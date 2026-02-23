@@ -109,30 +109,48 @@ function shortQuestionReply(plan, requestedDays, destination) {
 /**
  * Main handler: messages + context → { plan?, assistantMessage, contextIncomplete?, suggestedContext?, aiUnconfigured?, agentUnavailable? }.
  * Runs gather step first; only generates an itinerary when destination, days, and pace are all present.
+ * Edit mode: when context has currentItinerary and full destination/days/pace, skip gather and go straight to plan generation.
  */
 async function handleTripAgentChat({ messages = [], context = {}, buildTripPlan }) {
-  const gather = await gatherContextFromChat(messages, context);
+  const isEditMode =
+    Array.isArray(context.currentItinerary) &&
+    context.currentItinerary.length > 0 &&
+    context.destination &&
+    String(context.destination).trim() &&
+    context.days != null &&
+    Number(context.days) >= 1 &&
+    Number(context.days) <= 10 &&
+    context.pace &&
+    String(context.pace).trim();
 
-  const hasFullContext =
-    gather.suggestedContext &&
-    gather.suggestedContext.destination &&
-    gather.suggestedContext.days != null &&
-    gather.suggestedContext.pace;
+  let gather;
+  if (!isEditMode) {
+    gather = await gatherContextFromChat(messages, context);
+    const hasFullContext =
+      gather.suggestedContext &&
+      gather.suggestedContext.destination &&
+      gather.suggestedContext.days != null &&
+      gather.suggestedContext.pace;
 
-  if (!gather.complete || !hasFullContext) {
-    return {
-      plan: null,
-      assistantMessage: gather.message,
-      contextIncomplete: true,
-      suggestedContext: gather.suggestedContext || {},
-      aiUnconfigured: gather.aiUnconfigured || undefined,
-      agentUnavailable: gather.agentUnavailable || undefined,
-    };
+    if (!gather.complete || !hasFullContext) {
+      return {
+        plan: null,
+        assistantMessage: gather.message,
+        contextIncomplete: true,
+        suggestedContext: gather.suggestedContext || {},
+        aiUnconfigured: gather.aiUnconfigured || undefined,
+        agentUnavailable: gather.agentUnavailable || undefined,
+      };
+    }
   }
 
-  const destination = (gather.suggestedContext.destination && String(gather.suggestedContext.destination).trim()) || "Your Trip";
-  const contextDays = Math.min(10, Math.max(1, Number(gather.suggestedContext.days) || 3));
-  const pace = gather.suggestedContext.pace || "balanced";
+  const destination = isEditMode
+    ? (context.destination && String(context.destination).trim()) || "Your Trip"
+    : (gather.suggestedContext.destination && String(gather.suggestedContext.destination).trim()) || "Your Trip";
+  const contextDays = isEditMode
+    ? Math.min(10, Math.max(1, Number(context.days) || 3))
+    : Math.min(10, Math.max(1, Number(gather.suggestedContext.days) || 3));
+  const pace = isEditMode ? (context.pace && String(context.pace).trim()) || "balanced" : gather.suggestedContext.pace || "balanced";
 
   const userMessages = (messages || [])
     .filter((m) => m && String(m.role).toLowerCase() === "user" && (typeof m.content === "string" || Array.isArray(m.content)))

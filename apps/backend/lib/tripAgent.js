@@ -128,12 +128,18 @@ function validateAndNormalizePlan(raw, context) {
       ? raw.message.trim().slice(0, 500)
       : undefined;
 
+  const name =
+    typeof raw.name === "string" && raw.name.trim()
+      ? raw.name.trim().slice(0, 200)
+      : undefined;
+
   return {
     destination,
     pace,
     days: numDays,
     generatedAt: new Date().toISOString(),
     isFallback: false,
+    ...(name && { name }),
     meta: {
       totalStops,
       avgStopsPerDay: numDays ? Number((totalStops / numDays).toFixed(1)) : 0,
@@ -157,8 +163,19 @@ function buildPrompt(messages, context) {
     pace: context.pace || "balanced",
     hasCurrentItinerary: Array.isArray(context.currentItinerary) && context.currentItinerary.length > 0,
   };
-  const system = `You are a friendly, knowledgeable trip planning assistant. You produce a day-by-day itinerary as a single JSON object and add a short conversational "message" when the user asks a question or when you change the plan.
 
+  const editModeBlock = ctx.hasCurrentItinerary
+    ? `
+EDIT MODE (user is editing an existing trip): The user will send the current itinerary below. You MUST:
+- MODIFY the existing itinerary according to their request. Examples: "add a day for wine tasting" → add a new day with wine-related activities; "remove day 2" → output itinerary without that day (and renumber days); "add a museum to day 1" → add an item to day 1's slots; "make it more relaxed" → reduce items or hours per day; "swap day 1 and 2" → swap the two days' content.
+- Output the FULL modified itinerary as JSON (same schema: days, slots, items, categories). Keep exactly the requested number of days (if they say "add a day", requested days will be current+1; if "remove day 2", requested days will be current-1).
+- If the user asks to RENAME the trip (e.g. "call this trip Paris Highlights", "rename to Weekend in Rome"), include a top-level "name" (string) in your JSON with the new trip name; otherwise omit "name".
+- For questions ("is this good?", "what do you think?") return the current itinerary unchanged and put your advice in "message" only.
+`
+    : "";
+
+  const system = `You are a friendly, knowledgeable trip planning assistant. You produce a day-by-day itinerary as a single JSON object and add a short conversational "message" when the user asks a question or when you change the plan.
+${editModeBlock}
 CRITICAL RULES:
 - Respond with ONLY valid JSON, no markdown or code fences.
 - You MUST output exactly ${ctx.days} day(s) in the itinerary: the "itinerary" array MUST have exactly ${ctx.days} objects (one per day). The user has requested this; do not ignore it. If you have fewer days, add new day objects; if more, trim to ${ctx.days}.
@@ -175,6 +192,10 @@ When the user asks a QUESTION or opinion (e.g. "is this a good trip?", "how good
   const userParts = [
     `Context: destination=${ctx.destination}, days=${ctx.days}, pace=${ctx.pace}.`,
   ];
+  if (ctx.hasCurrentItinerary && context.currentItinerary.length > 0) {
+    userParts.push("Current itinerary (modify according to user request):");
+    userParts.push(JSON.stringify(context.currentItinerary, null, 0).slice(0, 12000));
+  }
   for (const m of messages) {
     if (m && String(m.role).toLowerCase() === "user" && m.content) userParts.push(`User: ${m.content}`);
     if (m && String(m.role).toLowerCase() === "assistant" && m.content) userParts.push(`Assistant: ${m.content}`);

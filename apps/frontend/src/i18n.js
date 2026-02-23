@@ -113,6 +113,8 @@ const resources = {
           assistantFallback: "Suggested itinerary (we tried all AI providers; edit below or try again in a few minutes).",
           aiUnconfigured:
             "The AI assistant isn't set up yet. Add a Gemini or Groq API key in the backend (see docs) to get personalized replies, change days or pace, and ask questions about your trip. Below is a suggested itinerary you can edit.",
+          tripUpdated: "Trip updated with your changes.",
+          applyingChanges: "Applying changes…",
         },
         map: {
           title: "Map preview",
@@ -724,6 +726,8 @@ const resources = {
             "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
           agentUnavailableWithReply:
             "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
+          tripUpdated: "आपके बदलावों के साथ यात्रा अपडेट हो गई।",
+          applyingChanges: "बदलाव लागू हो रहे हैं…",
         },
         map: {
           title: "मैप प्रीव्यू",
@@ -1133,6 +1137,8 @@ const resources = {
             "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
           agentUnavailableWithReply:
             "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
+          tripUpdated: "നിങ്ങളുടെ മാറ്റങ്ങളോടെ യാത്ര അപ്‌ഡേറ്റ് ചെയ്തു.",
+          applyingChanges: "മാറ്റങ്ങൾ പ്രയോഗിക്കുന്നു…",
         },
         map: {
           title: "മാപ്പ് പ്രിവ്യൂ",
@@ -1539,6 +1545,8 @@ const resources = {
             "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
           agentUnavailableWithReply:
             "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
+          tripUpdated: "تم تحديث الرحلة بتعديلاتك.",
+          applyingChanges: "جاري تطبيق التغييرات…",
         },
         map: {
           title: "معاينة الخريطة",
@@ -1945,6 +1953,8 @@ const resources = {
             "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
           agentUnavailableWithReply:
             "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
+          tripUpdated: "Viaje actualizado con tus cambios.",
+          applyingChanges: "Aplicando cambios…",
         },
         map: {
           title: "Vista previa del mapa",
@@ -2362,6 +2372,8 @@ const resources = {
             "AI didn't respond in time. Here's a suggested itinerary you can edit. Check Groq/Gemini API keys in the backend .env if you expect AI replies.",
           agentUnavailableWithReply:
             "Using a suggested itinerary. For live AI replies, add Groq or Gemini API keys in the backend .env.",
+          tripUpdated: "Reise mit deinen Änderungen aktualisiert.",
+          applyingChanges: "Änderungen werden übernommen…",
         },
         map: {
           title: "Kartenvorschau",
