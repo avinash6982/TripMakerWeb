@@ -1392,15 +1392,82 @@ button.text-link {
     min-height: 0;
   }
 
-  /* Stacked: give plan panel a max-height so day list scrolls inside; keeps flow usable */
+  /* Draft itinerary: same full-height min as chat (viewport minus navbar, tab bar, vertical padding) */
   .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel {
-    max-height: 65vh;
-    min-height: 280px;
+    max-height: none;
+    min-height: calc(100vh - var(--header-height) - var(--tabbar-height-safe) - var(--space-8));
   }
 
-  /* Chat and sidebar get min height so they're visible when stacked */
+  /* Plan with AI: full height on mobile (viewport minus navbar, tab bar, and vertical padding) */
   .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-chat {
-    min-height: 240px;
+    min-height: calc(100vh - var(--header-height) - var(--tabbar-height-safe) - var(--space-8));
+  }
+
+  /* Chat scroll area: minimum height so messages/itinerary flow is usable */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-chat .trip-agent-chat-scroll {
+    min-height: 180px;
+  }
+
+  /* Plan panel days list: minimum height so day cards are scrollable and visible */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel .home-hero-plan-days {
+    min-height: 200px;
+  }
+
+  /* Mobile: one scroll for header + map + days (map inside scrollable container) */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel .home-hero-plan-content {
+    overflow-y: auto;
+  }
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel .home-hero-plan-days {
+    flex: 0 0 auto;
+    overflow-y: visible;
+  }
+
+  /* Mobile: show map inside draft itinerary, hide map in sidebar */
+  .home-hero-plan-route-mobile {
+    display: block;
+    margin: var(--space-3) 0;
+  }
+  .home-hero-plan-route-mobile .home-hero-sidebar-map-wrap {
+    min-height: 200px;
+  }
+  .home-hero-plan-route-mobile .home-hero-sidebar-map,
+  .home-hero-plan-route-mobile .map-view-container {
+    min-height: 200px;
+    height: 200px;
+  }
+  .home-hero-sidebar-route {
+    display: none;
+  }
+  .home-hero-sidebar-trending {
+    display: none;
+  }
+  /* Hide entire sidebar on mobile so no empty container; map lives inside draft itinerary */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-sidebar {
+    display: none;
+  }
+
+  /* Regenerate / Edit day: icon-only buttons on mobile (~30% smaller, no border) */
+  .planner-day-actions .planner-day-action-btn {
+    padding: var(--space-1);
+    min-width: 31px;
+    width: 31px;
+    height: 31px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+  }
+  .planner-day-actions .planner-day-action-btn .planner-day-action-label {
+    display: none;
+  }
+  .planner-day-actions .planner-day-action-btn .planner-day-action-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .planner-day-actions .planner-day-action-btn .planner-day-action-icon svg {
+    display: block;
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -1417,10 +1484,7 @@ button.text-link {
     padding: var(--space-3);
   }
 
-  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel {
-    max-height: 55vh;
-    min-height: 220px;
-  }
+  /* Keep same full-height min as 900px block; do not override with 55vh/220px */
 
   .home-hero-plan-content .home-hero-plan-content-title {
     font-size: 1rem;
@@ -1677,6 +1741,15 @@ button.text-link {
   flex-shrink: 0;
   margin: 0;
 }
+
+/* Route Overview inside plan panel: visible only on mobile; hide on desktop so sidebar map shows */
+@media (min-width: 901px) {
+  .home-hero-plan-route-mobile {
+    display: none;
+    flex-shrink: 0;
+  }
+}
+
 .home-hero-plan-panel .home-hero-plan-preview,
 .home-hero-plan-panel .home-hero-plan-empty {
   flex: 1 1 0;
@@ -1700,6 +1773,11 @@ button.text-link {
 .home-hero-plan-empty {
   text-align: center;
   padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .home-hero-plan-empty-title {
@@ -1707,6 +1785,9 @@ button.text-link {
   font-size: 1.25rem;
   font-weight: var(--font-bold);
   color: var(--color-text);
+  text-align: center;
+  width: 100%;
+  max-width: 28ch;
 }
 
 .home-hero-plan-empty-hint {
@@ -1717,6 +1798,22 @@ button.text-link {
   margin-left: auto;
   margin-right: auto;
   line-height: 1.5;
+  text-align: center;
+}
+
+.home-hero-plan-empty-suggestion {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-primary);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.home-hero-plan-empty-suggestion:hover {
+  color: var(--color-primary-hover);
 }
 
 .home-hero-plan-preview {
@@ -1900,6 +1997,40 @@ button.text-link {
   flex-wrap: wrap;
 }
 
+.trip-agent-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trip-agent-help-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--color-bg-elevated);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+.trip-agent-help-btn:hover:not(:disabled) {
+  background: var(--color-bg);
+  border-color: var(--color-border-strong);
+  color: var(--color-primary);
+}
+.trip-agent-help-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.trip-agent-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .trip-agent-chat-title {
   font-weight: 600;
   font-size: 1.1rem;
@@ -1944,19 +2075,40 @@ button.text-link {
   min-height: 180px;
 }
 
-/* Empty state: intro + hint inside the chat messages container; center-aligned */
+/* Empty state: intro + hint inside the chat messages container; centered vertically and horizontally */
 .trip-agent-chat-empty-state {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   align-items: center;
+  justify-content: center;
   text-align: center;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 .trip-agent-chat-empty-state .trip-agent-chat-intro,
 .trip-agent-chat-empty-state .trip-agent-chat-first-hint {
   margin-left: auto;
   margin-right: auto;
   max-width: 28ch;
+  text-align: center;
+}
+
+.trip-agent-chat-first-hint-suggestion {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.trip-agent-chat-first-hint-suggestion:hover {
+  color: var(--color-primary);
 }
 
 /* Quick Action bar: outside chat container, shown only after first user message */
@@ -6299,7 +6451,7 @@ button.text-link {
 
 @media (max-width: 600px) {
   .nav {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .container {

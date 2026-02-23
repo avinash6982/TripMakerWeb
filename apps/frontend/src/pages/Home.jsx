@@ -49,6 +49,7 @@ const Home = () => {
   const [saveStatus, setSaveStatus] = useState("idle");
   const [saveMessage, setSaveMessage] = useState("");
   const [showAIChat, setShowAIChat] = useState(true);
+  const [chatHelpOpen, setChatHelpOpen] = useState(false);
   const [agentMessages, setAgentMessages] = useState([]);
   const [agentContext, setAgentContext] = useState(null);
   const [agentLoading, setAgentLoading] = useState(false);
@@ -446,8 +447,36 @@ const Home = () => {
     navigate(location.pathname, { replace: true, state: {} });
   };
 
+  const fillChatSuggestion = (text) => {
+    setAgentChatInput(text);
+    requestAnimationFrame(() => document.getElementById("agent-chat-input")?.focus());
+  };
+
   return (
     <main className="home-page">
+      {chatHelpOpen && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="chat-help-title"
+          onClick={() => setChatHelpOpen(false)}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <h2 id="chat-help-title">{t("tripPlanner.aiChat.aiChatHelpTitle")}</h2>
+            <p>{t("tripPlanner.aiChat.aiChatHelpBody")}</p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn primary"
+                onClick={() => setChatHelpOpen(false)}
+              >
+                {t("labels.close")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {showWelcomeBanner && (
         <div className="home-welcome-banner" role="status">
           <span>
@@ -470,18 +499,38 @@ const Home = () => {
           {showAIChat ? (
             <>
               <div className="home-hero-card home-hero-chat">
-                <h2>{t("tripPlanner.heroTitle")}</h2>
                 <div className="trip-agent-chat">
                   <div className="trip-agent-chat-header">
                     <span className="trip-agent-chat-title">{t("tripPlanner.aiChat.title")}</span>
-                    <button
-                      type="button"
-                      className="btn small ghost"
-                      onClick={handleStartOver}
-                      disabled={agentLoading}
-                    >
-                      {t("tripPlanner.aiChat.startOver")}
-                    </button>
+                    <div className="trip-agent-chat-header-actions">
+                      {agentMessages.length > 0 && !plan && (
+                        <button
+                          type="button"
+                          className="trip-agent-help-btn"
+                          onClick={() => setChatHelpOpen(true)}
+                          aria-label={t("tripPlanner.aiChat.aiChatHelpLabel")}
+                          title={t("tripPlanner.aiChat.aiChatHelpLabel")}
+                        >
+                          <span className="trip-agent-help-icon" aria-hidden>
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="12" cy="12" r="10" />
+                              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+                              <line x1="12" y1="17" x2="12" y2="17" />
+                            </svg>
+                          </span>
+                        </button>
+                      )}
+                      {(agentMessages.length > 0 || agentContext) && (
+                        <button
+                          type="button"
+                          className="btn small ghost"
+                          onClick={handleStartOver}
+                          disabled={agentLoading}
+                        >
+                          {t("tripPlanner.aiChat.startOver")}
+                        </button>
+                      )}
+                    </div>
                   </div>
                   {agentContext && (
                     <p className="muted trip-agent-chat-context">
@@ -495,7 +544,15 @@ const Home = () => {
                           <p className="trip-agent-chat-intro">{t("tripPlanner.aiChat.intro")}</p>
                           {!agentContext && (
                             <p className="trip-agent-chat-first-hint" role="status">
-                              {t("tripPlanner.aiChat.firstTimeHint")}
+                              {t("tripPlanner.aiChat.firstTimeHintBefore")}
+                              <button
+                                type="button"
+                                className="trip-agent-chat-first-hint-suggestion"
+                                onClick={() => fillChatSuggestion("3 days in Paris")}
+                              >
+                                3 days in Paris
+                              </button>
+                              {t("tripPlanner.aiChat.firstTimeHintAfter")}
                             </p>
                           )}
                         </div>
@@ -632,6 +689,47 @@ const Home = () => {
                         </button>
                       </div>
                     </div>
+                    {/* Route Overview: on mobile only, shown here before days; on desktop shown in sidebar */}
+                    <div className="home-hero-plan-route-mobile">
+                      <h3 className="home-hero-sidebar-title">{t("tripPlanner.routeOverview")}</h3>
+                      <div className="home-hero-sidebar-map-wrap">
+                        {mapState.status === "loading" && (
+                          <div className="home-hero-route-placeholder">
+                            <span className="muted">{t("tripPlanner.map.loading")}</span>
+                          </div>
+                        )}
+                        {mapState.status === "error" && (
+                          <div className="home-hero-route-placeholder">
+                            <p className="message error" role="alert">{mapState.message}</p>
+                          </div>
+                        )}
+                        {mapState.status === "empty" && (
+                          <div className="home-hero-route-placeholder">
+                            <span className="muted">{mapState.message}</span>
+                          </div>
+                        )}
+                        {mapState.status === "ready" && mapState.data && (
+                          <>
+                            <div className="home-hero-sidebar-map">
+                              <MapView
+                                center={{ lat: mapState.data.lat, lon: mapState.data.lon }}
+                                destinationLabel={mapState.data.label || plan.destination}
+                                itineraryMarkers={itineraryMarkers}
+                                dayRoutes={dayRoutes}
+                              />
+                            </div>
+                            <a
+                              href={buildOpenStreetMapLink(mapState.data)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="home-hero-map-link home-hero-sidebar-map-link"
+                            >
+                              {t("tripPlanner.map.open")}
+                            </a>
+                          </>
+                        )}
+                      </div>
+                    </div>
                     <div className="home-hero-plan-days">
                       {plan.itinerary.map((day, dayIndex) => {
                         const isExpanded = dayAccordionExpanded.has(dayIndex);
@@ -678,23 +776,39 @@ const Home = () => {
                               <div className="planner-day-accordion-right">
                                 <div className="planner-day-actions" onClick={(e) => e.stopPropagation()}>
                                   <button
-                                    className="btn small ghost"
+                                    className="btn small ghost planner-day-action-btn"
                                     type="button"
                                     onClick={() => handleRegenerateDay(dayIndex)}
                                     disabled={regeneratingDay === dayIndex}
+                                    aria-label={regeneratingDay === dayIndex ? t("tripPlanner.actions.regeneratingDay") : t("tripPlanner.actions.regenerateDay")}
                                   >
-                                    {regeneratingDay === dayIndex
-                                      ? t("tripPlanner.actions.regeneratingDay")
-                                      : t("tripPlanner.actions.regenerateDay")}
+                                    <span className="planner-day-action-icon" aria-hidden>
+                                      {regeneratingDay === dayIndex ? (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                                      ) : (
+                                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                                      )}
+                                    </span>
+                                    <span className="planner-day-action-label">
+                                      {regeneratingDay === dayIndex
+                                        ? t("tripPlanner.actions.regeneratingDay")
+                                        : t("tripPlanner.actions.regenerateDay")}
+                                    </span>
                                   </button>
                                   <button
-                                    className="btn small ghost"
+                                    className="btn small ghost planner-day-action-btn"
                                     type="button"
                                     onClick={() => toggleEditDay(dayIndex)}
+                                    aria-label={editingDay === dayIndex ? t("tripPlanner.actions.doneEditing") : t("tripPlanner.actions.editDay")}
                                   >
-                                    {editingDay === dayIndex
-                                      ? t("tripPlanner.actions.doneEditing")
-                                      : t("tripPlanner.actions.editDay")}
+                                    <span className="planner-day-action-icon" aria-hidden>
+                                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </span>
+                                    <span className="planner-day-action-label">
+                                      {editingDay === dayIndex
+                                        ? t("tripPlanner.actions.doneEditing")
+                                        : t("tripPlanner.actions.editDay")}
+                                    </span>
                                   </button>
                                 </div>
                                 <span
@@ -850,13 +964,30 @@ const Home = () => {
                 ) : (
                   <div className="home-hero-plan-empty" data-testid="home-itinerary-placeholder">
                     <h3 className="home-hero-plan-empty-title">{t("tripPlanner.planPanel.emptyTitle")}</h3>
-                    <p className="home-hero-plan-empty-hint">{t("tripPlanner.planPanel.emptyHint")}</p>
+                    <p className="home-hero-plan-empty-hint">
+                      {t("tripPlanner.planPanel.emptyHintTry")}
+                      <button
+                        type="button"
+                        className="home-hero-plan-empty-suggestion"
+                        onClick={() => fillChatSuggestion("3 days in Paris")}
+                      >
+                        3 days in Paris
+                      </button>
+                      {t("tripPlanner.planPanel.emptyHintOr")}
+                      <button
+                        type="button"
+                        className="home-hero-plan-empty-suggestion"
+                        onClick={() => fillChatSuggestion("Relaxed weekend in Tokyo")}
+                      >
+                        Relaxed weekend in Tokyo
+                      </button>
+                    </p>
                   </div>
                 )}
               </div>
               {plan && (
                 <aside className="home-hero-sidebar" aria-label={t("tripPlanner.trendingDestinations")}>
-                  <section className="home-hero-sidebar-section">
+                  <section className="home-hero-sidebar-section home-hero-sidebar-route">
                     <h3 className="home-hero-sidebar-title">{t("tripPlanner.routeOverview")}</h3>
                     <div className="home-hero-sidebar-map-wrap">
                       {mapState.status === "loading" && (
@@ -896,7 +1027,7 @@ const Home = () => {
                       )}
                     </div>
                   </section>
-                  <section className="home-hero-sidebar-section">
+                  <section className="home-hero-sidebar-section home-hero-sidebar-trending">
                     <h3 className="home-hero-sidebar-title">{t("tripPlanner.trendingDestinations")}</h3>
                     <ul className="home-hero-trending-list">
                       {["Paris", "Tokyo", "Kyoto", "Barcelona", "Rome", "Lisbon"].map((dest) => (
@@ -1126,23 +1257,39 @@ const Home = () => {
                       </div>
                       <div className="planner-day-actions">
                         <button
-                          className="btn small ghost"
+                          className="btn small ghost planner-day-action-btn"
                           type="button"
                           onClick={() => handleRegenerateDay(dayIndex)}
                           disabled={regeneratingDay === dayIndex}
+                          aria-label={regeneratingDay === dayIndex ? t("tripPlanner.actions.regeneratingDay") : t("tripPlanner.actions.regenerateDay")}
                         >
-                          {regeneratingDay === dayIndex
-                            ? t("tripPlanner.actions.regeneratingDay")
-                            : t("tripPlanner.actions.regenerateDay")}
+                          <span className="planner-day-action-icon" aria-hidden>
+                            {regeneratingDay === dayIndex ? (
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 2v6h-6"/><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M3 22v-6h6"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                            ) : (
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                            )}
+                          </span>
+                          <span className="planner-day-action-label">
+                            {regeneratingDay === dayIndex
+                              ? t("tripPlanner.actions.regeneratingDay")
+                              : t("tripPlanner.actions.regenerateDay")}
+                          </span>
                         </button>
                         <button
-                          className="btn small ghost"
+                          className="btn small ghost planner-day-action-btn"
                           type="button"
                           onClick={() => toggleEditDay(dayIndex)}
+                          aria-label={editingDay === dayIndex ? t("tripPlanner.actions.doneEditing") : t("tripPlanner.actions.editDay")}
                         >
-                          {editingDay === dayIndex
-                            ? t("tripPlanner.actions.doneEditing")
-                            : t("tripPlanner.actions.editDay")}
+                          <span className="planner-day-action-icon" aria-hidden>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                          </span>
+                          <span className="planner-day-action-label">
+                            {editingDay === dayIndex
+                              ? t("tripPlanner.actions.doneEditing")
+                              : t("tripPlanner.actions.editDay")}
+                          </span>
                         </button>
                       </div>
                     </header>
