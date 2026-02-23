@@ -1876,16 +1876,18 @@ app.post(
         context,
         buildTripPlan: (opts) => buildTripPlan(opts),
       });
-      const { plan, assistantMessage, aiUnconfigured, agentUnavailable } = result;
-      const destination = plan?.destination || context?.destination || "Your Trip";
-      const days = plan?.days ?? context?.days ?? 3;
+      const { plan, assistantMessage, contextIncomplete, suggestedContext, aiUnconfigured, agentUnavailable } = result;
+      const destination = plan?.destination || context?.destination || suggestedContext?.destination || "Your Trip";
+      const days = plan?.days ?? context?.days ?? suggestedContext?.days ?? 3;
       const fallbackMsg = `Got it. ${days} days for ${destination}. Ask to add more days or change the pace if you'd like.`;
-      return res.status(200).json({
-        ...plan,
+      const payload = {
+        ...(plan && plan),
         assistantMessage: (assistantMessage && String(assistantMessage).trim()) ? assistantMessage : fallbackMsg,
         ...(aiUnconfigured && { aiUnconfigured: true }),
         ...(agentUnavailable && { agentUnavailable: true }),
-      });
+        ...(contextIncomplete && { contextIncomplete: true, suggestedContext: suggestedContext || {} }),
+      };
+      return res.status(200).json(payload);
     } catch (error) {
       return next(error);
     }

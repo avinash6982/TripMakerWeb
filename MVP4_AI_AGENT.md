@@ -148,6 +148,8 @@ The AI adapter **must** return the same shape as the current `POST /trips/plan` 
 - **After trip is created:** In addition to existing UI (e.g. chat button), add an **AI chat FAB** on all relevant screens so further edits to this trip go through the AI. **MVP4 scope:** only trip creation and itinerary edit via this flow.
 - **Existing flow:** Keep the existing “generate plan from static data” path working; AI is an **alternative** path that produces the same data format.
 
+**MVP4+ gather-before-plan:** The backend runs a gather step so destination, days, and pace are all known before returning an itinerary. When the user sends only a destination (e.g. Armenia), the response is conversational with `contextIncomplete: true` and `suggestedContext`; no itinerary until context is complete. See `lib/tripAgentGather.js`, API_REFERENCE.md.
+
 ---
 
 ## 6. Implementation checklist (placeholder)

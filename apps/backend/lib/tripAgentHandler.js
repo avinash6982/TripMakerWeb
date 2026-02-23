@@ -1,14 +1,17 @@
 /**
  * Trip Agent Chat — single pipeline from scratch.
  *
- * User goals (from product):
- * 1. Change trip length when user says "Make it 5 days", "then make it 5", "for 6 days instead" → plan and UI show new days; reply confirms the change.
- * 2. Answer questions ("Is 3 days enough?", "Is Paris worth it?") with a SHORT reply — never the long "This N-day X plan with Y stops (Z hrs/day)…" line.
+ * Flow (MVP4+): First run a "gather" step to ensure we have destination, days, and pace before generating any itinerary.
+ * If context is incomplete, return a conversational reply and suggestedContext (no plan). Once complete, generate the plan.
  *
- * This module owns: requested-days parsing, plan fetch (adapters or fallback), normalizing plan to requested days, and choosing the assistant message.
+ * User goals (from product):
+ * 1. When user says only "Armenia" (or a destination), ask for days and pace — do not suggest an itinerary until we have all three.
+ * 2. Change trip length when user says "Make it 5 days", "for 6 days instead" → plan and UI show new days; reply confirms the change.
+ * 3. Answer questions ("Is 3 days enough?") with a SHORT reply.
  */
 
 const { getTripAgentAdapters } = require("./tripAgent");
+const { gatherContextFromChat } = require("./tripAgentGather");
 
 /** Get plain text from message content (string or parts array). */
 function getMessageText(content) {
@@ -104,16 +107,32 @@ function shortQuestionReply(plan, requestedDays, destination) {
 }
 
 /**
- * Main handler: messages + context → { plan, assistantMessage, aiUnconfigured?, agentUnavailable? }.
- * @param {object} params
- * @param {Array} params.messages - chat messages
- * @param {object} params.context - { destination, days, pace, currentItinerary }
- * @param {function} params.buildTripPlan - (opts) => plan
+ * Main handler: messages + context → { plan?, assistantMessage, contextIncomplete?, suggestedContext?, aiUnconfigured?, agentUnavailable? }.
+ * Runs gather step first; only generates an itinerary when destination, days, and pace are all present.
  */
 async function handleTripAgentChat({ messages = [], context = {}, buildTripPlan }) {
-  const destination = (context.destination && String(context.destination).trim()) || "Your Trip";
-  const contextDays = Math.min(10, Math.max(1, Number(context.days) || 3));
-  const pace = context.pace || "balanced";
+  const gather = await gatherContextFromChat(messages, context);
+
+  const hasFullContext =
+    gather.suggestedContext &&
+    gather.suggestedContext.destination &&
+    gather.suggestedContext.days != null &&
+    gather.suggestedContext.pace;
+
+  if (!gather.complete || !hasFullContext) {
+    return {
+      plan: null,
+      assistantMessage: gather.message,
+      contextIncomplete: true,
+      suggestedContext: gather.suggestedContext || {},
+      aiUnconfigured: gather.aiUnconfigured || undefined,
+      agentUnavailable: gather.agentUnavailable || undefined,
+    };
+  }
+
+  const destination = (gather.suggestedContext.destination && String(gather.suggestedContext.destination).trim()) || "Your Trip";
+  const contextDays = Math.min(10, Math.max(1, Number(gather.suggestedContext.days) || 3));
+  const pace = gather.suggestedContext.pace || "balanced";
 
   const userMessages = (messages || [])
     .filter((m) => m && String(m.role).toLowerCase() === "user" && (typeof m.content === "string" || Array.isArray(m.content)))
@@ -174,7 +193,7 @@ async function handleTripAgentChat({ messages = [], context = {}, buildTripPlan 
 
   const assistantMessage = isDayChangeRequest
     ? `I've updated your plan to ${requestedDays} days. You can ask for more changes or ask how good the plan is.`
-    : shortQuestionReply(plan, requestedDays, destination);
+    : (plan.assistantMessage && String(plan.assistantMessage).trim()) || shortQuestionReply(plan, requestedDays, destination);
 
   return {
     plan: { ...plan, assistantMessage },

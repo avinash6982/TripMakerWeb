@@ -220,19 +220,21 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 
 ---
 
-### 🤖 MVP4+ AI Capability Enhancements (future phase)
+### 🤖 MVP4+ AI Capability Enhancements
 
-**Status:** ⏸️ NOT STARTED  
+**Status:** 🔄 In progress (trip creation enhancements)  
 **Goal:** Richer AI-driven trip creation, editing, and ongoing-trip insights.  
-**Prerequisites:** MVP4 (AI Trip Agent) complete. Start only with explicit approval.  
-**Note:** This phase is **not** the current phase. The in-content "AI insights" section on Trip Detail is kept simple for now (e.g. title like "Your trip to {destination} · AI insights", expand to chat). Rich insights will be added in this phase.
+**Prerequisites:** MVP4 (AI Trip Agent) complete.  
+**Branch:** `dev_ai_enhancements` for current work.
 
-#### Planned features (for later)
+#### 1. Trip creation enhancements (AI) — in progress
 
-1. **Trip creation enhancements (AI)**  
-   - Deeper AI assistance during trip creation (e.g. smarter suggestions, context-aware prompts).
+- **Gather-before-plan:** The agent no longer suggests an itinerary until it has **destination**, **days** (1–10), and **pace** (relaxed/balanced/fast). When the user types only a destination (e.g. "Armenia"), the AI asks for days and pace conversationally; response includes **`contextIncomplete: true`** and **`suggestedContext`** so the client can merge and continue the flow.
+- **Conversational flow:** Backend runs a dedicated "gather" step (Groq/Gemini when keys set, or simple parsing when no keys) so the chat is engaging and asks for missing info instead of generating a generic plan.
+- **Proper AI use:** With `GEMINI_API_KEY` and/or `GROQ_API_KEY` set, the gather step and plan generation both use the configured adapters.
+- **Reference:** `apps/backend/lib/tripAgentGather.js`, `tripAgentHandler.js`; API response fields `contextIncomplete`, `suggestedContext` (see API_REFERENCE.md).
 
-2. **Trip edit / ongoing trip AI enhancements**  
+#### 2. Trip edit / ongoing trip AI enhancements (planned)  
    - **Fully functional AI chat–based edit trip:** The previous form-based "Edit trip" (name, destination, days) has been removed from the app. This phase will implement trip editing via the existing AI chat (Plan with AI) flow instead.  
    - AI assistance when editing an existing trip or during an active trip.  
    - **Rich AI insights section on Trip Detail:** Replace or augment the simple title with feature-rich insights, e.g.:
