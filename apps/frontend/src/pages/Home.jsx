@@ -179,14 +179,14 @@ const Home = () => {
     e?.preventDefault();
     const text = (overrideText != null ? String(overrideText) : agentChatInput || "").trim();
     if (!text || agentLoading) return;
-    const baseContext = agentContext || {
-      destination: formState.destination.trim() || plan?.destination || "Your trip",
-      days: Math.min(
-        10,
-        Math.max(1, Number(formState.days != null && formState.days !== "" ? formState.days : plan?.days || 3))
-      ),
-      pace: (plan?.pace || formState.pace || "balanced"),
-    };
+    // Chat-first: only send context from backend (agentContext) or existing plan. Do NOT send form defaults
+    // when we have no agentContext, so the backend gather step will ask for days/pace instead of assuming them.
+    const baseContext =
+      agentContext != null
+        ? agentContext
+        : plan != null
+          ? { destination: plan.destination, days: plan.days, pace: plan.pace }
+          : { destination: null, days: null, pace: null };
     const userMessage = { role: "user", content: text };
     const nextMessages = [...agentMessages, userMessage];
     setAgentMessages(nextMessages);
@@ -194,22 +194,40 @@ const Home = () => {
     setAgentLoading(true);
     setMessage("");
     try {
+      const ctx = {
+        destination: plan?.destination ?? baseContext.destination,
+        days: plan?.days ?? baseContext.days,
+        pace: plan?.pace ?? baseContext.pace,
+        currentItinerary: plan?.itinerary,
+      };
+      const requestContext = {
+        ...(ctx.destination != null && ctx.destination !== "" && { destination: ctx.destination }),
+        ...(ctx.days != null && Number(ctx.days) >= 1 && Number(ctx.days) <= 10 && { days: Number(ctx.days) }),
+        ...(ctx.pace != null && ctx.pace !== "" && { pace: ctx.pace }),
+        ...(Array.isArray(ctx.currentItinerary) && ctx.currentItinerary.length > 0 && { currentItinerary: ctx.currentItinerary }),
+      };
       const planResponse = await chatWithTripAgent({
         messages: nextMessages,
-        context: {
-          destination: plan?.destination ?? baseContext.destination,
-          days: plan?.days ?? baseContext.days,
-          pace: plan?.pace ?? baseContext.pace,
-          currentItinerary: plan?.itinerary,
-        },
+        context: requestContext,
       });
-      setPlan(planResponse);
-      setEditingDay(null);
-      setAgentContext({
-        destination: planResponse.destination || baseContext.destination,
-        days: planResponse.days ?? baseContext.days,
-        pace: planResponse.pace || baseContext.pace,
-      });
+      const contextIncomplete = planResponse.contextIncomplete === true;
+      const suggestedContext = planResponse.suggestedContext || {};
+
+      if (suggestedContext && (suggestedContext.destination != null || suggestedContext.days != null || suggestedContext.pace != null)) {
+        setAgentContext((prev) => ({
+          destination: suggestedContext.destination ?? prev?.destination ?? null,
+          days: suggestedContext.days ?? prev?.days ?? null,
+          pace: suggestedContext.pace ?? prev?.pace ?? null,
+        }));
+      }
+
+      if (!contextIncomplete && (planResponse.itinerary != null || planResponse.destination != null)) {
+        setPlan(planResponse);
+        setEditingDay(null);
+        const dest = planResponse.destination || suggestedContext.destination || agentContext?.destination;
+        if (dest) loadMapForDestination(dest);
+      }
+
       const assistantContent =
         (planResponse.assistantMessage && String(planResponse.assistantMessage).trim()) ||
         (planResponse.aiUnconfigured
@@ -228,7 +246,6 @@ const Home = () => {
             : t("tripPlanner.results.agentUnavailable")
         );
       }
-      loadMapForDestination(planResponse.destination || agentContext.destination);
     } catch (error) {
       setMessage(error.message || t("tripPlanner.status.error"));
     } finally {
@@ -532,9 +549,13 @@ const Home = () => {
                       )}
                     </div>
                   </div>
-                  {agentContext && (
+                  {agentContext && (agentContext.destination || agentContext.days != null || agentContext.pace) && (
                     <p className="muted trip-agent-chat-context">
-                      {agentContext.destination} · {agentContext.days} {agentContext.days === 1 ? "day" : "days"} · {t(`tripPlanner.pace.${agentContext.pace}`)}
+                      {[
+                        agentContext.destination,
+                        agentContext.days != null ? `${agentContext.days} ${agentContext.days === 1 ? "day" : "days"}` : null,
+                        agentContext.pace ? t(`tripPlanner.pace.${agentContext.pace}`) : null,
+                      ].filter(Boolean).join(" · ")}
                     </p>
                   )}
                   <div className="trip-agent-chat-scroll">
@@ -622,6 +643,7 @@ const Home = () => {
                   <form className="trip-agent-chat-form" onSubmit={handleAgentSend}>
                     <input
                       id="agent-chat-input"
+                      data-testid="agent-chat-input"
                       type="text"
                       value={agentChatInput}
                       onChange={(e) => setAgentChatInput(e.target.value)}
@@ -900,7 +922,22 @@ const Home = () => {
                         );
                       })}
                     </div>
-                    <p className="planner-note">{t("tripPlanner.results.generated")}</p>
+                    {plan.aiUnconfigured && (
+                      <p className="planner-note">{t("tripPlanner.results.aiUnconfigured")}</p>
+                    )}
+                    {plan.agentUnavailable && !plan.aiUnconfigured && (
+                      <p className="planner-note">
+                        {plan.assistantMessage && String(plan.assistantMessage).trim()
+                          ? t("tripPlanner.results.agentUnavailableWithReply")
+                          : t("tripPlanner.results.agentUnavailable")}
+                      </p>
+                    )}
+                    {plan.isFallback && !plan.aiUnconfigured && !plan.agentUnavailable && (
+                      <p className="planner-note">{t("tripPlanner.results.fallback")}</p>
+                    )}
+                    {!plan.aiUnconfigured && !plan.agentUnavailable && !plan.isFallback && (
+                      <p className="planner-note">{t("tripPlanner.results.generated")}</p>
+                    )}
                     {saveModalOpen && (
                       <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="save-trip-title">
                         <div className="modal-card">

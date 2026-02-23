@@ -309,13 +309,13 @@ curl -X POST http://localhost:3000/trips/plan \
 
 ---
 
-### 🤖 Trip Agent Chat (MVP4)
+### 🤖 Trip Agent Chat (MVP4 / MVP4+)
 
 **Endpoint:** `POST /trips/agent/chat` or `POST /api/trips/agent/chat`  
 **Authentication:** None  
 **Rate Limit:** Same as general (100 req/15min)
 
-Chat with the AI trip agent to generate or refine an itinerary. Returns the same response shape as `POST /trips/plan`. If no AI provider is configured or the AI call fails, the backend falls back to the static trip planner.
+Chat with the AI trip agent to generate or refine an itinerary. The backend first runs a **gather** step: it collects **destination**, **days** (1–10), and **pace** (relaxed | balanced | fast) from the conversation. **No itinerary is returned until all three are present.** When the user sends only a destination (e.g. "Armenia"), the response is conversational (e.g. "How many days and what pace?") with **`contextIncomplete: true`** and **`suggestedContext`** so the client can merge and resend. Once context is complete, the response has the same shape as `POST /trips/plan` (with `itinerary`). If no AI provider is configured or the AI call fails, the backend uses simple parsing (no keys) or the static trip planner.
 
 #### Request
 
@@ -324,12 +324,12 @@ curl -X POST http://localhost:3000/trips/agent/chat \
   -H "Content-Type: application/json" \
   -d '{
     "messages": [
-      { "role": "user", "content": "Create a 3 day relaxed trip to Rome" }
+      { "role": "user", "content": "Armenia" },
+      { "role": "assistant", "content": "Armenia sounds great! How many days..." },
+      { "role": "user", "content": "5 days, relaxed" }
     ],
     "context": {
-      "destination": "Rome",
-      "days": 3,
-      "pace": "relaxed"
+      "destination": "Armenia"
     }
   }'
 ```
@@ -338,20 +338,20 @@ curl -X POST http://localhost:3000/trips/agent/chat \
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `messages` | array | Yes | Chat history: `[{ role: "user"|"assistant", content: string }]` |
-| `context` | object | No | `destination`, `days`, `pace`, optional `currentItinerary` (for edits) |
+| `messages` | array | Yes | Chat history: `[{ role: "user"\|"assistant", content: string }]` |
+| `context` | object | No | Optional partial context: `destination`, `days` (1–10), `pace`, optional `currentItinerary` (for edits). Omit or leave empty when starting (e.g. user only said "Armenia"). |
 
 #### Response (200 OK)
 
-Same shape as [Generate Trip Plan](#-generate-trip-plan): `destination`, `pace`, `days`, `generatedAt`, `isFallback`, `meta`, `itinerary`. Optional fields: **`assistantMessage`** (string, brief conversational reply from the AI); **`agentUnavailable: true`** when the AI was tried but all adapters failed (e.g. 429)—client can show "AI temporarily limited"; **`aiUnconfigured: true`** when no API keys are set—client can show "Add an API key to get AI-powered replies".
+- **When context is incomplete** (destination, days, or pace missing):  
+  **`assistantMessage`** (conversational reply asking for missing info), **`contextIncomplete: true`**, **`suggestedContext`** `{ destination?, days?, pace? }` (merge into client context for the next request). No `itinerary`; client should not show a plan.
+- **When context is complete:** Same shape as [Generate Trip Plan](#-generate-trip-plan): `destination`, `pace`, `days`, `generatedAt`, `isFallback`, `meta`, `itinerary`, plus **`assistantMessage`**.
+- Optional flags: **`agentUnavailable: true`** when the AI was tried but all adapters failed; **`aiUnconfigured: true`** when no API keys are set.
 
 #### Backend configuration
 
-- **Fallback chain:** Tried in order: (1) Gemini, (2) Groq. If both are configured and one fails (e.g. 429), the other is tried. If all fail or no keys are set, the static plan is returned.
-- **Env:**  
-  - **Gemini:** `GEMINI_API_KEY` or `TRIP_AGENT_PROVIDER=gemini` + `TRIP_AGENT_API_KEY`  
-  - **Groq (fallback):** `GROQ_API_KEY`  
-  When no keys are set, the endpoint returns the static plan only.
+- **Gather step:** Groq then Gemini (when keys set) or simple parsing (no keys) to extract destination/days/pace from messages and context. Itinerary is generated only when all three are set.
+- **Env:** `GEMINI_API_KEY` or `TRIP_AGENT_PROVIDER=gemini` + `TRIP_AGENT_API_KEY`; **Groq:** `GROQ_API_KEY`. When no keys are set, conversational gather still runs (with simple parsing) and the static planner is used for the final plan.
 - **Reference:** [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)
 
 ---
