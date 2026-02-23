@@ -5,9 +5,10 @@ alwaysApply: true
 
 # MVP Development Discipline
 
-## Current Phase: **MVP4 complete — next MVP5 (Marketplace)**
+## Current Phase: **UI Enhancement (mobile) in progress — next MVP5 (Marketplace)**
 
 ### Phase Status
+- **UI Enhancement (Mobile):** In progress. Login, register, trip creation flows done; next: trip view, trip edit. See [UI_ENHANCEMENT_MOBILE.md](../../UI_ENHANCEMENT_MOBILE.md).
 - **MVP4:** 100% complete (AI Trip Agent: Gemini + Groq adapters, chat endpoint, Home + Trip Detail FAB)
 - **MVP3:** 100% complete
 - **Additional features:** Prerequisites ✅ complete. MongoDB ✅ complete.

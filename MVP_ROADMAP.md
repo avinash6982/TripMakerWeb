@@ -1,8 +1,8 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** February 20, 2026  
-**Current Phase:** Building and fixing (feedback-driven)  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete. **Now:** Fixes and features from your feedback. **Next:** MVP5 (Marketplace) when approved. Optional: MongoDB (see MONGODB_SETUP.md).
+**Last Updated:** February 2026  
+**Current Phase:** UI Enhancement (mobile focus) + feedback-driven fixes  
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete. **Now:** UI Enhancement phase (mobile: login, register, trip creation done; next: trip view, edit). **Next:** MVP5 (Marketplace) when approved. Optional: MongoDB (see MONGODB_SETUP.md).
 
 ---
 
@@ -153,6 +153,31 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 
 ---
 
+### 📱 UI Enhancement (Mobile Focus)
+
+**Status:** 🔄 In progress  
+**Goal:** Improve and enhance the UI with a focus on mobile screens. Flows are made usable, consistent, and polished on small viewports; desktop is unchanged.  
+**Reference:** [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md)
+
+#### Scope
+- **Focus:** Mobile viewports (e.g. ≤900px, small phones ≤480px).
+- **Approach:** One flow at a time; mobile-only CSS/layout where possible; document completed and next flows.
+
+#### Completed ✅
+- **Login & Register:** Mobile layout/alignment (covered in earlier design passes).
+- **Trip creation flow (Home):**
+  - Plan with AI and Draft itinerary sections: full-height min on mobile (`100vh - header - tabbar - padding`).
+  - Map moved inside draft itinerary (before days); sidebar and Trending hidden on mobile; single scroll for header + map + days.
+  - Regenerate / Edit day: icon-only buttons on mobile (~30% smaller, no border).
+  - App bar: Waypoint logo vertically centered on mobile.
+
+#### Next 📋
+- **Trip view (Trip Detail):** Mobile layout, map, chat FAB, headers.
+- **Edit trip:** Removed (AI chat–based edit in MVP4+ AI Capability Enhancements).
+- **Other flows:** Discover (Feed), Profile, My Trips, Gallery, as needed.
+
+---
+
 ### 🗄️ Database Migration (MongoDB) — Optional Before MVP4/MVP5
 
 **Status:** ✅ Complete  
@@ -192,6 +217,31 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 3. ✅ Frontend (Home): after destination/pace/days, AI chat with "Start over"; AI replies and itinerary preview; create trip from AI-generated plan.
 4. ✅ Frontend (Trip Detail): AI chat FAB for itinerary edits; same chat API and plan response.
 5. ✅ Static plan flow unchanged; AI is an alternative path.
+
+---
+
+### 🤖 MVP4+ AI Capability Enhancements (future phase)
+
+**Status:** ⏸️ NOT STARTED  
+**Goal:** Richer AI-driven trip creation, editing, and ongoing-trip insights.  
+**Prerequisites:** MVP4 (AI Trip Agent) complete. Start only with explicit approval.  
+**Note:** This phase is **not** the current phase. The in-content "AI insights" section on Trip Detail is kept simple for now (e.g. title like "Your trip to {destination} · AI insights", expand to chat). Rich insights will be added in this phase.
+
+#### Planned features (for later)
+
+1. **Trip creation enhancements (AI)**  
+   - Deeper AI assistance during trip creation (e.g. smarter suggestions, context-aware prompts).
+
+2. **Trip edit / ongoing trip AI enhancements**  
+   - **Fully functional AI chat–based edit trip:** The previous form-based "Edit trip" (name, destination, days) has been removed from the app. This phase will implement trip editing via the existing AI chat (Plan with AI) flow instead.  
+   - AI assistance when editing an existing trip or during an active trip.  
+   - **Rich AI insights section on Trip Detail:** Replace or augment the simple title with feature-rich insights, e.g.:
+     - "Hey, your trip is starting in 4 days"
+     - "You have 1 prerequisite which is not fulfilled yet"
+     - Other contextual, trip-specific insights (dates, checklist, weather, etc.)  
+   - This will build on the current collapsible AI section (accordion) and the "Plan with AI" chat panel.
+
+**Current behavior (no change in this phase):** The Trip Detail AI section shows a simple insight-style title (e.g. "Your trip to Paris · AI insights"), is collapsible, and opens the existing AI chat panel on tap. **Edit trip:** The form-based "Edit trip" (trip name, destination, days) has been removed; trip editing will be delivered as AI chat–based edit in the MVP4+ AI Capability Enhancements phase.
 
 ---
 
@@ -239,7 +289,9 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | MVP2 | ✅ Complete | 100% | Jan 31, 2026 |
 | MVP3 | ✅ Complete | 100% | Feb 2026 |
 | Design Optimization | ✅ Complete | — | Feb 2026 |
+| **UI Enhancement (Mobile)** | 🔄 In progress | — | Ongoing |
 | MVP4 (AI Trip Agent) | ✅ Complete | 100% | Feb 2026 |
+| **MVP4+ AI Capability Enhancements** | ⏸️ Not Started | 0% | After approval |
 | MVP5 (Marketplace) | ⏸️ Not Started | 0% | After approval |
 | MVP6 (Enterprise) | ⏸️ Not Started | 0% | TBD |
 
@@ -250,9 +302,9 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | **Prerequisites** | Trip checklist: add/assign/mark done by collaborators; public view read-only. See [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md). | ✅ Complete |
 | **MongoDB** | Optional DB: `lib/db.js` (users + trips); migration script `scripts/migrate-file-to-mongo.js`. See [MONGODB_SETUP.md](MONGODB_SETUP.md). | ✅ Complete |
 
-### Current Phase: MVP4 complete — next MVP5 (Marketplace)
+### Current Phase: UI Enhancement (mobile) + MVP5 when approved
 
-**Overall:** MVP1–MVP4 complete. Next phase is MVP5 (Marketplace); start only with explicit approval. Then MVP6 (Enterprise).
+**Overall:** MVP1–MVP4 complete. **UI Enhancement (Mobile)** in progress: login, register, trip creation done; next trip view, edit. MVP5 (Marketplace) starts only with explicit approval.
 
 | Phase | Summary | Status |
 |-------|---------|--------|
@@ -260,8 +312,10 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | MVP2 | Route lines, transport mode, feed, trip sharing, invite codes, collaborators | ✅ 100% |
 | MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2, 100MB/user), like/comment, share, gallery, thumbnails | ✅ 100% |
 | Design Optimization | UI/design review; one change per feedback item | ✅ Complete |
+| **UI Enhancement (Mobile)** | Mobile-first UI polish; login, register, trip creation done; next: trip view, edit. See UI_ENHANCEMENT_MOBILE.md | 🔄 In progress |
 | Additional: Prerequisites | Trip prerequisites list; assign/mark done when trip active | ✅ Complete |
-| MVP4 | AI Trip Agent: chat-based trip create/edit; Gemini + Groq adapters; Home + Trip Detail FAB; see MVP4_AI_AGENT.md | ✅ Complete |
+| MVP4 | AI Trip Agent: chat-based trip create/edit; Gemini + Groq adapters; Home + Trip Detail AI section; see MVP4_AI_AGENT.md | ✅ Complete |
+| MVP4+ AI Enhancements | Trip creation AI enhancements; trip edit/ongoing AI; rich AI insights section (e.g. "trip in X days", "N prerequisites not done") — not started | ⏸️ Future |
 
 ---
 

@@ -1,17 +1,17 @@
 # 🚧 Development Status
 
-> **Last Updated:** February 20, 2026  
-> **Current Phase:** Building and fixing (feedback-driven)  
-> **Next phase:** Implement fixes and features from your feedback; MVP5 (Marketplace) only when you approve. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for AI setup.
+> **Last Updated:** February 2026  
+> **Current Phase:** UI Enhancement (mobile focus) + feedback-driven fixes  
+> **Next phase:** Continue UI Enhancement (trip view on mobile; **edit trip removed** — will be replaced by AI chat–based edit in MVP4+). MVP5 (Marketplace) only when you approve. A future phase **MVP4+ AI Capability Enhancements** is documented (trip creation AI, **AI chat–based edit trip**, ongoing AI, rich AI insights); not started until approved. See [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md), [MVP_ROADMAP.md](MVP_ROADMAP.md), [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
 ---
 
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**Building and fixing from your feedback.** Formal testing phase is over. Work is now driven by your feedback: fix issues and build improvements one by one. MVP5 (Marketplace) will start only after explicit approval.
+**UI Enhancement (mobile focus):** Improve and enhance the UI with a focus on mobile screens. We work flow-by-flow: login, register, and trip creation are done; next is trip view, then other flows as needed. **Edit trip** (form-based) has been removed; trip editing will be implemented as **AI chat–based edit** in the MVP4+ AI Capability Enhancements phase. All changes are mobile-only where possible; desktop stays unchanged. MVP5 (Marketplace) will start only after explicit approval.
 
-**Reference:** [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
+**Reference:** [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md), [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
 ### MVP1, MVP2 & MVP3 Completed
 - **MVP1:** Trip CRUD, save, list, detail, edit, delete, archive, unarchive, transport hubs, map, day-wise itinerary, place suggestions.
@@ -25,6 +25,11 @@
 ---
 
 ## ✅ Today's Completed Tasks
+
+### February 2026 (UI Enhancement – mobile: trip creation flow)
+- **UI Enhancement phase added:** New phase "UI Enhancement (Mobile Focus)" in roadmap and docs. See [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md).
+- **Trip creation flow (mobile):** Plan with AI and Draft itinerary sections use full-height min (`100vh - header - tabbar - space-8`). Map moved inside draft itinerary (before days); sidebar and Trending hidden on mobile; single scroll for header + map + days. Regenerate/Edit day: icon-only buttons (~30% smaller, no border). App bar: Waypoint logo vertically centered. Empty sidebar container removed; map visibility fixed (display only on mobile for in-panel map).
+- **Docs:** MVP_ROADMAP, DEVELOPMENT_STATUS, new UI_ENHANCEMENT_MOBILE.md; .cursorrules and DOCUMENTATION_INDEX updated for the new phase.
 
 ### February 18, 2026 (Presentable / tester feedback readiness)
 - **Home layout (with plan):** Fixed broken UI when a plan exists. Three-column hero (chat | trip preview | sidebar) now applies correctly via CSS specificity (`.home-hero .container.home-hero-ai-layout.home-hero-ai-layout--with-plan`). Explicit grid-column for chat, plan panel, and sidebar; stacked at 900px with `grid-column: auto`. Hero no longer collapses: `flex: 0 0 auto` and `min-height: min(70vh, 640px)` so "Your draft itinerary" and Save trip appear below the fold. `.home-page > .planner-grid { flex-shrink: 0 }` so planner section never overlaps the hero.
@@ -78,7 +83,12 @@
 
 ## 🎯 Next Tasks (Priority Order)
 
-### Immediate (next when you approve)
+### UI Enhancement (mobile) – next flows
+1. **Trip view (Trip Detail):** Mobile layout, map placement, chat FAB, headers, list/detail views.
+2. **Edit trip:** Removed from current plan. Full **AI chat–based edit trip** will be implemented in **MVP4+ AI Capability Enhancements** (see MVP_ROADMAP.md).
+3. **Other flows (as needed):** Discover (Feed), Profile, My Trips, Gallery.
+
+### When you approve
 1. **MVP5 (Marketplace):** Do not start until explicitly approved. Will introduce paid services (Skyscanner, accommodation APIs).
 2. **MVP4 usage:** Set `GEMINI_API_KEY` and/or `GROQ_API_KEY` in backend (see [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)) for personalized AI replies; without keys, users get static planner and a clear message.
 
@@ -91,12 +101,12 @@
 
 ---
 
-## 🔬 Current Focus: Building and fixing (your feedback)
+## 🔬 Current Focus: UI Enhancement (mobile) + your feedback
 
-**Objective:** Implement your feedback—fixes and small features—one item at a time. No formal test phase; you provide feedback, we build/fix. Do not start MVP5 (Marketplace) until explicitly approved.
+**Objective:** (1) **UI Enhancement (mobile):** Continue flow-by-flow—trip view, trip edit, then other flows. (2) Implement your feedback—fixes and small features—one item at a time. Do not start MVP5 (Marketplace) until explicitly approved.
 
-**Status:** MVP1–MVP4 complete. Testing phase ended. Next: your feedback → fix/build → repeat.  
-**Reference:** MVP_ROADMAP.md, MVP_PLAN.md, [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md), MONGODB_SETUP.md (optional).
+**Status:** MVP1–MVP4 complete. UI Enhancement: login, register, trip creation done; next trip view, edit.  
+**Reference:** [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md), MVP_ROADMAP.md, MVP_PLAN.md, [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md), MONGODB_SETUP.md (optional).
 
 ---
 

@@ -180,6 +180,7 @@ const Profile = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </Link>
           <h1 className="page-header-title">{t("profile.title")}</h1>
+          <span className="page-header-actions" aria-hidden />
         </header>
         <p className="profile-subtitle">{t("profile.subtitle")}</p>
         <div className="profile-grid">

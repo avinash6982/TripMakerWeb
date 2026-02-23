@@ -117,32 +117,36 @@ const Trips = () => {
               </button>
               <button
                 type="button"
-                className="btn ghost btn-sm trips-header-archived-btn"
+                className="page-header-action-round trips-header-archived-btn"
                 onClick={() => setShowArchived(!showArchived)}
                 aria-pressed={showArchived}
                 aria-label={showArchived ? t("trips.hideArchived") : t("trips.showArchived")}
                 title={showArchived ? t("trips.hideArchived") : t("trips.showArchived")}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M21 8v13H3V8" />
-                  <path d="M1 3h22v5H1z" />
-                  <path d="M10 12h4" />
-                </svg>
+                <span className="page-header-action-round-icon" aria-hidden>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 8v13H3V8" />
+                    <path d="M1 3h22v5H1z" />
+                    <path d="M10 12h4" />
+                  </svg>
+                </span>
               </button>
             </div>
             <div className="trips-header-actions-menu-wrap">
               <button
                 type="button"
-                className="btn ghost btn-sm trips-header-menu-btn"
+                className="page-header-action-round trips-header-menu-btn"
                 onClick={(e) => { e.stopPropagation(); setTripsMenuOpen((o) => !o); }}
                 aria-expanded={tripsMenuOpen}
                 aria-haspopup="true"
                 aria-label={t("trips.moreActions", "More actions")}
                 title={t("trips.moreActions", "More actions")}
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
-                </svg>
+                <span className="page-header-action-round-icon" aria-hidden>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/>
+                  </svg>
+                </span>
               </button>
               {tripsMenuOpen && (
                 <div className="trips-header-dropdown" role="menu">
@@ -157,12 +161,6 @@ const Trips = () => {
             </div>
           </div>
         </header>
-
-        <div className="trips-redeem-mobile">
-          <button type="button" className="btn ghost btn-sm" onClick={() => setShowRedeemModal(true)}>
-            {t("trips.redeemCode")}
-          </button>
-        </div>
 
         {loading && <p className="muted">{t("labels.loading")}</p>}
         {error && (
@@ -182,31 +180,28 @@ const Trips = () => {
           <ul className="trips-list">
             {displayedTrips.map((trip) => (
               <li key={trip.id} className="trip-card">
-                <div className="trip-card-hero">
-                  {trip.thumbnailKey ? (
-                    <img src={mediaUrl(trip.thumbnailKey)} alt="" className="trip-card-hero-img" />
-                  ) : (
-                    <div className="trip-card-hero-placeholder" style={{ background: tripCardGradient(trip.destination || trip.name) }} aria-hidden />
-                  )}
-                </div>
-                <div className="trip-card-main">
-                  <h3 className="trip-card-name">{trip.name}</h3>
-                  <p className="trip-card-destination muted">{trip.destination}</p>
-                  <div className="trip-card-meta">
-                    <span>{t("trips.days", { count: trip.days })}</span>
-                    <span className="trip-status-badge" data-status={trip.status || "upcoming"}>
-                      {t(`trips.status.${trip.status || "upcoming"}`)}
-                    </span>
-                    {trip.createdAt && (
-                      <span className="muted">{formatDate(trip.createdAt)}</span>
+                <Link to={`/trips/${trip.id}`} className="trip-card-link touchable">
+                  <div className="trip-card-hero">
+                    {trip.thumbnailKey ? (
+                      <img src={mediaUrl(trip.thumbnailKey)} alt="" className="trip-card-hero-img" />
+                    ) : (
+                      <div className="trip-card-hero-placeholder" style={{ background: tripCardGradient(trip.destination || trip.name) }} aria-hidden />
                     )}
                   </div>
-                </div>
-                <div className="trip-card-actions">
-                  <Link className="btn small primary" to={`/trips/${trip.id}`}>
-                    {t("trips.view")}
-                  </Link>
-                </div>
+                  <div className="trip-card-main">
+                    <h3 className="trip-card-name">{trip.name}</h3>
+                    <p className="trip-card-destination muted">{trip.destination}</p>
+                    <div className="trip-card-meta">
+                      <span>{t("trips.days", { count: trip.days })}</span>
+                      <span className="trip-status-badge" data-status={trip.status || "upcoming"}>
+                        {t(`trips.status.${trip.status || "upcoming"}`)}
+                      </span>
+                      {trip.createdAt && (
+                        <span className="muted">{formatDate(trip.createdAt)}</span>
+                      )}
+                    </div>
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>

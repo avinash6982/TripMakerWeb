@@ -41,8 +41,6 @@ const TripDetail = () => {
   const [trip, setTrip] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [editMode, setEditMode] = useState(false);
-  const [editForm, setEditForm] = useState({ name: "", destination: "", days: 3 });
   const [actionLoading, setActionLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -84,6 +82,9 @@ const TripDetail = () => {
   const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
   const [headerActionsUseOverflow, setHeaderActionsUseOverflow] = useState(true);
+  const [isMobileView, setIsMobileView] = useState(() =>
+    typeof window !== "undefined" ? window.matchMedia("(max-width: 767px)").matches : false
+  );
   const [showPrereqModal, setShowPrereqModal] = useState(false);
   const [prereqEditingId, setPrereqEditingId] = useState(null);
   const [prereqFormTitle, setPrereqFormTitle] = useState("");
@@ -98,12 +99,14 @@ const TripDetail = () => {
   const [prereqAssignPopoverId, setPrereqAssignPopoverId] = useState(null);
   const [prereqViewAllOpen, setPrereqViewAllOpen] = useState(false);
   const [agentPanelOpen, setAgentPanelOpen] = useState(false);
+  const [aiInsightsExpanded, setAiInsightsExpanded] = useState(false);
   const [agentMessages, setAgentMessages] = useState([]);
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentChatInput, setAgentChatInput] = useState("");
   const [agentError, setAgentError] = useState("");
   const [agentNotice, setAgentNotice] = useState("");
   const prereqAssignPopoverRef = useRef(null);
+  const prereqDeleteWrapRef = useRef(null);
   const actionsMenuRef = useRef(null);
   const prereqFileInputRef = useRef(null);
   const [prereqDropzoneDragging, setPrereqDropzoneDragging] = useState(false);
@@ -127,11 +130,6 @@ const TripDetail = () => {
     try {
       const data = await fetchTrip(id);
       setTrip(data);
-      setEditForm({
-        name: data.name || "",
-        destination: data.destination || "",
-        days: data.days ?? 3,
-      });
     } catch (err) {
       setError(err?.message || "Trip not found.");
     } finally {
@@ -142,6 +140,13 @@ const TripDetail = () => {
   useEffect(() => {
     loadTrip();
   }, [id]);
+
+  useEffect(() => {
+    const m = window.matchMedia("(max-width: 767px)");
+    const fn = () => setIsMobileView(m.matches);
+    m.addEventListener("change", fn);
+    return () => m.removeEventListener("change", fn);
+  }, []);
 
   useEffect(() => {
     if (!actionsMenuOpen) return;
@@ -172,9 +177,20 @@ const TripDetail = () => {
         setPrereqAssignPopoverId(null);
       }
     };
-    document.addEventListener("click", close);
-    return () => document.removeEventListener("click", close);
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
   }, [prereqAssignPopoverId]);
+
+  useEffect(() => {
+    if (!prereqDeleteConfirmId || isMobileView) return;
+    const close = (e) => {
+      if (prereqDeleteWrapRef.current && !prereqDeleteWrapRef.current.contains(e.target)) {
+        setPrereqDeleteConfirmId(null);
+      }
+    };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [prereqDeleteConfirmId, isMobileView]);
 
   // Dynamic overflow: collapse header actions into menu when header width is limited
   useEffect(() => {
@@ -378,27 +394,6 @@ const TripDetail = () => {
       setCommentError(err?.message || "Failed to post comment.");
     } finally {
       setCommentPosting(false);
-    }
-  };
-
-  const handleSaveEdit = async (e) => {
-    e?.preventDefault();
-    if (!trip) return;
-    setActionLoading(true);
-    setMessage("");
-    try {
-      const updated = await updateTrip(trip.id, {
-        name: editForm.name.trim(),
-        destination: editForm.destination.trim(),
-        days: Math.min(10, Math.max(1, Number(editForm.days) || 1)),
-      });
-      setTrip(updated);
-      setEditMode(false);
-      setMessage(t("trips.updateSuccess"));
-    } catch (err) {
-      setMessage(err?.message || "Update failed.");
-    } finally {
-      setActionLoading(false);
     }
   };
 
@@ -824,36 +819,7 @@ const TripDetail = () => {
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                       </svg>
                     </button>
-                    {prereqDeleteConfirmId === item.id ? (
-                      <>
-                        <span className="trip-detail-prereq-delete-confirm-text">
-                          {t("trips.prerequisiteDeleteConfirm")}
-                        </span>
-                        <button
-                          type="button"
-                          className="btn primary btn-sm"
-                          onClick={async () => {
-                            try {
-                              const updated = await deletePrerequisite(trip.id, item.id);
-                              setTripPrerequisitesOnly(updated);
-                              setPrereqDeleteConfirmId(null);
-                              setMessage(t("trips.prerequisiteDeleteSuccess"));
-                            } catch (err) {
-                              setMessage(err?.message || "Delete failed.");
-                            }
-                          }}
-                        >
-                          {t("trips.delete")}
-                        </button>
-                        <button
-                          type="button"
-                          className="btn ghost btn-sm"
-                          onClick={() => setPrereqDeleteConfirmId(null)}
-                        >
-                          {t("trips.cancel")}
-                        </button>
-                      </>
-                    ) : (
+                    <div className="trip-detail-prereq-delete-wrap" ref={prereqDeleteConfirmId === item.id ? prereqDeleteWrapRef : null}>
                       <button
                         type="button"
                         className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
@@ -876,7 +842,33 @@ const TripDetail = () => {
                           <line x1="14" y1="11" x2="14" y2="17" />
                         </svg>
                       </button>
-                    )}
+                      {prereqDeleteConfirmId === item.id && !isMobileView && (
+                        <div className="trip-detail-prereq-delete-popover" role="dialog" aria-label={t("trips.prerequisiteDeleteConfirm")}>
+                          <p className="trip-detail-prereq-delete-popover-text">{t("trips.prerequisiteDeleteConfirm")}</p>
+                          <div className="trip-detail-prereq-delete-popover-actions">
+                            <button
+                              type="button"
+                              className="btn primary btn-sm"
+                              onClick={async () => {
+                                try {
+                                  const updated = await deletePrerequisite(trip.id, item.id);
+                                  setTripPrerequisitesOnly(updated);
+                                  setPrereqDeleteConfirmId(null);
+                                  setMessage(t("trips.prerequisiteDeleteSuccess"));
+                                } catch (err) {
+                                  setMessage(err?.message || "Delete failed.");
+                                }
+                              }}
+                            >
+                              {t("trips.delete")}
+                            </button>
+                            <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
+                              {t("trips.cancel")}
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </>
                   )}
                 </div>
@@ -1066,31 +1058,7 @@ const TripDetail = () => {
                                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                                 </svg>
                               </button>
-                              {prereqDeleteConfirmId === item.id ? (
-                                <>
-                                  <span className="trip-detail-prereq-delete-confirm-text">{t("trips.prerequisiteDeleteConfirm")}</span>
-                                  <button
-                                    type="button"
-                                    className="btn primary btn-sm"
-                                    onClick={async () => {
-                                      try {
-                                        const updated = await deletePrerequisite(trip.id, item.id);
-                                        setTripPrerequisitesOnly(updated);
-                                        setPrereqDeleteConfirmId(null);
-                                        setPrereqViewAllOpen(false);
-                                        setMessage(t("trips.prerequisiteDeleteSuccess"));
-                                      } catch (err) {
-                                        setMessage(err?.message || "Delete failed.");
-                                      }
-                                    }}
-                                  >
-                                    {t("trips.delete")}
-                                  </button>
-                                  <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
-                                    {t("trips.cancel")}
-                                  </button>
-                                </>
-                              ) : (
+                              <div className="trip-detail-prereq-delete-wrap" ref={prereqDeleteConfirmId === item.id ? prereqDeleteWrapRef : null}>
                                 <button
                                   type="button"
                                   className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
@@ -1105,13 +1073,81 @@ const TripDetail = () => {
                                     <line x1="14" y1="11" x2="14" y2="17" />
                                   </svg>
                                 </button>
-                              )}
+                                {prereqDeleteConfirmId === item.id && !isMobileView && (
+                                  <div className="trip-detail-prereq-delete-popover" role="dialog" aria-label={t("trips.prerequisiteDeleteConfirm")}>
+                                    <p className="trip-detail-prereq-delete-popover-text">{t("trips.prerequisiteDeleteConfirm")}</p>
+                                    <div className="trip-detail-prereq-delete-popover-actions">
+                                      <button
+                                        type="button"
+                                        className="btn primary btn-sm"
+                                        onClick={async () => {
+                                          try {
+                                            const updated = await deletePrerequisite(trip.id, item.id);
+                                            setTripPrerequisitesOnly(updated);
+                                            setPrereqDeleteConfirmId(null);
+                                            setPrereqViewAllOpen(false);
+                                            setMessage(t("trips.prerequisiteDeleteSuccess"));
+                                          } catch (err) {
+                                            setMessage(err?.message || "Delete failed.");
+                                          }
+                                        }}
+                                      >
+                                        {t("trips.delete")}
+                                      </button>
+                                      <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
+                                        {t("trips.cancel")}
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
                             </>
                           )}
                         </div>
                       </li>
                     ))}
                   </ul>
+                </div>
+              </div>
+            </div>
+          )}
+          {isMobileView && prereqDeleteConfirmId && (
+            <div
+              className="modal-overlay"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="prereq-delete-modal-title"
+              onClick={() => setPrereqDeleteConfirmId(null)}
+            >
+              <div className="modal-card trip-detail-prereq-delete-modal" onClick={(e) => e.stopPropagation()}>
+                <h2 id="prereq-delete-modal-title" className="trip-detail-prereq-delete-modal-title">
+                  {t("trips.prerequisiteDeleteConfirm")}
+                </h2>
+                <div className="trip-detail-prereq-delete-modal-actions">
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={() => setPrereqDeleteConfirmId(null)}
+                  >
+                    {t("trips.cancel")}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn primary"
+                    onClick={async () => {
+                      try {
+                        const updated = await deletePrerequisite(trip.id, prereqDeleteConfirmId);
+                        setTripPrerequisitesOnly(updated);
+                        setPrereqDeleteConfirmId(null);
+                        setPrereqViewAllOpen(false);
+                        setMessage(t("trips.prerequisiteDeleteSuccess"));
+                      } catch (err) {
+                        setMessage(err?.message || "Delete failed.");
+                      }
+                    }}
+                  >
+                    {t("trips.delete")}
+                  </button>
                 </div>
               </div>
             </div>
@@ -1238,26 +1274,14 @@ const TripDetail = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
           </Link>
           <div className="page-header-title-wrap">
-            <h1 id={editMode ? "edit-trip-heading" : undefined} className="page-header-title">{editMode ? t("trips.editTrip", "Edit trip") : trip.name}</h1>
-            {!editMode && (
-              <span className="trip-status-badge trip-status-badge-header" data-status={trip.status || "upcoming"}>
-                {t(`trips.status.${trip.status || "upcoming"}`)}
-              </span>
-            )}
+            <h1 className="page-header-title">{trip.name}</h1>
+            <span className="trip-status-badge trip-status-badge-header" data-status={trip.status || "upcoming"}>
+              {t(`trips.status.${trip.status || "upcoming"}`)}
+            </span>
           </div>
-          {isOwner && editMode ? (
-            <div className="page-header-actions trip-detail-edit-actions">
-              <button type="button" className="btn ghost btn-sm" onClick={() => { setEditMode(false); setEditForm({ name: trip.name, destination: trip.destination, days: trip.days }); }} disabled={actionLoading}>
-                {t("trips.cancel")}
-              </button>
-              <button type="submit" form="trip-detail-edit-form" className="btn primary btn-sm" disabled={actionLoading}>
-                {actionLoading ? t("labels.loading") : t("trips.saveChanges")}
-              </button>
-            </div>
-          ) : (
-            (isOwner || isEditor) && (
+          {(isOwner || isEditor) && (
               <div className={`page-header-actions trip-detail-actions-wrap${!headerActionsUseOverflow ? " trip-detail-actions-expanded" : ""}`}>
-                {!editMode && (isOwner || (trip.collaborators?.length > 0)) && (
+                {(isOwner || (trip.collaborators?.length > 0)) && (
                   <div className="trip-detail-people-header" role="group" aria-label={t("trips.peopleOnTrip", "People on this trip")}>
                     <div className="trip-detail-people-avatars">
                       {peopleOnTrip.map((person) => (
@@ -1318,9 +1342,6 @@ const TripDetail = () => {
                   </div>
                 )}
                 <div className="trip-detail-actions-desktop" aria-hidden={headerActionsUseOverflow}>
-                  <button type="button" className="page-header-action-round" onClick={() => setEditMode(true)} disabled={actionLoading} title={t("trips.edit")} aria-label={t("trips.edit")}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                  </button>
                   {trip.status !== "archived" ? (
                     <button type="button" className="page-header-action-round" onClick={handleArchive} disabled={actionLoading} title={t("trips.archive")} aria-label={t("trips.archive")}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
@@ -1362,7 +1383,6 @@ const TripDetail = () => {
                   </button>
                   {actionsMenuOpen && (
                     <div className="trip-detail-actions-dropdown" role="menu">
-                      <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { setEditMode(true); setActionsMenuOpen(false); }}>{t("trips.edit")}</button>
                       {trip.status !== "completed" && <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleStatusChange("completed"); setActionsMenuOpen(false); }}>{t("trips.markComplete")}</button>}
                       {trip.status !== "archived" ? <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleArchive(); setActionsMenuOpen(false); }}>{t("trips.archive")}</button> : <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleUnarchive(); setActionsMenuOpen(false); }}>{t("trips.unarchive")}</button>}
                       <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={async () => { setActionLoading(true); setMessage(""); try { const updated = await updateTrip(trip.id, { isPublic: !trip.isPublic }); setTrip(updated); setMessage(updated.isPublic ? t("trips.makePublicSuccess") : t("trips.makePrivateSuccess")); } catch (err) { setMessage(err?.message || "Update failed."); } finally { setActionLoading(false); } setActionsMenuOpen(false); }}>{trip.isPublic ? t("trips.makePrivate") : t("trips.makePublic")}</button>
@@ -1373,75 +1393,11 @@ const TripDetail = () => {
                   )}
                 </div>
               </div>
-            )
-          )}
+            )}
         </header>
 
-          {isOwner && editMode ? (
-            <section className="trip-detail-edit-section" aria-labelledby="edit-trip-heading">
-              <form id="trip-detail-edit-form" onSubmit={handleSaveEdit} className="trip-detail-edit-form">
-                <div className="field">
-                  <label htmlFor="trip-detail-edit-name">{t("tripPlanner.saveTrip.nameLabel")}</label>
-                  <input
-                    id="trip-detail-edit-name"
-                    value={editForm.name}
-                    onChange={(e) =>
-                      setEditForm((f) => ({ ...f, name: e.target.value }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="trip-detail-edit-destination">{t("tripPlanner.form.destinationLabel")}</label>
-                  <input
-                    id="trip-detail-edit-destination"
-                    value={editForm.destination}
-                    onChange={(e) =>
-                      setEditForm((f) => ({ ...f, destination: e.target.value }))
-                    }
-                    required
-                  />
-                </div>
-                <div className="field">
-                  <label htmlFor="trip-detail-edit-days">{t("tripPlanner.form.daysLabel")}</label>
-                  <input
-                    id="trip-detail-edit-days"
-                    type="number"
-                    min={1}
-                    max={10}
-                    value={editForm.days === "" ? "" : editForm.days}
-                    onChange={(e) => {
-                      const v = e.target.value;
-                      if (v === "") {
-                        setEditForm((f) => ({ ...f, days: "" }));
-                        return;
-                      }
-                      const n = Number(v);
-                      if (!Number.isFinite(n)) return;
-                      setEditForm((f) => ({
-                        ...f,
-                        days: Math.min(10, Math.max(1, Math.round(n))),
-                      }));
-                    }}
-                    onBlur={() => {
-                      setEditForm((f) => {
-                        if (f.days === "" || f.days == null) {
-                          return { ...f, days: 1 };
-                        }
-                        const n = Number(f.days);
-                        return {
-                          ...f,
-                          days: Number.isFinite(n) ? Math.min(10, Math.max(1, Math.round(n))) : 1,
-                        };
-                      });
-                    }}
-                  />
-                </div>
-              </form>
-            </section>
-          ) : (
-            <>
-              {!editMode && trip.id && (
+          <>
+              {trip.id && (
                 <div className="trip-detail-hero">
                   <div className="trip-detail-hero-carousel">
                     <div
@@ -1550,7 +1506,6 @@ const TripDetail = () => {
                 <p className="muted trip-detail-owner">{t("feed.by")} {trip.ownerEmail}</p>
               )}
             </>
-          )}
 
           {message && (
             <p
@@ -1565,7 +1520,65 @@ const TripDetail = () => {
             </p>
           )}
 
-        {!editMode && (() => {
+        {trip && canShowChat && (
+          <section className="trip-detail-ai-insights" aria-labelledby="trip-detail-ai-insights-heading">
+            <h2 id="trip-detail-ai-insights-heading" className="sr-only">{t("tripPlanner.aiChat.title")}</h2>
+            <div
+              className="trip-detail-ai-insights-header"
+              onClick={() => setAgentPanelOpen(true)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setAgentPanelOpen(true);
+                }
+              }}
+              role="button"
+              tabIndex={0}
+              aria-expanded={aiInsightsExpanded}
+              aria-label={t("tripPlanner.aiChat.title")}
+            >
+              <span className="trip-detail-ai-insights-title">
+                {trip.destination
+                  ? t("tripPlanner.aiInsightsTitleWithDestination", { destination: trip.destination }, "Your trip to {{destination}} · AI insights")
+                  : t("tripPlanner.aiInsightsTitleFallback", "AI insights for your trip")}
+              </span>
+              <span className="trip-detail-ai-insights-icon" aria-hidden>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M9.937 15.5A2 2 0 0 1 8.5 17.438l-1.5.437.437-1.5a2 2 0 0 1 1.937-1.437Z" />
+                  <path d="M12 3l-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                </svg>
+              </span>
+              <button
+                type="button"
+                className="trip-detail-ai-insights-chevron"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setAiInsightsExpanded((b) => !b);
+                }}
+                aria-label={aiInsightsExpanded ? t("trips.collapse", "Collapse") : t("trips.expand", "Expand")}
+                aria-expanded={aiInsightsExpanded}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  {aiInsightsExpanded ? (
+                    <path d="M18 15l-6-6-6 6" />
+                  ) : (
+                    <path d="M9 18l6-6-6-6" />
+                  )}
+                </svg>
+              </button>
+            </div>
+            {aiInsightsExpanded && (
+              <div className="trip-detail-ai-insights-body">
+                <p className="trip-detail-ai-insights-intro">{t("tripPlanner.aiInsightsIntro", "Get suggestions and refine your plan with AI.")}</p>
+                <button type="button" className="btn primary btn-sm" onClick={() => setAgentPanelOpen(true)}>
+                  {t("tripPlanner.aiChat.title")}
+                </button>
+              </div>
+            )}
+          </section>
+        )}
+
+        {(() => {
           const hubs = getTransportHubsForDestination(trip.destination);
           const hasMap = !!mapCenter;
           const hasTransport = !!hubs;
@@ -1604,7 +1617,9 @@ const TripDetail = () => {
                     <h2>{t("trips.map")}</h2>
                     <button
                       type="button"
-                      className="btn ghost btn-sm"
+                      className={`page-header-action-round trip-detail-map-location-btn${
+                        locationLoading ? " is-loading" : ""
+                      }`}
                       onClick={() => {
                         if (showMyLocation) {
                           stopWatching();
@@ -1632,11 +1647,32 @@ const TripDetail = () => {
                             : t("trips.showMyLocation")
                       }
                     >
-                      {locationLoading
-                        ? t("trips.locationLoading")
-                        : showMyLocation
-                          ? t("trips.hideMyLocation")
-                          : t("trips.showMyLocation")}
+                      <span className="sr-only">
+                        {locationLoading
+                          ? t("trips.locationLoading")
+                          : showMyLocation
+                            ? t("trips.hideMyLocation")
+                            : t("trips.showMyLocation")}
+                      </span>
+                      <span className="page-header-action-round-icon" aria-hidden>
+                        {locationLoading ? (
+                          <span className="page-header-action-round-spinner" aria-hidden />
+                        ) : (
+                          <svg
+                            width="20"
+                            height="20"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                          >
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                            <circle cx="12" cy="10" r="3" />
+                          </svg>
+                        )}
+                      </span>
                     </button>
                   </div>
                   {locationError && (
@@ -1701,7 +1737,9 @@ const TripDetail = () => {
                   <h2>{t("trips.map")}</h2>
                   <button
                     type="button"
-                    className="btn ghost btn-sm"
+                    className={`page-header-action-round trip-detail-map-location-btn${
+                      locationLoading ? " is-loading" : ""
+                    }`}
                     onClick={() => {
                       if (showMyLocation) {
                         stopWatching();
@@ -1729,11 +1767,32 @@ const TripDetail = () => {
                           : t("trips.showMyLocation")
                     }
                   >
-                    {locationLoading
-                      ? t("trips.locationLoading")
-                      : showMyLocation
-                        ? t("trips.hideMyLocation")
-                        : t("trips.showMyLocation")}
+                    <span className="sr-only">
+                      {locationLoading
+                        ? t("trips.locationLoading")
+                        : showMyLocation
+                          ? t("trips.hideMyLocation")
+                          : t("trips.showMyLocation")}
+                    </span>
+                    <span className="page-header-action-round-icon" aria-hidden>
+                      {locationLoading ? (
+                        <span className="page-header-action-round-spinner" aria-hidden />
+                      ) : (
+                        <svg
+                          width="20"
+                          height="20"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                          <circle cx="12" cy="10" r="3" />
+                        </svg>
+                      )}
+                    </span>
                   </button>
                 </div>
                 {locationError && (
@@ -1812,7 +1871,7 @@ const TripDetail = () => {
           );
         })()}
 
-        {!editMode && trip.itinerary && trip.itinerary.length > 0 && (
+        {trip.itinerary && trip.itinerary.length > 0 && (
           <div className="trip-detail-itinerary">
             <h2>Itinerary</h2>
             <p className="trip-detail-itinerary-map-hint muted">{t("trips.itineraryMapHint", "Day colors match the route lines on the map above.")}</p>
@@ -1855,7 +1914,7 @@ const TripDetail = () => {
           </div>
         )}
 
-        {!editMode && trip?.id && (
+        {trip?.id && (
           <div className="trip-detail-comments-mobile-inline">
             <h2 className="trip-detail-comments-mobile-inline-title">{t("feed.comments", "Comments")}</h2>
             <div className="trip-detail-comments-mobile-inline-body">
@@ -1868,25 +1927,49 @@ const TripDetail = () => {
         )}
       </section>
 
-        {!editMode && trip?.id && (
-          <>
-            <div className="trip-detail-fabs">
-              <button
-                type="button"
-                className="trip-detail-comments-fab"
-                onClick={() => setCommentsPanelOpen((open) => !open)}
-                title={t("feed.comments", "Comments")}
-                aria-label={t("feed.comments", "Comments")}
-                aria-expanded={commentsPanelOpen}
-              >
-                <span className="trip-detail-comments-fab-icon" aria-hidden>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                </span>
-                {comments.length > 0 && (
-                  <span className="trip-detail-comments-fab-badge" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
-                )}
-              </button>
-              {(isOwner || collab) && (
+        {trip?.id && (
+            <>
+              <div className="trip-detail-fabs">
+              {!isMobileView && (
+                <button
+                  type="button"
+                  className="trip-detail-comments-fab"
+                  onClick={() => setCommentsPanelOpen((open) => !open)}
+                  title={t("feed.comments", "Comments")}
+                  aria-label={t("feed.comments", "Comments")}
+                  aria-expanded={commentsPanelOpen}
+                >
+                  <span className="trip-detail-comments-fab-icon" aria-hidden>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  </span>
+                  {comments.length > 0 && (
+                    <span className="trip-detail-comments-fab-badge" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
+                  )}
+                </button>
+              )}
+              {/* AI FAB removed: entry point is the in-content AI insights accordion between map and image */}
+              {false && trip && canShowChat && !chatPanelOpen && (
+                <button
+                  type="button"
+                  className={`trip-agent-fab ${canEdit ? "trip-agent-fab--highlight" : ""}`}
+                  onClick={() => setAgentPanelOpen((o) => !o)}
+                  aria-label={t("tripPlanner.aiChat.title")}
+                  title={t("tripPlanner.aiChat.title")}
+                  aria-expanded={agentPanelOpen}
+                >
+                  <span className="trip-agent-fab-icon trip-agent-fab-icon--magic" aria-hidden>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      <path d="M9.937 15.5A2 2 0 0 1 8.5 17.438l-1.5.437.437-1.5a2 2 0 0 1 1.937-1.437Z" />
+                      <path d="M15 3.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5V4a.5.5 0 0 1-.5.5H15.5a.5.5 0 0 1-.5-.5Z" />
+                      <path d="M20.5 9.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5v.5a.5.5 0 0 1-.5.5H21a.5.5 0 0 1-.5-.5Z" />
+                      <path d="M16.5 19.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5v.5a.5.5 0 0 1-.5.5H17a.5.5 0 0 1-.5-.5Z" />
+                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                    </svg>
+                  </span>
+                </button>
+              )}
+              {/* Chat FAB: show when chat panel closed; hide when agent panel open */}
+              {(isOwner || collab) && !agentPanelOpen && (
                 <button
                   type="button"
                   className="trip-detail-chat-fab"
@@ -2010,7 +2093,7 @@ const TripDetail = () => {
         )}
         </div>
 
-        {!editMode && trip.id && (
+        {trip.id && (
           <div className="trip-detail-comments-desktop-wrap" ref={commentsDesktopRef}>
             <aside
               className="trip-detail-comments-sidebar"
@@ -2351,20 +2434,9 @@ const TripDetail = () => {
         </div>
       )}
 
-      {/* AI Trip Agent FAB (MVP4) – only for owner or collaborators */}
+      {/* AI Trip Agent panel (FAB lives inside trip-detail-fabs) */}
       {trip && canShowChat && (
         <>
-          <button
-            type="button"
-            className="trip-agent-fab"
-            onClick={() => setAgentPanelOpen((o) => !o)}
-            aria-label={t("tripPlanner.aiChat.title")}
-            title={t("tripPlanner.aiChat.title")}
-          >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-            </svg>
-          </button>
           {agentPanelOpen && (
             <div className="trip-agent-panel-overlay" onClick={() => setAgentPanelOpen(false)} aria-hidden />
           )}
@@ -2374,7 +2446,7 @@ const TripDetail = () => {
                 <span className="trip-agent-chat-title">{t("tripPlanner.aiChat.title")}</span>
                 <button
                   type="button"
-                  className="btn small ghost"
+                  className="btn ghost trip-agent-panel-close"
                   onClick={() => setAgentPanelOpen(false)}
                   aria-label="Close"
                 >

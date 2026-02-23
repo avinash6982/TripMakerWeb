@@ -29,6 +29,7 @@
 | **[MVP_ROADMAP.md](MVP_ROADMAP.md)** | Phase breakdown, progress tracking | Weekly |
 | **[ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md)** | Features between MVP3 and MVP4 (e.g. Prerequisites) | Per feature |
 | **[MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)** | MVP4 AI Trip Agent: planning, adapter pattern, itinerary contract | When implementing MVP4 |
+| **[UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md)** | UI Enhancement (mobile focus): flows done and next (trip view, edit) | Per flow |
 | **[MVP3_TASK_BREAKDOWN.md](MVP3_TASK_BREAKDOWN.md)** | MVP3 atomic tasks and verification | Per task |
 | **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** | MVP2 reference (complete) | Rarely |
 | **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** | MVP1 reference (complete) | Rarely |

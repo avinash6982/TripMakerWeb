@@ -8,10 +8,10 @@
 
 ## 🎯 CRITICAL: MVP DEVELOPMENT RULES
 
-### 📋 Current MVP Phase: MVP4 complete
-**READ FIRST:** See `MVP_ROADMAP.md` for complete phase breakdown 
+### 📋 Current MVP Phase: UI Enhancement (mobile) in progress
+**READ FIRST:** See `MVP_ROADMAP.md` for complete phase breakdown; see `UI_ENHANCEMENT_MOBILE.md` for mobile UI phase. 
 **Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Design Optimization complete; Additional features (Prerequisites) complete. 
-**Current focus:** MVP4 (AI Trip Agent) complete. Next: MVP5 (Marketplace) — start only with explicit user approval. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for AI setup. Optional: MongoDB (see MONGODB_SETUP.md).
+**Current focus:** UI Enhancement (mobile focus) — login, register, trip creation flows done; next: trip view, trip edit. MVP5 (Marketplace) — start only with explicit user approval. See [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md) and [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md). Optional: MongoDB (see MONGODB_SETUP.md).
 
 ### 🚨 MANDATORY RULES FOR ALL DEVELOPMENT
 
@@ -111,8 +111,9 @@
 **Current Phase Context:**
 - **MVP1–MVP3:** 100% complete (trip planning, collaboration, real-time execution, gallery, chat, R2 media, like/comment, share)
 - **Design Optimization:** Complete
+- **UI Enhancement (Mobile):** In progress — login, register, trip creation done; next trip view, edit. See UI_ENHANCEMENT_MOBILE.md.
 - **Additional features:** Prerequisites (trip checklist) complete
-- **Next phase:** MVP5 (Marketplace) — start only with explicit user approval. MVP4 (AI Trip Agent) complete; see MVP4_AI_AGENT.md for setup.
+- **Next phase:** MVP5 (Marketplace) — start only with explicit user approval. MVP4 (AI Trip Agent) complete; see MVP4_AI_AGENT.md for setup. **MVP4+ AI Capability Enhancements** (trip creation AI, trip edit/ongoing AI, rich AI insights section) is a documented future phase — do not start until approved.
 - **Optional:** MongoDB setup (MONGODB_SETUP.md); backend supports it when MONGODB_URI is set
 - **Browser verification:** Required after each task — see `MVP1_BROWSER_TEST_CHECKLIST.md`
 

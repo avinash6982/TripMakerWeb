@@ -40,6 +40,10 @@ const resources = {
         heroCopyTitle: "Start with a destination.",
         quickStart: "Quick Start",
         quickAction: "Quick Action",
+        aiChatHelpLabel: "How does this work?",
+        aiChatHelpTitle: "How the AI chat builds your trip",
+        aiChatHelpBody:
+          "Describe your destination, days, and pace. The AI turns your messages into a draft itinerary you can edit before saving. Nothing is booked or shared until you choose to save the trip.",
         quickStartPills: {
           familyFriendly: "Family Friendly",
           budgetTravel: "Budget Travel",
@@ -52,6 +56,8 @@ const resources = {
         planPanel: {
           emptyTitle: "Your itinerary will appear here",
           emptyHint: "Try: \"3 days in Paris\" or \"Relaxed weekend in Tokyo\"",
+          emptyHintTry: "Try: ",
+          emptyHintOr: " or ",
           previewCaption: "Full itinerary below",
         },
         form: {
@@ -143,10 +149,16 @@ const resources = {
           error: "We couldn't build a plan. Try again.",
           missingDestination: "Please enter a destination.",
         },
+        aiInsights: "AI insights",
+        aiInsightsTitleWithDestination: "Your trip to {{destination}} · AI insights",
+        aiInsightsTitleFallback: "AI insights for your trip",
+        aiInsightsIntro: "Get suggestions and refine your plan with AI.",
         aiChat: {
           title: "Plan with AI",
           intro: "Chat to create or refine your itinerary. Ask for more days, different pace, or specific places.",
           firstTimeHint: "Type something like \"3 days in Paris\" and press Send.",
+          firstTimeHintBefore: "Type something like ",
+          firstTimeHintAfter: " and press Send.",
           placeholder: "e.g. Add a day for wine tasting, or make it more relaxed...",
           refinePlaceholder: "Refine your trip...",
           send: "Send",
@@ -230,6 +242,8 @@ const resources = {
         inviteCopied: "Code copied to clipboard.",
         inviteExpires: "Code expires in 24 hours.",
         close: "Close",
+        collapse: "Collapse",
+        expand: "Expand",
         closeComments: "Close comments",
         moreActions: "More actions",
         redeemCode: "Redeem code",

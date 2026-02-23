@@ -79,6 +79,19 @@ ul {
   min-width: 0;
 }
 
+/* ========== Touchable (TouchableOpacity-style feedback app-wide) ========== */
+.touchable {
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.2s ease;
+}
+.touchable:hover {
+  opacity: 0.96;
+}
+.touchable:active {
+  opacity: 0.88;
+}
+
 /* ========== Standard page header (app-wide) ========== */
 /* One row: round back (left) + title (center, truncate) + primary CTA (right) */
 .page-header {
@@ -114,12 +127,24 @@ ul {
   display: block;
 }
 
+/* Spacer when back button is omitted (e.g. Feed when not logged in) so title aligns with other pages */
+.page-header-spacer {
+  flex-shrink: 0;
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
 .page-header-title-wrap {
   flex: 1;
   min-width: 0;
   display: flex;
   align-items: center;
   gap: 0.5rem;
+}
+
+/* When title is next to badge (trip detail), don’t grow title so badge sits right after text */
+.page-header-title-wrap .page-header-title {
+  flex: 0 1 auto;
 }
 
 .page-header-title {
@@ -144,28 +169,30 @@ ul {
   gap: 0.5rem;
 }
 
-/* Round primary action in header (e.g. Gallery add) */
+/* Round action in header – same border/bg as .page-header-back for consistency */
 .page-header-action-round {
   flex-shrink: 0;
   width: 2.5rem;
   height: 2.5rem;
   border-radius: 50%;
-  border: none;
+  border: 1px solid var(--border);
   background: var(--color-bg-elevated);
   color: var(--color-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.2s, color 0.2s, opacity 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s, opacity 0.2s;
 }
 
 .page-header-action-round:hover:not(:disabled):not(.primary):not(.trip-detail-action-delete) {
   color: var(--color-primary);
   background: var(--color-primary-muted, rgba(14, 165, 233, 0.1));
+  border-color: var(--color-border-strong);
 }
 
 .page-header-action-round.primary {
+  border-color: var(--color-primary);
   background: var(--color-primary);
   color: #fff;
 }
@@ -1149,18 +1176,13 @@ button.text-link {
     grid-template-columns: 1fr;
   }
 
-  /* Trips list */
+  /* Trips list – same top padding as desktop for consistent gap below app navbar */
   .trips-page {
-    padding: 1.5rem 0;
+    padding: var(--space-4) 0;
   }
 
   .trips-header-actions-secondary .trips-header-redeem-desktop {
     display: none;
-  }
-
-  .trips-redeem-mobile {
-    display: block;
-    margin-bottom: 1rem;
   }
 
   .trips-header-actions-menu-wrap {
@@ -1168,14 +1190,6 @@ button.text-link {
     position: relative;
   }
 
-  .trips-header-menu-btn {
-    padding: 0.5rem;
-    min-width: 44px;
-    min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
 
   .trips-header-dropdown {
     position: absolute;
@@ -1232,7 +1246,7 @@ button.text-link {
 
   /* Trip gallery page */
   .trip-gallery-page {
-    padding: 1rem 0;
+    padding: var(--space-4) 0;
   }
 
   .trip-gallery-nav {
@@ -1392,15 +1406,82 @@ button.text-link {
     min-height: 0;
   }
 
-  /* Stacked: give plan panel a max-height so day list scrolls inside; keeps flow usable */
+  /* Draft itinerary: same full-height min as chat (viewport minus navbar, tab bar, vertical padding) */
   .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel {
-    max-height: 65vh;
-    min-height: 280px;
+    max-height: none;
+    min-height: calc(100vh - var(--header-height) - var(--tabbar-height-safe) - var(--space-8));
   }
 
-  /* Chat and sidebar get min height so they're visible when stacked */
+  /* Plan with AI: full height on mobile (viewport minus navbar, tab bar, and vertical padding) */
   .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-chat {
-    min-height: 240px;
+    min-height: calc(100vh - var(--header-height) - var(--tabbar-height-safe) - var(--space-8));
+  }
+
+  /* Chat scroll area: minimum height so messages/itinerary flow is usable */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-chat .trip-agent-chat-scroll {
+    min-height: 180px;
+  }
+
+  /* Plan panel days list: minimum height so day cards are scrollable and visible */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel .home-hero-plan-days {
+    min-height: 200px;
+  }
+
+  /* Mobile: one scroll for header + map + days (map inside scrollable container) */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel .home-hero-plan-content {
+    overflow-y: auto;
+  }
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel .home-hero-plan-days {
+    flex: 0 0 auto;
+    overflow-y: visible;
+  }
+
+  /* Mobile: show map inside draft itinerary, hide map in sidebar */
+  .home-hero-plan-route-mobile {
+    display: block;
+    margin: var(--space-3) 0;
+  }
+  .home-hero-plan-route-mobile .home-hero-sidebar-map-wrap {
+    min-height: 200px;
+  }
+  .home-hero-plan-route-mobile .home-hero-sidebar-map,
+  .home-hero-plan-route-mobile .map-view-container {
+    min-height: 200px;
+    height: 200px;
+  }
+  .home-hero-sidebar-route {
+    display: none;
+  }
+  .home-hero-sidebar-trending {
+    display: none;
+  }
+  /* Hide entire sidebar on mobile so no empty container; map lives inside draft itinerary */
+  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-sidebar {
+    display: none;
+  }
+
+  /* Regenerate / Edit day: icon-only buttons on mobile (~30% smaller, no border) */
+  .planner-day-actions .planner-day-action-btn {
+    padding: var(--space-1);
+    min-width: 31px;
+    width: 31px;
+    height: 31px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+  }
+  .planner-day-actions .planner-day-action-btn .planner-day-action-label {
+    display: none;
+  }
+  .planner-day-actions .planner-day-action-btn .planner-day-action-icon {
+    display: inline-flex;
+    flex-shrink: 0;
+  }
+  .planner-day-actions .planner-day-action-btn .planner-day-action-icon svg {
+    display: block;
+    width: 14px;
+    height: 14px;
   }
 }
 
@@ -1417,10 +1498,7 @@ button.text-link {
     padding: var(--space-3);
   }
 
-  .home-hero .container.home-hero-ai-layout--with-plan > .home-hero-plan-panel {
-    max-height: 55vh;
-    min-height: 220px;
-  }
+  /* Keep same full-height min as 900px block; do not override with 55vh/220px */
 
   .home-hero-plan-content .home-hero-plan-content-title {
     font-size: 1rem;
@@ -1677,6 +1755,15 @@ button.text-link {
   flex-shrink: 0;
   margin: 0;
 }
+
+/* Route Overview inside plan panel: visible only on mobile; hide on desktop so sidebar map shows */
+@media (min-width: 901px) {
+  .home-hero-plan-route-mobile {
+    display: none;
+    flex-shrink: 0;
+  }
+}
+
 .home-hero-plan-panel .home-hero-plan-preview,
 .home-hero-plan-panel .home-hero-plan-empty {
   flex: 1 1 0;
@@ -1700,6 +1787,11 @@ button.text-link {
 .home-hero-plan-empty {
   text-align: center;
   padding: var(--space-6) var(--space-4);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .home-hero-plan-empty-title {
@@ -1707,6 +1799,9 @@ button.text-link {
   font-size: 1.25rem;
   font-weight: var(--font-bold);
   color: var(--color-text);
+  text-align: center;
+  width: 100%;
+  max-width: 28ch;
 }
 
 .home-hero-plan-empty-hint {
@@ -1717,6 +1812,22 @@ button.text-link {
   margin-left: auto;
   margin-right: auto;
   line-height: 1.5;
+  text-align: center;
+}
+
+.home-hero-plan-empty-suggestion {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: var(--color-primary);
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.home-hero-plan-empty-suggestion:hover {
+  color: var(--color-primary-hover);
 }
 
 .home-hero-plan-preview {
@@ -1900,9 +2011,60 @@ button.text-link {
   flex-wrap: wrap;
 }
 
+.trip-agent-chat-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.trip-agent-help-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border);
+  background: var(--color-bg-elevated);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-text-muted);
+}
+.trip-agent-help-btn:hover:not(:disabled) {
+  background: var(--color-bg);
+  border-color: var(--color-border-strong);
+  color: var(--color-primary);
+}
+.trip-agent-help-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.trip-agent-help-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
 .trip-agent-chat-title {
   font-weight: 600;
   font-size: 1.1rem;
+}
+
+.trip-agent-panel .trip-agent-panel-close,
+.trip-agent-panel-close {
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  min-width: 2.25rem !important;
+  min-height: 2.25rem !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  font-size: 1.25rem;
+  line-height: 1;
+  flex-shrink: 0;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .trip-agent-chat-intro {
@@ -1944,19 +2106,40 @@ button.text-link {
   min-height: 180px;
 }
 
-/* Empty state: intro + hint inside the chat messages container; center-aligned */
+/* Empty state: intro + hint inside the chat messages container; centered vertically and horizontally */
 .trip-agent-chat-empty-state {
   display: flex;
   flex-direction: column;
   gap: var(--space-3);
   align-items: center;
+  justify-content: center;
   text-align: center;
+  flex: 1 1 0;
+  min-height: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 .trip-agent-chat-empty-state .trip-agent-chat-intro,
 .trip-agent-chat-empty-state .trip-agent-chat-first-hint {
   margin-left: auto;
   margin-right: auto;
   max-width: 28ch;
+  text-align: center;
+}
+
+.trip-agent-chat-first-hint-suggestion {
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.trip-agent-chat-first-hint-suggestion:hover {
+  color: var(--color-primary);
 }
 
 /* Quick Action bar: outside chat container, shown only after first user message */
@@ -2068,12 +2251,38 @@ button.text-link {
   justify-content: center;
   cursor: pointer;
   z-index: 900;
-  transition: transform 0.2s, background 0.2s;
+  transition: transform 0.2s, background 0.2s, box-shadow 0.2s, border-color 0.2s;
 }
 
 .trip-agent-fab:hover {
   background: var(--color-primary-strong);
   transform: scale(1.05);
+}
+
+/* Highlight when user can edit trip (owner/editor) */
+.trip-agent-fab--highlight {
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: var(--shadow-card), 0 0 0 2px var(--color-primary), 0 0 12px rgba(15, 118, 110, 0.4);
+}
+
+.trip-agent-fab--highlight:hover {
+  box-shadow: var(--shadow-xl), 0 0 0 2px var(--color-primary), 0 0 16px rgba(15, 118, 110, 0.5);
+}
+
+.trip-agent-fab-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.trip-agent-fab-icon--magic {
+  position: relative;
+  animation: trip-agent-fab-shine 2.5s ease-in-out infinite;
+}
+
+@keyframes trip-agent-fab-shine {
+  0%, 100% { filter: brightness(1); opacity: 1; }
+  50% { filter: brightness(1.25); opacity: 0.95; }
 }
 
 .trip-agent-panel-overlay {
@@ -2278,9 +2487,9 @@ button.text-link {
   background: var(--color-primary-muted, rgba(14, 165, 233, 0.08));
 }
 
-/* Trips list page */
+/* Trips list page – top padding matches other pages (gap below app navbar) */
 .trips-page {
-  padding: 2rem 0;
+  padding: var(--space-4) 0;
   position: relative;
   min-height: 60vh;
 }
@@ -2338,34 +2547,15 @@ button.text-link {
   gap: 0.5rem;
 }
 
-.trips-header-archived-btn {
-  padding: 0.5rem;
-  min-width: 44px;
-  min-height: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .trips-header-archived-btn[aria-pressed="true"] {
   color: var(--color-primary);
   background: var(--color-primary-muted);
-}
-
-.trips-redeem-mobile {
-  display: none;
-}
-
-@media (max-width: 767px) {
-  .trips-redeem-mobile {
-    display: block;
-    margin-bottom: 1rem;
-  }
+  border-color: var(--color-border-strong);
 }
 
 /* Feed / Discover page (MVP2) – discovery-style layout */
 .feed-page {
-  padding: 0 0 var(--space-8);
+  padding: var(--space-4) 0 var(--space-8);
   /* No min-height: 100vh here; parent (auth-shell or app-content) already provides full-height context to avoid double height and unwanted scroll */
 }
 
@@ -2533,11 +2723,6 @@ button.text-link {
   border: 1px solid var(--border);
   box-shadow: var(--shadow-card);
   transition: box-shadow 0.2s, transform 0.2s;
-}
-
-.feed-card:hover {
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 
 .feed-card-link {
@@ -2856,12 +3041,20 @@ button.text-link {
   display: flex;
   flex-direction: column;
   box-shadow: var(--shadow-card);
-  transition: box-shadow 0.2s, transform 0.2s;
 }
 
-.trip-card:hover {
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-2px);
+.trip-card-link {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  flex: 1;
+  color: inherit;
+  text-decoration: none;
+}
+
+.trip-card-link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
 }
 
 .trip-card-hero {
@@ -2888,11 +3081,6 @@ button.text-link {
   padding: var(--space-4) var(--space-5);
   flex: 1;
   min-width: 0;
-}
-
-.trip-card-actions {
-  padding: 0 var(--space-5) var(--space-4);
-  flex-shrink: 0;
 }
 
 .trip-card-name {
@@ -2941,7 +3129,13 @@ button.text-link {
 
 /* Trip detail page */
 .trip-detail-page {
-  padding: 1rem 0 2rem;
+  padding: var(--space-4) 0 2rem;
+}
+
+@media (min-width: 768px) {
+  .trip-detail-page {
+    padding-top: var(--space-6);
+  }
 }
 
 .trip-detail-meta-row {
@@ -3533,17 +3727,17 @@ button.text-link {
   }
 }
 
-/* Trip actions: icon row on desktop, three-dot menu on mobile */
+/* Trip actions: icon row on desktop, three-dot menu on mobile; gap matches .page-header-actions */
 .trip-detail-actions-wrap {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .trip-detail-actions-desktop {
   display: none;
   align-items: center;
-  gap: 0.25rem;
+  gap: 0.5rem;
 }
 
 .trip-detail-actions-mobile {
@@ -3578,7 +3772,7 @@ button.text-link {
 
 .trip-detail-people-header .trip-detail-people-avatars {
   margin: 0;
-  gap: 0.35rem;
+  gap: 0.5rem;
 }
 
 .trip-detail-people-header .trip-detail-avatar {
@@ -3816,6 +4010,13 @@ button.text-link {
 
 .trip-detail-map .map-view-container {
   margin-top: 0.5rem;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  max-height: 400px;
+}
+
+.trip-detail-map-location-btn {
+  color: var(--color-primary);
 }
 
 .trip-detail-transport {
@@ -4199,6 +4400,49 @@ button.text-link {
   margin-right: 0.25rem;
 }
 
+.trip-detail-prereq-delete-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.trip-detail-prereq-delete-popover {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.25rem;
+  min-width: 200px;
+  padding: var(--space-3);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  z-index: 15;
+}
+
+.trip-detail-prereq-delete-popover-text {
+  margin: 0 0 var(--space-3);
+  font-size: 0.875rem;
+  color: var(--color-text);
+}
+
+.trip-detail-prereq-delete-popover-actions {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+}
+
+.trip-detail-prereq-delete-modal .trip-detail-prereq-delete-modal-title {
+  margin: 0 0 var(--space-4);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.trip-detail-prereq-delete-modal .trip-detail-prereq-delete-modal-actions {
+  display: flex;
+  gap: var(--space-3);
+  justify-content: flex-end;
+}
+
 .trip-detail-prereq-modal .field {
   margin-bottom: 1rem;
 }
@@ -4428,6 +4672,97 @@ button.text-link {
   margin-top: 0.5rem;
 }
 
+/* Trip detail: AI insights accordion (entry point to chat with AI, between hero and map) */
+.trip-detail-ai-insights {
+  margin: 1rem 0 0 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-elevated);
+  overflow: hidden;
+}
+
+.trip-detail-ai-insights + .trip-detail-map-transport-grid,
+.trip-detail-ai-insights + .trip-detail-map {
+  margin-top: 1rem;
+}
+
+.trip-detail-ai-insights-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  background: transparent;
+  border: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.trip-detail-ai-insights-header:hover {
+  background: var(--color-bg);
+}
+
+.trip-detail-ai-insights-header:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.trip-detail-ai-insights-title {
+  flex: 1;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.trip-detail-ai-insights-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.trip-detail-ai-insights-chevron {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.25rem;
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  border-radius: var(--radius);
+  flex-shrink: 0;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.trip-detail-ai-insights-chevron:hover {
+  color: var(--color-text);
+}
+
+.trip-detail-ai-insights-chevron[aria-expanded="true"] svg {
+  transform: rotate(0deg);
+}
+
+.trip-detail-ai-insights-body {
+  padding: 0 var(--space-4) var(--space-4);
+  padding-top: 0;
+  border-top: 1px solid var(--border);
+}
+
+.trip-detail-ai-insights-intro {
+  margin: 0 0 var(--space-3);
+  font-size: 0.95rem;
+  color: var(--color-text-muted);
+}
+
+.trip-detail-ai-insights-body .btn {
+  width: 100%;
+  justify-content: center;
+}
+
 /* Trip chat FAB and floating panel (MVP3) – FAB fixed to viewport so it stays visible while scrolling */
 .trip-detail-chat-fab {
   width: 56px;
@@ -4480,7 +4815,7 @@ button.text-link {
   justify-content: center;
 }
 
-/* FAB wrapper: fixed to viewport so FABs stay visible while scrolling */
+/* FAB wrapper: fixed to viewport; all FABs stack vertically, one visible when its panel is open */
 .trip-detail-fabs {
   display: flex;
   flex-direction: column;
@@ -4492,26 +4827,36 @@ button.text-link {
   z-index: 40;
 }
 
+/* FABs inside container stack (no independent fixed positioning); consistent size */
+.trip-detail-fabs .trip-detail-chat-fab,
+.trip-detail-fabs .trip-detail-comments-fab,
+.trip-detail-fabs .trip-agent-fab {
+  position: static;
+  bottom: auto;
+  right: auto;
+}
+
+.trip-detail-fabs .trip-agent-fab {
+  width: 56px;
+  height: 56px;
+}
+
 @media (max-width: 767px) {
   .trip-detail-fabs {
     bottom: calc(var(--tabbar-height-safe, 64px) + 0.75rem);
     right: 1rem;
   }
-
-  .trip-detail-fabs .trip-detail-chat-fab,
-  .trip-detail-fabs .trip-detail-comments-fab {
-    position: static;
-    bottom: auto;
-    right: auto;
-  }
 }
 
+/* Panel bottom = FAB top so tail meets FAB. FAB is 56px; tail extends 12px below panel. */
 .trip-detail-chat-panel {
   position: fixed;
-  bottom: 5rem;
+  top: calc(var(--header-height) + var(--space-3));
+  bottom: calc(1.25rem + 56px + 12px);
+  left: auto;
   right: 1.25rem;
   width: min(400px, calc(100vw - 2rem));
-  max-height: min(70vh, 420px);
+  min-height: 200px;
   background: var(--color-bg-elevated);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-xl);
@@ -4519,33 +4864,79 @@ button.text-link {
   z-index: 39;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow: visible;
+}
+
+/* Speech-bubble tail (pointy end) pointing down at chat FAB */
+.trip-detail-chat-panel::after {
+  content: "";
+  position: absolute;
+  bottom: -12px;
+  right: 1.5rem;
+  width: 0;
+  height: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-top: 12px solid var(--color-bg-elevated);
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.08));
+}
+
+.trip-detail-chat-panel::before {
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  right: calc(1.5rem - 1px);
+  width: 0;
+  height: 0;
+  border-left: 11px solid transparent;
+  border-right: 11px solid transparent;
+  border-top: 13px solid var(--border);
+  z-index: -1;
 }
 
 @media (max-width: 767px) {
   .trip-detail-chat-panel {
-    bottom: calc(var(--tabbar-height-safe, 64px) + 4.5rem);
-    right: 1rem;
-    left: 1rem;
+    left: var(--space-3);
+    right: var(--space-3);
     width: auto;
-    max-height: min(60vh, 380px);
+    bottom: calc(var(--tabbar-height-safe, 64px) + 0.75rem + 56px + 12px);
+  }
+  .trip-detail-chat-panel::after {
+    right: 2rem;
+  }
+  .trip-detail-chat-panel::before {
+    right: calc(2rem - 1px);
   }
 }
 
 .trip-detail-chat-panel-inner {
   display: flex;
   flex-direction: column;
+  flex: 1;
+  min-height: 0;
   height: 100%;
   overflow: hidden;
 }
 
+/* Header and form take only their needed space; messages (middle) flex-grows to fill the rest */
 .trip-detail-chat-panel-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: var(--space-3) var(--space-4);
   border-bottom: 1px solid var(--border);
-  flex-shrink: 0;
+  flex: 0 0 auto;
+}
+
+.trip-detail-chat-panel .trip-detail-chat-messages {
+  flex: 1 1 0%;
+  min-height: 0;
+  max-height: none;
+  margin: 0;
+  overflow-y: auto;
+  padding: var(--space-3) var(--space-4);
+  display: flex;
+  flex-direction: column;
 }
 
 .trip-detail-chat-panel-title {
@@ -4554,31 +4945,50 @@ button.text-link {
   font-weight: 600;
 }
 
+.trip-detail-chat-panel .trip-detail-chat-panel-close,
 .trip-detail-chat-panel-close {
-  padding: 0.25rem;
-  min-width: 2rem;
-  min-height: 2rem;
+  width: 2.25rem !important;
+  height: 2.25rem !important;
+  min-width: 2.25rem !important;
+  min-height: 2.25rem !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
   font-size: 1.25rem;
   line-height: 1;
-}
-
-.trip-detail-chat-panel .trip-detail-chat-messages {
-  flex: 1;
-  min-height: 0;
-  max-height: 220px;
-  overflow-y: auto;
-  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+  display: inline-flex !important;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 
 .trip-detail-chat-panel .trip-detail-chat-form {
-  flex-shrink: 0;
+  flex: 0 0 auto;
+  margin: 0;
   padding: var(--space-3) var(--space-4);
   border-top: 1px solid var(--border);
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .trip-detail-chat-panel .trip-detail-chat-form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
   max-width: 100%;
+}
+
+.trip-detail-chat-panel .trip-detail-chat-form-row .trip-detail-chat-input {
+  flex: 1;
+  min-width: 0;
+  max-width: none;
+}
+
+.trip-detail-chat-panel .trip-detail-chat-form-row .trip-detail-chat-icon-btn {
+  flex-shrink: 0;
 }
 
 .trip-detail-chat-panel .trip-detail-chat-error {
@@ -4594,7 +5004,7 @@ button.text-link {
     flex-direction: column;
     height: calc(100vh - var(--header-height));
     overflow: hidden;
-    padding-top: 0;
+    padding-top: var(--space-6);
     padding-bottom: 0;
   }
 }
@@ -4630,6 +5040,7 @@ button.text-link {
   .trip-detail-main {
     overflow-y: auto;
     min-height: 0;
+    padding-top: var(--space-4);
   }
 }
 
@@ -4842,7 +5253,7 @@ button.text-link {
   justify-content: center;
 }
 
-/* Mobile: comments FAB (like chat FAB) */
+/* Desktop: comments as sidebar toggle; mobile: no comments FAB, comments as bottom widget only */
 .trip-detail-comments-fab {
   display: none;
 }
@@ -4852,61 +5263,9 @@ button.text-link {
     display: none;
   }
 
-  /* On mobile: comments shown inline at bottom; hide comments FAB */
-  .trip-detail-comments-fab {
-    display: none;
-    position: fixed;
-    bottom: calc(var(--tabbar-height-safe, 64px) + 4rem);
-    right: 1rem;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    border: none;
-    background: var(--color-primary);
-    color: #fff;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: var(--shadow-lg);
-    z-index: 38;
-    transition: transform 0.2s, box-shadow 0.2s;
-  }
-
-  .trip-detail-comments-fab:hover {
-    transform: scale(1.05);
-    box-shadow: var(--shadow-xl);
-  }
-
-  .trip-detail-comments-fab[aria-expanded="true"] {
-    background: var(--color-primary-hover);
-  }
-
-  .trip-detail-comments-fab-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-  .trip-detail-comments-fab-icon svg {
-    width: 1.5rem;
-    height: 1.5rem;
-  }
-
-  .trip-detail-comments-fab-badge {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    min-width: 1.25rem;
-    height: 1.25rem;
-    padding: 0 0.35rem;
-    border-radius: 999px;
-    background: var(--color-text);
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+  /* On mobile: comments only as inline widget at bottom; no comments FAB (avoids overlap with chat FAB) */
+  .trip-detail-fabs .trip-detail-comments-fab {
+    display: none !important;
   }
 
   .trip-detail-comments-sidebar {
@@ -5084,7 +5443,7 @@ button.text-link {
 /* Trip gallery page (MVP3) – uses shared .page-header.
    With layout (has images): full-height + flex like trip-detail so comments sidebar occupies space correctly. */
 .trip-gallery-page {
-  padding: 2rem 0;
+  padding: var(--space-4) 0;
 }
 
 @media (min-width: 768px) {
@@ -5877,7 +6236,7 @@ button.text-link {
 
 .profile-page {
   background: var(--bg);
-  padding: 2rem 0 5rem;
+  padding: var(--space-4) 0 5rem;
 }
 
 .profile-subtitle {
@@ -6264,6 +6623,12 @@ button.text-link {
     padding-bottom: var(--tabbar-height-safe);
   }
 
+  /* Trips and Feed: extra bottom padding so last list item is fully visible above tab bar */
+  .trips-page,
+  .feed-page {
+    padding-bottom: calc(var(--tabbar-height-safe) + var(--space-6));
+  }
+
   /* Home: full-height widget and no gray strip – extend gradient into padding, no bottom padding on page */
   .app-content:has(.home-page) {
     background: linear-gradient(135deg, #e0f2fe 0%, #ecfeff 40%, #f0fdfa 70%, #e0f2fe 100%);
@@ -6299,7 +6664,7 @@ button.text-link {
 
 @media (max-width: 600px) {
   .nav {
-    align-items: flex-start;
+    align-items: center;
   }
 
   .container {
