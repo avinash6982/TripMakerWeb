@@ -2,7 +2,7 @@
 
 > **Last Updated:** February 2026  
 > **Current Phase:** UI work paused; ready for next phase  
-> **Next:** MVP5 (Marketplace) when approved; or optional: R2 (image uploads), MongoDB. **Improvements phase** (DnD, map filter, PWA, notification bell, Zustand) is complete. **MVP4+ AI Capability Enhancements** (AI edit trip, rich insights) is documented; start only when approved. See [MVP_ROADMAP.md](MVP_ROADMAP.md), [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md).
+> **Next:** MVP5 (Marketplace) when approved; or optional: R2 (image uploads), MongoDB. **Improvements phase** is complete. **MVP4+ AI Capability Enhancements** (Gather-before-plan, AI chat-based edit trip) is complete. See [MVP_ROADMAP.md](MVP_ROADMAP.md).
 
 ---
 
@@ -24,7 +24,7 @@
 ## 📊 Current Phase Overview
 
 ### Phase Goal
-**UI Enhancement (mobile focus) – paused.** Login, register, trip creation, and header/list/trip-detail consistency are done. Further UI work (trip view polish, etc.) can resume anytime. **Edit trip** (form-based) removed; **AI chat–based edit** is in MVP4+ AI Capability Enhancements. **MVP5 (Marketplace)** starts only after your explicit approval.
+**UI Enhancement (mobile focus) – paused.** Login, register, trip creation, and header/list/trip-detail consistency are done. Further UI work (trip view polish, etc.) can resume anytime. **Edit trip** (form-based) removed; **AI chat–based edit** is complete (MVP4+). **MVP5 (Marketplace)** starts only after your explicit approval.
 
 **Reference:** [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md), [MVP_ROADMAP.md](MVP_ROADMAP.md), [MONGODB_SETUP.md](MONGODB_SETUP.md)
 
