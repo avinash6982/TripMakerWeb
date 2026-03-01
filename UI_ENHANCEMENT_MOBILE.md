@@ -61,7 +61,7 @@ App-wide consistency for page headers, list spacing, and touch feedback (mobile 
 ## Next (planned, when resumed)
 
 - **Trip view (Trip Detail):** Mobile layout, map placement, chat FAB, header, and any list/detail views.
-- **Edit trip:** Removed from UI Enhancement. The form-based "Edit trip" (name, destination, days) has been removed from the app. **AI chat–based edit trip** will be implemented in **MVP4+ AI Capability Enhancements** (see MVP_ROADMAP.md).
+- **Edit trip:** Removed from UI Enhancement. The form-based "Edit trip" (name, destination, days) has been removed from the app. **AI chat–based edit trip** is now fully implemented via the **MVP4+ AI Capability Enhancements** phase (see MVP_ROADMAP.md).
 - **Other flows:** Discover (Feed), Profile, My Trips, Gallery, etc., as needed.
 
 We will continue to document each flow’s changes here and in DEVELOPMENT_STATUS as we go.

@@ -154,15 +154,13 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 ---
 
-### 🟡 MVP4+ AI Capability Enhancements (future phase)
+### 🟢 MVP4+ AI Capability Enhancements (COMPLETE)
 
-**Goal:** Richer AI for trip creation, editing, and ongoing-trip insights. Not the current phase; start only with explicit approval.
+**Goal:** Richer AI for trip creation, editing, and ongoing-trip insights.
 
-**Planned (for later):**
-1. **Trip creation enhancements (AI)** — Deeper AI assistance during creation.
-2. **Trip edit / ongoing trip AI enhancements** — **Fully functional AI chat–based edit trip** (form-based Edit trip has been removed from the app; edit will be via AI chat in this phase). AI when editing or during active trip; **rich AI insights section** on Trip Detail (e.g. "Your trip is starting in 4 days", "You have 1 prerequisite not fulfilled", etc.), building on the current simple AI section.
-
-**Current behavior:** Trip Detail AI section shows a simple insight-style title (e.g. "Your trip to {destination} · AI insights"), is collapsible, and opens the AI chat panel. Edit trip (form) has been removed; AI chat–based edit will be added in this phase.
+**Completed:**
+1. **Trip creation enhancements (AI)** — "Gather-before-plan" conversational flow intercepts vague queries until destination and duration are gathered.
+2. **Trip edit / ongoing trip AI enhancements** — **Fully functional AI chat–based edit trip** with a dedicated FAB floating component on Trip Detail for instant conversational modifications to living itineraries.
 
 ---
 
