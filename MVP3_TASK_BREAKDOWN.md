@@ -91,7 +91,7 @@ Every task must:
 ### Task 3.5.1: Backend – chat messages model & API ✅
 - [x] Model: messages per trip (trip.messages: [{ id, userId, text, createdAt }]).
 - [x] GET /trips/:id/messages (paginated: limit, offset); POST /trips/:id/messages (auth; owner or editor).
-- [x] **Acceptance:** API supports list + send for a trip (Vercel api + apps/backend).
+- [x] **Acceptance:** API supports list + send for a trip (api + apps/backend).
 
 ### Task 3.5.2: Frontend – chat UI on Trip Detail ✅
 - [x] Chat section on Trip Detail (Trip chat); load messages (poll every 5s); send message; show sender (You / Trip member) and time.
@@ -107,7 +107,7 @@ Every task must:
 - [x] Model: trip.likes = [userId], trip.comments = [{ id, userId, text, createdAt }]; ensureLikes/ensureComments.
 - [x] Feed response includes likeCount, commentCount, userLiked (when auth).
 - [x] POST /trips/:id/like (like), DELETE /trips/:id/like (unlike); GET/POST /trips/:id/comments (list, add). Public trips only for like; comments include authorEmail.
-- [x] **Acceptance:** API supports like/unlike and list/add comments (Vercel api + apps/backend).
+- [x] **Acceptance:** API supports like/unlike and list/add comments (api + apps/backend).
 
 ### Task 3.7.2: Frontend – like and comment UI on Feed ✅
 - [x] Feed cards: like button (heart + count), Comments (count) button; expand to show comment list + add-comment form (when logged in).

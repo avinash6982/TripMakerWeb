@@ -22,6 +22,19 @@
 
 ---
 
+## Additional Test Users (Auto-Seeded)
+
+Same password for all: **`DevUser123!`**
+
+| User   | Email                  | ID        |
+|--------|------------------------|-----------|
+| Test 1 | `test1@tripmaker.com`  | `test-user-00000000-0000-0000-0000-000000000002` |
+| Test 2 | `test2@tripmaker.com`  | `test-user-00000000-0000-0000-0000-000000000003` |
+
+Use these for multi-user flows (e.g. collaboration, invite codes, feed). All three users are seeded on first API call alongside the dev user.
+
+---
+
 ## Usage
 
 Use these credentials for:
@@ -55,20 +68,19 @@ TEST_EMAIL=dev@tripmaker.com TEST_PASSWORD=DevUser123! npm run test:report
 
 ## Test URLs
 
-- **Production App:** https://trip-maker-pink.vercel.app
-- **API Health:** https://trip-maker-pink.vercel.app/api/health
-- **API Docs:** (Coming soon)
+- **Production:** Use your Render frontend and backend URLs (see [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)).
+- **Local:** Frontend http://localhost:5173 · API http://localhost:3000
 
 ---
 
 ## Quick Test Commands
 
 ```bash
-# Test login
-curl -X POST https://trip-maker-pink.vercel.app/api/auth/login \
+# Test login (use your Render API URL or localhost:3000)
+curl -X POST http://localhost:3000/auth/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"demo@tripmaker.com","password":"Demo123456!"}'
+  -d '{"email":"dev@tripmaker.com","password":"DevUser123!"}'
 
 # Test health check
-curl https://trip-maker-pink.vercel.app/api/health
+curl http://localhost:3000/health
 ```

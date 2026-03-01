@@ -23,20 +23,20 @@
 
 ## Overview
 
-**TripMaker** (branded as "Waypoint") is a modern, production-ready trip planning and organization platform. It's built as a monorepo using npm workspaces, with a React frontend and Express.js backend, deployed as a full-stack application on Vercel.
+**TripMaker** (branded as "Waypoint") is a modern, production-ready trip planning and organization platform. It's built as a monorepo using npm workspaces, with a React frontend and Express.js backend, deployed as a full-stack application on **Render** (static site + web service).
 
 ### Key Features
 - User authentication (registration, login, JWT-based sessions)
 - User profile management (multi-language, multi-currency)
 - Internationalization (6 languages: English, Hindi, Malayalam, Arabic, Spanish, German)
-- Auto-seeded development user for consistent testing
+- Auto-seeded development and test users (dev@tripmaker.com, test1@tripmaker.com, test2@tripmaker.com) for consistent testing
 - RESTful API with OpenAPI/Swagger documentation
 - Rate limiting and security hardening
 - Responsive UI with modern design
 
 ### Production URLs
-- **Frontend**: https://trip-maker-pink.vercel.app
-- **Backend API**: https://trip-maker-pink.vercel.app/api
+- **Frontend**: Your Render static site URL (see [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md))
+- **Backend API**: Your Render web service URL
 - **API Docs**: http://localhost:3000/api-docs (local); production: your Render backend URL + /api-docs
 
 ---
@@ -368,12 +368,11 @@ App (Router)
 - In-memory queue for write operations
 - File-based user storage (`data/users.json`)
 
-**Serverless Functions** (Vercel production)
-- **Single entry point:** `api/index.js` (Vercel Hobby plan allows max 12 functions; one router keeps us under the limit)
-- All `/api/*` requests are rewritten to `api/index.js`; routing is done by path and method inside that file
-- Handler logic lives in `api/lib/handlers/` (health, auth, userProfile, trips, invite); these are required modules, not separate serverless functions
-- Shared utilities in `api/lib/` (db, auth, seedUser, tripPlanner)
-- Ephemeral storage (`/tmp/tripmaker-users.json`), auto-seeding on every invocation
+**Render production**
+- Backend runs as a single Express.js web service (`apps/backend/server.js`); no serverless.
+- Optional `api/` directory exists for reference or serverless adaptation; production uses the monolithic backend.
+- Handler logic lives in `server.js` and optionally in `api/lib/handlers/` for serverless; shared utilities in `api/lib/` (db, auth, seedUser, tripPlanner).
+- Storage: file-based (`data/users.json`) or MongoDB when `MONGODB_URI` is set.
 
 ### API Structure
 
@@ -416,7 +415,7 @@ Local Development (apps/backend/server.js)
 │  └─ Global error handler
 └─ Server Start
 
-Vercel Production (api/)
+Optional serverless (api/) — project uses Render backend
 ├─ index.js                 (API root)
 ├─ health.js                (Health check)
 ├─ auth/
@@ -555,29 +554,13 @@ const DEV_USER = {
 
 ## Deployment Architecture
 
-### Vercel Configuration
+### Render
 
-```json
-// vercel.json
-{
-  "buildCommand": "cd apps/frontend && npm run build",
-  "outputDirectory": "apps/frontend/dist",
-  "rewrites": [
-    {
-      "source": "/profile/:id",
-      "destination": "/api/user/profile?id=:id"
-    },
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index"
-    },
-    {
-      "source": "/(.*)",
-      "destination": "/index.html"
-    }
-  ]
-}
-```
+The app is deployed on **Render only** (no Vercel). See [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md) for full setup.
+
+- **Frontend:** Static site (build: `cd apps/frontend && npm run build`; output: `apps/frontend/dist`).
+- **Backend:** Web Service running `apps/backend/server.js` (Node/Express).
+- **SPA routing:** Configure rewrites in Render dashboard so non-API paths serve `index.html`.
 
 ### Routing Strategy
 
@@ -605,41 +588,30 @@ Request Flow:
 ### Build Process
 
 ```
-1. Vercel detects push to main
+1. Render detects push (or manual deploy)
    │
-2. Install dependencies
-   ├─ npm install (root)
-   ├─ npm install --workspace=apps/frontend
-   └─ npm install --workspace=apps/backend
+2. Install dependencies (root + workspaces)
    │
-3. Build frontend
-   ├─ cd apps/frontend
-   ├─ npm run build (Vite)
+3. Build frontend (Static Site service)
+   ├─ cd apps/frontend && npm run build
    └─ Output: dist/
    │
-4. Deploy serverless functions
-   ├─ Bundle api/ directory
-   ├─ Create function per file
-   └─ Configure routing
+4. Backend (Web Service): runs apps/backend/server.js
    │
-5. Deploy static files
-   ├─ Upload apps/frontend/dist/
-   └─ Configure CDN caching
-   │
-6. Assign URLs
-   ├─ Production: https://trip-maker-pink.vercel.app
-   └─ Preview: https://trip-maker-<hash>.vercel.app
+5. Assign URLs (from Render dashboard)
+   ├─ Frontend: your static site URL
+   └─ Backend: your web service URL
 ```
 
 ### Environment Variables
 
-**Required in Vercel:**
+**Required on Render (backend service):**
 ```bash
 JWT_SECRET=<64-char-hex-string>
 NODE_ENV=production
-VITE_API_URL=/api
-CORS_ORIGINS=https://trip-maker-pink.vercel.app
+CORS_ORIGINS=<your-frontend-url>
 ```
+**Frontend (build env):** `VITE_API_URL=<your-backend-url>` or `/api` if same origin.
 
 **Local Development:**
 ```bash
@@ -664,7 +636,7 @@ CORS_ORIGINS=http://localhost:5173
 └─────────────┬───────────────────────────┘
               │
          ┌────▼────┐
-         │ Firewall│  Vercel Edge Network
+         │ Firewall│  Render / CDN
          └────┬────┘
               │
     ┌─────────▼──────────┐
@@ -694,7 +666,7 @@ CORS_ORIGINS=http://localhost:5173
 
 ### Security Checklist
 
-- ✅ HTTPS only (enforced by Vercel)
+- ✅ HTTPS only (enforced by Render)
 - ✅ Security headers (Helmet middleware)
 - ✅ CORS whitelist
 - ✅ Rate limiting per endpoint
@@ -705,7 +677,7 @@ CORS_ORIGINS=http://localhost:5173
 - ✅ No secrets in code
 - ✅ Environment-based configuration
 - ✅ Error messages don't leak sensitive data
-- ⚠️ Ephemeral storage (Vercel serverless limitation)
+- ⚠️ Ephemeral storage when using file-based backend (use MongoDB for production)
 - ⚠️ No persistent database (future enhancement)
 
 ---
@@ -849,11 +821,11 @@ curl -X POST http://localhost:3000/login \
 - Consistent ID for predictable testing
 
 **Deployment Testing:**
-1. Push to main → triggers Vercel deployment
+1. Push to main → triggers Render deploy (if connected)
 2. Wait for build completion
-3. Test deployed URLs
-4. Verify environment variables
-5. Check Vercel function logs
+3. Test deployed URLs (frontend + backend)
+4. Verify environment variables in Render dashboard
+5. Check Render service logs
 
 ### Git Workflow
 
@@ -869,7 +841,7 @@ git commit -m "feat: add new feature"
 git push origin feat/new-feature
 
 # 4. After review, merge to main
-# → Automatic Vercel deployment
+# → Automatic Render deployment (if connected)
 ```
 
 ---
@@ -880,7 +852,7 @@ git push origin feat/new-feature
 - **Vite HMR**: Instant hot module replacement in dev
 - **Code Splitting**: React Router lazy loading (future)
 - **Bundle Size**: ~500KB (including i18n)
-- **CDN Caching**: Static assets cached by Vercel CDN
+- **CDN Caching**: Static assets cached by Render CDN
 
 ### Backend Performance
 - **Cold Start**: ~500ms for serverless functions
@@ -891,7 +863,7 @@ git push origin feat/new-feature
 ### Known Limitations
 1. **Ephemeral Storage**: Data doesn't persist across function invocations
    - Impact: Users must re-register after deployment
-   - Solution: Implement persistent database (Vercel KV/Postgres)
+   - Solution: Use MongoDB (see MONGODB_SETUP.md) or other persistent store
 
 2. **No Real-time**: No WebSocket support
    - Impact: No live updates for group features
@@ -906,7 +878,7 @@ git push origin feat/new-feature
 ## Future Enhancements
 
 ### Short-term
-- [ ] Persistent database (Vercel Postgres or KV)
+- [ ] Persistent database (MongoDB; see MONGODB_SETUP.md)
 - [ ] Email verification on registration
 - [ ] Password reset flow
 - [ ] User profile avatars
@@ -951,7 +923,7 @@ git push origin feat/new-feature
 
 **Issue: "JWT_SECRET required"**
 - Development: Auto-generated (ignore warning)
-- Production: Set in Vercel environment variables
+- Production: Set in Render dashboard (backend service env)
 
 **Issue: "User not found" after deployment**
 - Cause: Ephemeral storage, user data lost
@@ -963,15 +935,15 @@ git push origin feat/new-feature
 
 ### Deployment Issues
 
-**Issue: Build fails on Vercel**
-- Check: `vercel.json` is correct
+**Issue: Build fails on Render**
+- Check: Build command in Render dashboard (e.g. `cd apps/frontend && npm run build` for static site)
 - Check: All dependencies in `package.json`
-- Check: Build command works locally
+- Check: Build works locally (`npm run build`)
 
 **Issue: 404 on API endpoints**
-- Check: Rewrites in `vercel.json`
-- Check: Serverless functions deployed
-- Check: Vercel function logs
+- Check: Backend service is running (Web Service, not static site)
+- Check: CORS_ORIGINS and frontend URL
+- Check: Render service logs
 
 ---
 

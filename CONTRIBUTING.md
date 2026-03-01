@@ -228,11 +228,11 @@ app.get('/api/endpoint', (req, res) => {
 - Never commit real secrets; `.env.development` is safe if it has no secrets
 - Frontend env vars must be prefixed with `VITE_`
 
-### Production (Vercel)
+### Production (Render)
 
-- Set environment variables in Vercel Dashboard
+- Set environment variables in Render Dashboard (backend + frontend services)
 - Never commit sensitive values
-- Use different values for production
+- Use different values for production. See [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)
 
 ## Testing
 
@@ -272,11 +272,11 @@ npm test
 - Check for TypeScript/linting errors
 - Verify all imports are correct
 
-### Vercel Deployment Issues
+### Render Deployment Issues
 
-- Check build logs in Vercel Dashboard
-- Verify environment variables are set
-- Test build locally: `npm run build`
+- Check build logs in Render Dashboard
+- Verify environment variables are set for both static site and web service
+- Test build locally: `npm run build`. See [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)
 
 ## Pull Request Guidelines
 

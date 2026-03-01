@@ -30,7 +30,7 @@
 6. 💾 Store and access trip memories
 
 **Key Principle:** Zero-cost MVP using:
-- ✅ Vercel free tier for hosting
+- ✅ Render free tier for hosting
 - ✅ Local file storage (JSON)
 - ✅ OpenStreetMap (free mapping)
 - ✅ Hardcoded city data (no AI costs)
@@ -240,13 +240,13 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 - [x] Add Swagger documentation
 - [x] **Acceptance:** `curl` test retrieves specific trip
 
-#### Task 1.1.5: Vercel - Create Trip Serverless Function ✅
+#### Task 1.1.5: Create Trip API (backend) ✅
 - [x] Create `api/trips/index.js` (GET list + POST create)
 - [x] Create `api/trips/[id].js` (GET single)
 - [x] Add CORS headers and JWT auth
 - [x] **Acceptance:** Production endpoints work
 
-#### Task 1.1.6: Vercel - List Trips Serverless Function ✅
+#### Task 1.1.6: List Trips API (backend) ✅
 - [x] Handled in `api/trips/index.js` (GET)
 - [x] **Acceptance:** Production endpoint works
 
@@ -348,7 +348,7 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 - [ ] Add Swagger documentation
 - [ ] **Acceptance:** API updates trip correctly
 
-#### Task 1.4.2: Vercel - Update Trip Function ✅
+#### Task 1.4.2: Update Trip API (backend) ✅
 - [ ] Create `api/trips/update.js`
 - [ ] Mirror backend logic
 - [ ] Test with deployed endpoint
@@ -388,7 +388,7 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 - [x] Add Swagger documentation
 - [x] **Acceptance:** API unarchives trip
 
-#### Task 1.5.3: Vercel Functions ✅
+#### Task 1.5.3: Backend/API ✅
 - [ ] Create `api/trips/delete.js`
 - [ ] Create `api/trips/archive.js`
 - [ ] Test endpoints
@@ -544,7 +544,7 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 - [ ] All tests passing
 - [ ] Documentation complete and accurate
 - [ ] Demo video/screenshots prepared
-- [ ] Deployed to Vercel successfully
+- [ ] Deployed to Render successfully
 - [ ] Smoke tested on production
 - [ ] Team review completed
 - [ ] Ready for next phase

@@ -278,14 +278,14 @@ If you're adding new endpoints or changing existing ones:
 
 ## 📦 Deployment
 
-The app is deployed on Vercel:
+The app is deployed on **Render** (see repo root [RENDER_DEPLOYMENT_GUIDE.md](../../RENDER_DEPLOYMENT_GUIDE.md)):
 
-- **Frontend:** Automatically deployed from `main` branch
-- **Backend:** Deployed separately (TripMakerWeb-BE repository)
+- **Frontend:** Static site from `main` (build: `cd apps/frontend && npm run build`)
+- **Backend:** Web Service running `apps/backend/server.js`
 
 ### Environment Variables for Production
 
-Set in Vercel dashboard:
+Set in Render dashboard (frontend build env):
 
 ```bash
 VITE_API_URL=http://localhost:3000

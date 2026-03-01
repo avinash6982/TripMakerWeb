@@ -33,6 +33,7 @@ import {
 import { useLocation } from "../hooks/useLocation";
 import { getClosestStop } from "../utils/distance";
 import { getDayRouteColor } from "../constants/dayRouteColors";
+import { useTripDetailStore } from "../stores/tripDetailStore";
 
 const TripDetail = () => {
   const { t } = useTranslation();
@@ -53,6 +54,7 @@ const TripDetail = () => {
   const [itineraryMarkers, setItineraryMarkers] = useState([]);
   const [dayRoutes, setDayRoutes] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
+  const { activeMapDay, setActiveMapDay, setTrip: setStoreTrip, reset: resetTripStore } = useTripDetailStore();
   const [showMyLocation, setShowMyLocation] = useState(false);
   const {
     position: currentLocationPosition,
@@ -141,6 +143,16 @@ const TripDetail = () => {
   useEffect(() => {
     loadTrip();
   }, [id]);
+
+  useEffect(() => {
+    if (trip) setStoreTrip(trip);
+  }, [trip, setStoreTrip]);
+
+  useEffect(() => {
+    return () => {
+      resetTripStore();
+    };
+  }, [id, resetTripStore]);
 
   useEffect(() => {
     const m = window.matchMedia("(max-width: 767px)");
@@ -282,7 +294,7 @@ const TripDetail = () => {
               routes[dayIndex].push([placeCoords.lat, placeCoords.lng]);
               setItineraryMarkers((prev) =>
                 prev.length < 15
-                  ? [...prev, { ...placeCoords, name: place.name, category: place.category }]
+                  ? [...prev, { ...placeCoords, name: place.name, category: place.category, dayIndex }]
                   : prev
               );
             }
@@ -1749,6 +1761,7 @@ const TripDetail = () => {
                       itineraryMarkers={itineraryMarkers}
                       dayRoutes={dayRoutes}
                       currentLocation={showMyLocation ? currentLocationPosition : null}
+                      activeDayIndex={activeMapDay}
                     />
                   )}
                 </div>
@@ -1762,6 +1775,26 @@ const TripDetail = () => {
               <div className="trip-detail-map">
                 <div className="trip-detail-map-header">
                   <h2>{t("trips.map")}</h2>
+                  {trip?.itinerary?.length > 1 && (
+                    <label className="trip-detail-map-day-filter">
+                      <span className="sr-only">{t("trips.mapShowDay", "Show on map")}</span>
+                      <select
+                        value={activeMapDay == null ? "" : activeMapDay}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          setActiveMapDay(v === "" ? null : Number(v));
+                        }}
+                        aria-label={t("trips.mapShowDay", "Show on map")}
+                      >
+                        <option value="">{t("trips.mapAllDays", "All days")}</option>
+                        {trip.itinerary.map((day, i) => (
+                          <option key={i} value={i}>
+                            {t("tripPlanner.results.dayLabel", { day: day.day })}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  )}
                   <button
                     type="button"
                     className={`page-header-action-round trip-detail-map-location-btn${
@@ -1869,6 +1902,7 @@ const TripDetail = () => {
                     itineraryMarkers={itineraryMarkers}
                     dayRoutes={dayRoutes}
                     currentLocation={showMyLocation ? currentLocationPosition : null}
+                    activeDayIndex={activeMapDay}
                   />
                 )}
               </div>

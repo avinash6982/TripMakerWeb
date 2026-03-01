@@ -112,7 +112,7 @@ Authorization: Bearer <your_jwt_token>
 \`\`\`
 
 ## Base URL
-- **Production:** https://trip-maker-web-be.vercel.app
+- **Production:** Your Render backend URL (e.g. https://your-service.onrender.com)
 - **Development:** http://localhost:3000
 
 ## Rate Limiting
@@ -131,12 +131,12 @@ Authorization: Bearer <your_jwt_token>
     },
     servers: [
       {
-        url: "https://trip-maker-web-be.vercel.app",
-        description: "Production server",
-      },
-      {
         url: "http://localhost:3000",
         description: "Development server",
+      },
+      {
+        url: "https://your-backend.onrender.com",
+        description: "Production (Render) — set your backend URL",
       },
     ],
     components: {
@@ -522,7 +522,7 @@ async function ensureUsersFile() {
   }
 }
 
-// Development test user for consistent testing
+// Development and test users for consistent testing (auto-seeded)
 const DEV_USER = {
   id: 'dev-user-00000000-0000-0000-0000-000000000001',
   email: 'dev@tripmaker.com',
@@ -536,26 +536,58 @@ const DEV_USER = {
   }
 };
 
+const TEST_USER_1 = {
+  id: 'test-user-00000000-0000-0000-0000-000000000002',
+  email: 'test1@tripmaker.com',
+  password: 'DevUser123!',
+  trips: [],
+  profile: {
+    phone: '',
+    country: '',
+    language: 'en',
+    currencyType: 'USD'
+  }
+};
+
+const TEST_USER_2 = {
+  id: 'test-user-00000000-0000-0000-0000-000000000003',
+  email: 'test2@tripmaker.com',
+  password: 'DevUser123!',
+  trips: [],
+  profile: {
+    phone: '',
+    country: '',
+    language: 'en',
+    currencyType: 'USD'
+  }
+};
+
+const SEED_USERS = [DEV_USER, TEST_USER_1, TEST_USER_2];
+
 async function seedDevUser() {
   if (!readUsers || !writeUsers) return;
   try {
     const users = await readUsers();
-    if (users.find((u) => u.id === DEV_USER.id)) return;
-
-    const devUser = {
-      id: DEV_USER.id,
-      email: DEV_USER.email,
-      passwordHash: hashPassword(DEV_USER.password),
-      trips: [],
-      profile: { ...DEV_USER.profile },
-      createdAt: new Date().toISOString(),
-      isTestUser: true,
-    };
-    users.push(devUser);
-    await writeUsers(users);
-    console.log("✅ Development test user seeded:", DEV_USER.email);
+    const added = [];
+    for (const seed of SEED_USERS) {
+      if (users.find((u) => u.id === seed.id)) continue;
+      users.push({
+        id: seed.id,
+        email: seed.email,
+        passwordHash: hashPassword(seed.password),
+        trips: [],
+        profile: { ...seed.profile },
+        createdAt: new Date().toISOString(),
+        isTestUser: true,
+      });
+      added.push(seed.email);
+    }
+    if (added.length > 0) {
+      await writeUsers(users);
+      console.log("✅ Test users seeded:", added.join(", "));
+    }
   } catch (error) {
-    console.error("Failed to seed dev user:", error);
+    console.error("Failed to seed test users:", error);
   }
 }
 

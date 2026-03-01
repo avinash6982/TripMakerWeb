@@ -302,8 +302,8 @@ File-based storage → Database only when needed
 ### 2. Zero Cost Until Proven
 Use free services for MVP1-3
 
-### 3. Serverless First
-Vercel functions > Traditional servers
+### 3. Hosting
+Render (static site + web service) for deployment
 
 ### 4. Open Source When Possible
 Leaflet.js > Google Maps
@@ -319,7 +319,7 @@ PWA > Native app (initially)
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Vercel ephemeral storage | Data loss | Move to persistent DB in MVP2 |
+| Ephemeral file storage | Data loss | Use MongoDB or persistent DB (see MONGODB_SETUP.md) |
 | Free API rate limits | Service degradation | Implement caching + fallbacks |
 | Map performance | Poor UX | Marker clustering, lazy loading |
 | Mobile performance | User churn | Optimize bundle, lazy components |

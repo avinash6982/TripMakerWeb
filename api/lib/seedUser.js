@@ -40,6 +40,24 @@ const TEST_USER = {
   }
 };
 
+const TEST_USER_1 = {
+  id: 'test-user-00000000-0000-0000-0000-000000000002',
+  email: 'test1@tripmaker.com',
+  password: 'DevUser123!',
+  trips: [],
+  profile: { phone: '', country: '', language: 'en', currencyType: 'USD', interests: [], preferredDestinations: [] }
+};
+
+const TEST_USER_2 = {
+  id: 'test-user-00000000-0000-0000-0000-000000000003',
+  email: 'test2@tripmaker.com',
+  password: 'DevUser123!',
+  trips: [],
+  profile: { phone: '', country: '', language: 'en', currencyType: 'USD', interests: [], preferredDestinations: [] }
+};
+
+const SEED_USERS = [TEST_USER, TEST_USER_1, TEST_USER_2];
+
 function hashPassword(password) {
   const salt = crypto.randomBytes(PASSWORD_SALT_BYTES).toString('hex');
   const derivedKey = crypto.scryptSync(password, salt, PASSWORD_KEYLEN);
@@ -79,31 +97,26 @@ async function writeUsers(users) {
 async function seedTestUser() {
   try {
     const users = await readUsers();
-    
-    // Check if test user already exists
-    const existingUser = users.find(u => u.id === TEST_USER.id);
-    
-    if (existingUser) {
-      return; // User already exists
+    const added = [];
+    for (const seed of SEED_USERS) {
+      if (users.find(u => u.id === seed.id)) continue;
+      users.push({
+        id: seed.id,
+        email: seed.email,
+        passwordHash: hashPassword(seed.password),
+        trips: [],
+        profile: { ...seed.profile },
+        createdAt: new Date().toISOString(),
+        isTestUser: true
+      });
+      added.push(seed.email);
     }
-    
-    // Create test user
-    const testUser = {
-      id: TEST_USER.id,
-      email: TEST_USER.email,
-      passwordHash: hashPassword(TEST_USER.password),
-      trips: [],
-      profile: { ...TEST_USER.profile },
-      createdAt: new Date().toISOString(),
-      isTestUser: true
-    };
-    
-    users.push(testUser);
-    await writeUsers(users);
-    
-    console.log('✅ Development test user seeded:', TEST_USER.email);
+    if (added.length > 0) {
+      await writeUsers(users);
+      console.log('✅ Test users seeded:', added.join(', '));
+    }
   } catch (error) {
-    console.error('Failed to seed test user:', error);
+    console.error('Failed to seed test users:', error);
     // Don't throw - this should not break the API
   }
 }

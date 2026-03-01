@@ -2,7 +2,7 @@
 
 > **Last Updated:** February 2026  
 > **Current Phase:** UI work paused; ready for next phase  
-> **Next:** MVP5 (Marketplace) when you approve; or optional: R2 (image uploads), MongoDB (persistent storage). **MVP4+ AI Capability Enhancements** (AI edit trip, rich insights) is documented; start only when approved. See [MVP_ROADMAP.md](MVP_ROADMAP.md), [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md).
+> **Next:** MVP5 (Marketplace) when approved; or optional: R2 (image uploads), MongoDB. **Improvements phase** (DnD, map filter, PWA, notification bell, Zustand) is complete. **MVP4+ AI Capability Enhancements** (AI edit trip, rich insights) is documented; start only when approved. See [MVP_ROADMAP.md](MVP_ROADMAP.md), [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md).
 
 ---
 
@@ -160,7 +160,7 @@
 ### Code Statistics
 - **Backend Endpoints:** 5 total (2 needed for trips)
 - **Frontend Pages:** 4 total (2 needed for trips)
-- **API Functions (Vercel):** 5 total (4 needed for trips)
+- **Backend:** Express server (apps/backend/server.js); optional api/ for serverless reference
 - **Lines of Code:** ~3500 (estimate)
 
 ---
@@ -194,15 +194,14 @@
 - ✅ Hot Reload: Working
 - ✅ API Docs: http://localhost:3000/api-docs
 
-### Production (Vercel)
-- ✅ Frontend: https://trip-maker-pink.vercel.app
-- ✅ API: https://trip-maker-pink.vercel.app/api
-- ⚠️ Status: Last deployment may not have latest changes
-- 📝 Note: Deploy after completing Phase 1.1
+### Production (Render)
+- ✅ Frontend: Your Render static site URL
+- ✅ API: Your Render web service URL
+- 📝 Note: See [RENDER_DEPLOYMENT_GUIDE.md](RENDER_DEPLOYMENT_GUIDE.md)
 
 ### Environment Variables
 - ✅ Local: `.env.development` configured
-- ✅ Production: Vercel env vars set
+- ✅ Production: Render dashboard (backend + frontend env)
 - ⚠️ JWT_SECRET: Auto-generated in dev, manual in prod
 
 ---
@@ -238,7 +237,7 @@
 1. **Using file-based storage (JSON)** - Perfect for MVP, no database costs
 2. **Hardcoded city data** - Good for MVP1, keeps zero-cost commitment
 3. **OSM tiles for maps** - Free but limited, acceptable for MVP1
-4. **Vercel serverless** - Free tier sufficient, scales automatically
+4. **Render** - Static site + Web Service; free tier sufficient
 
 ### Team Notes
 - Focus on completing current phase before adding features
@@ -262,8 +261,8 @@
    **Mitigation:** Add caching, consider paid service later  
    **Likelihood:** Low (within acceptable use)
 
-3. **Risk:** Vercel free tier limits  
-   **Mitigation:** Monitor usage, optimize functions  
+3. **Risk:** Render free tier limits  
+   **Mitigation:** Monitor usage, optimize cold starts  
    **Likelihood:** Low (early stage)
 
 ---
@@ -298,7 +297,7 @@ MVP1–MVP3 and Design Optimization are complete. No fixed sprint schedule until
 - **API Docs:** `/API_REFERENCE.md`
 - **Backend:** `/apps/backend/server.js`
 - **Frontend:** `/apps/frontend/src/`
-- **Vercel:** `/api/`
+- **Backend (Render):** `apps/backend/server.js`; optional `api/` for reference
 
 ### Commands
 ```bash
@@ -312,14 +311,14 @@ curl http://localhost:3000/health
 open http://localhost:5173
 
 # Deployment
-git push origin main        # Auto-deploys to Vercel
+git push origin main        # Auto-deploys to Render (if connected)
 ```
 
 ### URLs
 - Local Frontend: http://localhost:5173
 - Local Backend: http://localhost:3000
 - Local API Docs: http://localhost:3000/api-docs
-- Production: https://trip-maker-pink.vercel.app
+- Production: Your Render frontend URL (see RENDER_DEPLOYMENT_GUIDE.md)
 
 ---
 

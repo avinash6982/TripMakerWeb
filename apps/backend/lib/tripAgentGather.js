@@ -46,7 +46,7 @@ Rules:
 - Output exactly: {"message": "...", "suggestedContext": {"destination": "..." or null, "days": number or null, "pace": "relaxed"|"balanced"|"fast" or null, "people": number or null}, "complete": boolean}.
 - **complete** is true only when we have a non-empty destination AND a number of days (1–10) AND a pace (relaxed/balanced/fast). Otherwise complete is false.
 - **suggestedContext**: merge what you already have (from current context) with what you extract from the user's latest message. Use proper types: destination string (trimmed), days integer 1–10, pace one of relaxed/balanced/fast, people integer 1–20 or omit.
-- **message**: a short, friendly reply (1–3 sentences). If context is incomplete, ask for the missing piece(s) in a natural way (e.g. "Armenia sounds great! How many days do you have in mind, and would you prefer a relaxed, balanced, or fast-paced trip?"). If complete, say something like "Got it! Here's your plan." or "Perfect, I'll put together your itinerary." Keep the tone warm and conversational.`;
+- **message**: a short, friendly reply (1–3 sentences). IMPORTANT: Read the conversation history. Do NOT repeat the same question or phrase you (the assistant) already said. Acknowledge the user's latest message first (e.g. if they said "family friendly", note that), then ask only for what is still missing (days and/or pace) in a fresh way. If context is incomplete, ask for the missing piece(s) naturally but without copying a previous assistant turn. If complete, say something like "Got it! Here's your plan." Keep the tone warm and conversational.`;
 
   const userParts = [
     `Current context: destination=${current.destination || "none"}, days=${current.days ?? "none"}, pace=${current.pace || "none"}.`,
@@ -55,7 +55,7 @@ Rules:
     if (m && String(m.role).toLowerCase() === "user" && m.content) userParts.push(`User: ${typeof m.content === "string" ? m.content : JSON.stringify(m.content)}`);
     if (m && String(m.role).toLowerCase() === "assistant" && m.content) userParts.push(`Assistant: ${m.content}`);
   }
-  userParts.push("Reply with the JSON only (message, suggestedContext with destination/days/pace/people, complete).");
+  userParts.push("Reply with the JSON only (message, suggestedContext with destination/days/pace/people, complete). Your message must NOT repeat the assistant's previous reply word-for-word; acknowledge the user's latest message and ask for any still-missing info in new words.");
 
   return { system, user: userParts.join("\n") };
 }
@@ -191,15 +191,25 @@ async function gatherContextFromChat(messages, context) {
       if (p) pace = p;
     }
     const hasAll = dest && days != null && pace;
+    const userMessageCount = userMessages.length;
     let message;
     if (hasAll) {
       message = `Here's your ${days}-day ${dest} plan (${pace} pace). You can refine it in chat or save the trip. Add a Gemini or Groq API key for richer AI suggestions.`;
     } else if (dest && !days && !pace) {
-      message = `${dest} sounds great! How many days do you have (1–10), and do you prefer a relaxed, balanced, or fast-paced trip?`;
+      message =
+        userMessageCount > 1
+          ? `I still need two things: how many days (1–10) and your pace — relaxed, balanced, or fast?`
+          : `${dest} sounds great! How many days do you have (1–10), and do you prefer a relaxed, balanced, or fast-paced trip?`;
     } else if (dest && days && !pace) {
-      message = `${days} days in ${dest} — nice. What pace do you prefer: relaxed, balanced, or fast-paced?`;
+      message =
+        userMessageCount > 1
+          ? `Just need your pace: relaxed, balanced, or fast-paced?`
+          : `${days} days in ${dest} — nice. What pace do you prefer: relaxed, balanced, or fast-paced?`;
     } else {
-      message = "I'd love to help plan your trip! Tell me where you want to go (e.g. Armenia), how many days you have (1–10), and your pace: relaxed, balanced, or fast-paced.";
+      message =
+        userMessageCount > 1
+          ? "Still missing some details: destination, how many days (1–10), and pace (relaxed, balanced, or fast)."
+          : "I'd love to help plan your trip! Tell me where you want to go (e.g. Armenia), how many days you have (1–10), and your pace: relaxed, balanced, or fast-paced.";
     }
     return {
       message,

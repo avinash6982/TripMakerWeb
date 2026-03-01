@@ -373,6 +373,83 @@ ul {
   font-size: var(--text-sm);
 }
 
+.notification-bell-wrap {
+  position: relative;
+}
+.notification-bell-btn {
+  position: relative;
+}
+.notification-bell-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 18px;
+  text-align: center;
+  color: #fff;
+  background: var(--accent);
+  border-radius: 9px;
+}
+.notification-bell-panel {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  width: min(320px, 90vw);
+  max-height: 360px;
+  overflow: auto;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+}
+.notification-bell-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.notification-bell-panel-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+}
+.notification-bell-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.5rem 0;
+}
+.notification-bell-empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.notification-bell-item-link {
+  display: block;
+  padding: 0.6rem 1rem;
+  color: var(--text);
+  text-decoration: none;
+  transition: background 0.15s;
+}
+.notification-bell-item-link:hover {
+  background: var(--hover-bg);
+}
+.notification-bell-item--read .notification-bell-item-text {
+  color: var(--muted);
+}
+.notification-bell-item-subtitle {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 0.15rem;
+}
+
 /* Logout: icon on small screens (prevents truncation), text on larger */
 .nav-logout-icon {
   display: none;
@@ -3989,6 +4066,15 @@ button.text-link {
   padding: 0.35rem 0.75rem;
 }
 
+.trip-detail-map-day-filter select {
+  font-size: 0.875rem;
+  padding: 0.35rem 0.6rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+
 .trip-detail-map h2 {
   margin: 0 0 0.75rem;
   font-size: 1.25rem;
@@ -6134,9 +6220,70 @@ button.text-link {
 
 .planner-item {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   gap: 0.75rem;
   align-items: center;
+}
+.planner-item--no-drag {
+  grid-template-columns: 1fr auto;
+}
+.planner-item--mobile-arrows {
+  grid-template-columns: auto 1fr auto;
+}
+.planner-item-move-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  align-items: center;
+  justify-content: center;
+}
+.planner-item-move-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 32px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.planner-item-move-btn:hover:not(:disabled) {
+  background: var(--hover-bg);
+  color: var(--accent);
+}
+.planner-item-move-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.planner-item-move-btn svg {
+  flex-shrink: 0;
+}
+.planner-item-drag-handle {
+  cursor: grab;
+  color: var(--muted);
+  padding: 0.25rem;
+  margin: -0.25rem 0.25rem -0.25rem -0.25rem;
+  border-radius: 6px;
+  touch-action: none;
+}
+.planner-item-drag-handle:active {
+  cursor: grabbing;
+}
+.planner-item-drag-handle:hover {
+  color: var(--text);
+}
+.planner-item--dragging {
+  opacity: 0.6;
+}
+.planner-slot--drop-target {
+  outline: 2px dashed var(--accent);
+  outline-offset: 4px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
 }
 
 .planner-item input,

@@ -1,7 +1,7 @@
 # 🔌 TripMaker API Reference
 
 **Base URL (Local):** `http://localhost:3000`  
-**Base URL (Production):** `https://trip-maker-pink.vercel.app/api`  
+**Base URL (Production):** Your Render backend URL (e.g. `https://your-backend.onrender.com`)  
 **API Version:** 2.0.0  
 **Last Updated:** January 31, 2026 (trips list + get + save UI)
 

@@ -2,7 +2,7 @@
 
 **Last Updated:** February 2026  
 **Current Phase:** UI work paused; ready for next phase  
-**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete; UI Enhancement (login, register, trip creation, headers/lists/trip-detail consistency) done and paused. **Next:** MVP5 (Marketplace) when approved; or R2 (uploads), MongoDB (optional). See DEVELOPMENT_STATUS.md.
+**Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete; UI Enhancement (login, register, trip creation, headers/lists/trip-detail consistency) done and paused. **Next:** Improvements phase (optional) or MVP5 (Marketplace) when approved; or R2 (uploads), MongoDB (optional). See DEVELOPMENT_STATUS.md.
 
 ---
 
@@ -35,7 +35,7 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
 ### 2. Zero-Cost MVP (Phases 1-3)
 - Use free geocoding APIs
 - Mock data for AI suggestions
-- Vercel free tier hosting
+- Render free tier hosting
 - No paid services until MVP4+
 
 ### 3. Scope Discipline
@@ -59,7 +59,7 @@ Traditional trip planning is fragmented and requires heavy manual coordination:
 2. ✅ User profile management
 3. ✅ Trip plan generation API (`POST /trips/plan`)
 4. ✅ i18n support (6 languages)
-5. ✅ Vercel deployment
+5. ✅ Render deployment
 
 #### Completed (cont.)
 - Trip edit, delete, archive, **unarchive** (CRUD + status)
@@ -175,6 +175,42 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 - **Trip view (Trip Detail):** Mobile layout, map, chat FAB, headers.
 - **Edit trip:** Removed (AI chat–based edit in MVP4+ AI Capability Enhancements).
 - **Other flows:** Discover (Feed), Profile, My Trips, Gallery, as needed.
+
+---
+
+### 🔧 Improvements Phase
+
+**Status:** ✅ Implemented (February 2026)  
+**Goal:** UX, performance, and architecture improvements identified from app review.
+
+#### Completed ✅
+
+1. **Drag-and-drop itinerary reorder**
+   - **@dnd-kit/core** used on Home page: draggable itinerary items and droppable slots (Morning/Afternoon/Evening). Users can drag an activity from one slot or day to another; `handleMoveItineraryItem` updates the plan and recalculates slot/day hours.
+   - Component: `apps/frontend/src/components/ItineraryDnd.jsx`; drag handle on each item when not in edit mode.
+
+2. **Map marker clutter / active-day filtering**
+   - **MapView** accepts optional `activeDayIndex`. When set, only that day's markers and route polyline are shown. Trip Detail page has a "Show on map" dropdown (All days | Day 1 | Day 2 …) in the map header when the trip has multiple days.
+   - Markers are tagged with `dayIndex` when built in TripDetail so filtering works.
+
+3. **Offline mode / PWA**
+   - **vite-plugin-pwa** added: Web App Manifest (name, short_name, theme_color, icons), Service Worker with `autoUpdate`, and Workbox runtime caching for OSM map tiles (CacheFirst, 30-day expiry).
+   - Config: `apps/frontend/vite.config.js`. Build outputs `sw.js` and `manifest.webmanifest`.
+
+4. **Notifications (in-app bell)**
+   - **NotificationBell** in site header (SiteLayout): badge count, dropdown with list, "Mark all read". Store: `apps/frontend/src/stores/notifications.js` (Zustand). Notifications can be added via `useNotificationStore.getState().add({ title, subtitle, link })`; backend/push can be added later.
+
+5. **State management (Zustand)**
+   - **useTripDetailStore** (`apps/frontend/src/stores/tripDetailStore.js`): holds `trip`, `activeMapDay`, and `reset`. Trip Detail page uses it for map day filter and syncs trip to the store so child components can read without prop-drilling.
+   - Notifications use the same Zustand store pattern.
+
+#### Browser verification checklist
+
+- **DnD:** Log in → Home → create a plan (e.g. "3 days in Paris") → when itinerary appears, drag an activity by the grip handle to another time slot or day; list and map should update.
+- **Map filter:** Open a trip with multiple days → on the map section, use "Show on map" dropdown → choose "Day 2"; only Day 2 markers and route should show.
+- **PWA:** Run `npm run build` in apps/frontend → serve dist (e.g. `npx serve dist`) → in DevTools Application tab, confirm Manifest and Service Worker; reload offline to test cache.
+- **Notifications:** In the header, click the bell icon → panel opens with "No notifications yet."; add one via console: `window.__NOTIFICATION_ADD?.({ title: 'Test', subtitle: 'Test notification' })` or from code using `useNotificationStore.getState().add({ title: 'Test' })`.
+- **Zustand:** Trip Detail map day filter and trip data are driven by `useTripDetailStore`; no functional change visible beyond the map filter UI.
 
 ---
 
@@ -295,6 +331,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | MVP3 | ✅ Complete | 100% | Feb 2026 |
 | Design Optimization | ✅ Complete | — | Feb 2026 |
 | **UI Enhancement (Mobile)** | 🔄 In progress | — | Ongoing |
+| **Improvements** | ✅ Complete | 100% | Feb 2026 |
 | MVP4 (AI Trip Agent) | ✅ Complete | 100% | Feb 2026 |
 | **MVP4+ AI Capability Enhancements** | ⏸️ Not Started | 0% | After approval |
 | MVP5 (Marketplace) | ⏸️ Not Started | 0% | After approval |
@@ -318,6 +355,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | MVP3 | Timeline prefs, real-time location, live map, ETA, chat (R2, 100MB/user), like/comment, share, gallery, thumbnails | ✅ 100% |
 | Design Optimization | UI/design review; one change per feedback item | ✅ Complete |
 | **UI Enhancement (Mobile)** | Mobile-first UI polish; login, register, trip creation done; next: trip view, edit. See UI_ENHANCEMENT_MOBILE.md | 🔄 In progress |
+| **Improvements** | DnD reorder, map clutter/PWA, notifications, Zustand. See Improvements Phase section. | ✅ Complete |
 | Additional: Prerequisites | Trip prerequisites list; assign/mark done when trip active | ✅ Complete |
 | MVP4 | AI Trip Agent: chat-based trip create/edit; Gemini + Groq adapters; Home + Trip Detail AI section; see MVP4_AI_AGENT.md | ✅ Complete |
 | MVP4+ AI Enhancements | Trip creation AI enhancements; trip edit/ongoing AI; rich AI insights section (e.g. "trip in X days", "N prerequisites not done") — not started | ⏸️ Future |
@@ -343,7 +381,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 2. ✅ Full feature tested end-to-end
 3. ✅ No console errors
 4. ✅ Documentation updated
-5. ✅ Deployed to Vercel
+5. ✅ Deployed to Render
 6. ✅ Production testing done
 
 ---
@@ -352,7 +390,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 
 ### January 30, 2026
 - ✅ Decided to use Leaflet.js for maps (free, open-source)
-- ✅ Decided to use file-based storage for MVP1 (Vercel /tmp)
+- ✅ Decided to use file-based storage for MVP1 (file /tmp or data/users.json)
 - ✅ Decided to use Nominatim for geocoding (free, OSM)
 - ✅ Decided against Google Maps API (paid, over-budget for MVP1)
 
@@ -380,7 +418,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 
 | Risk | Impact | Mitigation |
 |------|--------|------------|
-| Ephemeral Vercel storage | Data loss on redeployment | Document limitation, plan DB migration for MVP2 |
+| Ephemeral file storage (e.g. Render /tmp) | Data loss on redeployment | Document limitation; use MongoDB or persistent storage for production |
 | Free API rate limits | Service degradation | Implement caching, fallback to mock data |
 | Map performance | Slow rendering with many markers | Limit markers, add clustering in MVP2 |
 | Scope creep | Delayed delivery | Strict Cursor rules, explicit approval required |

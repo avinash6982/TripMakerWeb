@@ -168,7 +168,7 @@ curl "http://localhost:3000/api/trips?status=planning" \
 **Branch:** `feat/trip-create`
 
 **Implementation:**
-1. Create `api/trips/[id].js` (Vercel dynamic route)
+1. Create trip-by-id handler (api or server.js; production uses apps/backend)
 2. Add authentication (JWT required)
 3. Get trip by ID
 4. Verify trip belongs to user (authorization)
@@ -622,18 +622,18 @@ curl -X PUT http://localhost:3000/api/trips/$TRIP_ID \
 
 ### Week 1 (Current)
 - [ ] Tasks 1.1 - 1.8 (Trip Persistence)
-- [ ] Deploy to Vercel
+- [ ] Deploy to Render
 - [ ] Test in production
 
 ### Week 2
 - [ ] Tasks 2.1 - 2.4 (Map Visualization)
 - [ ] Tasks 3.1 - 3.2 (Itinerary View)
-- [ ] Deploy to Vercel
+- [ ] Deploy to Render
 
 ### Week 3
 - [ ] Tasks 4.1 - 4.2 (Trip Editing)
 - [ ] Tasks 5.1 - 5.2 (Status Management)
-- [ ] Deploy to Vercel
+- [ ] Deploy to Render
 
 ### Week 4
 - [ ] Tasks 6.1 - 6.3 (Transportation Hubs)
