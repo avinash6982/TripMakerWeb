@@ -33,6 +33,7 @@ import {
 import { useLocation } from "../hooks/useLocation";
 import { getClosestStop } from "../utils/distance";
 import { getDayRouteColor } from "../constants/dayRouteColors";
+import { useTripDetailStore } from "../stores/tripDetailStore";
 
 const TripDetail = () => {
   const { t } = useTranslation();
@@ -53,6 +54,7 @@ const TripDetail = () => {
   const [itineraryMarkers, setItineraryMarkers] = useState([]);
   const [dayRoutes, setDayRoutes] = useState([]);
   const [mapLoading, setMapLoading] = useState(false);
+  const { activeMapDay, setActiveMapDay, setTrip: setStoreTrip, reset: resetTripStore } = useTripDetailStore();
   const [showMyLocation, setShowMyLocation] = useState(false);
   const {
     position: currentLocationPosition,
@@ -141,6 +143,16 @@ const TripDetail = () => {
   useEffect(() => {
     loadTrip();
   }, [id]);
+
+  useEffect(() => {
+    if (trip) setStoreTrip(trip);
+  }, [trip, setStoreTrip]);
+
+  useEffect(() => {
+    return () => {
+      resetTripStore();
+    };
+  }, [id, resetTripStore]);
 
   useEffect(() => {
     const m = window.matchMedia("(max-width: 767px)");
@@ -282,7 +294,7 @@ const TripDetail = () => {
               routes[dayIndex].push([placeCoords.lat, placeCoords.lng]);
               setItineraryMarkers((prev) =>
                 prev.length < 15
-                  ? [...prev, { ...placeCoords, name: place.name, category: place.category }]
+                  ? [...prev, { ...placeCoords, name: place.name, category: place.category, dayIndex }]
                   : prev
               );
             }
@@ -569,17 +581,17 @@ const TripDetail = () => {
 
   const peopleOnTrip = trip
     ? [
-        {
-          id: trip.userId,
-          email: trip.ownerEmail || (isOwner && currentUser?.email) || t("trips.role.owner", "Owner"),
-          role: "owner",
-        },
-        ...(trip.collaborators || []).map((c) => ({
-          id: c.userId,
-          email: c.email || c.userId,
-          role: c.role,
-        })),
-      ]
+      {
+        id: trip.userId,
+        email: trip.ownerEmail || (isOwner && currentUser?.email) || t("trips.role.owner", "Owner"),
+        role: "owner",
+      },
+      ...(trip.collaborators || []).map((c) => ({
+        id: c.userId,
+        email: c.email || c.userId,
+        role: c.role,
+      })),
+    ]
     : [];
 
   const renderPrerequisitesCard = () => {
@@ -653,533 +665,533 @@ const TripDetail = () => {
           </div>
         </div>
         <div className="trip-detail-prereq-body">
-        {prereqList.length === 0 ? (
-          <p className="muted trip-detail-prereq-empty">{t("trips.prerequisitesEmpty")}</p>
-        ) : filteredList.length === 0 ? (
-          <p className="muted trip-detail-prereq-empty">{t("trips.prerequisitesEmptyFilter", "No items match the filter.")}</p>
-        ) : (
-          <>
-          <ul className="trip-detail-prereq-list">
-            {(filteredList.length > 2 ? filteredList.slice(0, 2) : filteredList).map((item) => (
-              <li key={item.id} className={`trip-detail-prereq-item trip-detail-prereq-item-row ${item.status === "done" ? "is-done" : ""}`}>
-                <div className="trip-detail-prereq-item-main">
-                  <span className="trip-detail-prereq-category" title={getCategoryLabel(item.category)} aria-hidden>
-                    {item.category === "documents" && "📄"}
-                    {item.category === "clothing" && "👕"}
-                    {item.category === "electronics" && "🔌"}
-                    {item.category === "medicine" && "💊"}
-                    {(!item.category || item.category === "other") && "📋"}
-                  </span>
-                  <span className="trip-detail-prereq-title-desc">
-                    <span className="trip-detail-prereq-title">{item.title}</span>
-                    {item.description && (
-                      <>
-                        <span className="trip-detail-prereq-title-sep"> — </span>
-                        <span className="trip-detail-prereq-desc">{item.description}</span>
-                      </>
-                    )}
-                  </span>
-                  <span className="trip-detail-prereq-status" data-status={item.status}>
-                    {item.status === "done"
-                      ? t("trips.prerequisiteStatusDone")
-                      : t("trips.prerequisiteStatusPending")}
-                  </span>
-                </div>
-                <div className="trip-detail-prereq-item-actions" ref={prereqAssignPopoverId === item.id ? prereqAssignPopoverRef : null}>
-                  {canAssignOrMarkDone && (
-                    <div className="trip-detail-prereq-assign-wrap">
-                      {item.assigneeUserId || item.assigneeEmail ? (
-                        <button
-                          type="button"
-                          className="trip-detail-prereq-avatar-btn"
-                          onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
-                          title={item.assigneeEmail || item.assigneeUserId}
-                          aria-label={t("trips.prerequisiteAssignTo") + ": " + (item.assigneeEmail || item.assigneeUserId)}
-                        >
-                          <span className="trip-detail-prereq-avatar">
-                            {getInitials(item.assigneeEmail || item.assigneeUserId)}
-                          </span>
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          className="trip-detail-prereq-avatar-btn trip-detail-prereq-avatar-add"
-                          onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
-                          title={t("trips.prerequisiteAssign")}
-                          aria-label={t("trips.prerequisiteAssign")}
-                        >
-                          <span className="trip-detail-prereq-avatar trip-detail-prereq-avatar-add-icon" aria-hidden>
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                              <circle cx="8.5" cy="7" r="4" />
-                              <line x1="20" y1="8" x2="20" y2="14" />
-                              <line x1="23" y1="11" x2="17" y2="11" />
-                            </svg>
-                          </span>
-                        </button>
-                      )}
-                      {prereqAssignPopoverId === item.id && (
-                        <div className="trip-detail-prereq-assign-popover" role="menu">
-                          {(item.assigneeUserId || item.assigneeEmail) && (
+          {prereqList.length === 0 ? (
+            <p className="muted trip-detail-prereq-empty">{t("trips.prerequisitesEmpty")}</p>
+          ) : filteredList.length === 0 ? (
+            <p className="muted trip-detail-prereq-empty">{t("trips.prerequisitesEmptyFilter", "No items match the filter.")}</p>
+          ) : (
+            <>
+              <ul className="trip-detail-prereq-list">
+                {(filteredList.length > 2 ? filteredList.slice(0, 2) : filteredList).map((item) => (
+                  <li key={item.id} className={`trip-detail-prereq-item trip-detail-prereq-item-row ${item.status === "done" ? "is-done" : ""}`}>
+                    <div className="trip-detail-prereq-item-main">
+                      <span className="trip-detail-prereq-category" title={getCategoryLabel(item.category)} aria-hidden>
+                        {item.category === "documents" && "📄"}
+                        {item.category === "clothing" && "👕"}
+                        {item.category === "electronics" && "🔌"}
+                        {item.category === "medicine" && "💊"}
+                        {(!item.category || item.category === "other") && "📋"}
+                      </span>
+                      <span className="trip-detail-prereq-title-desc">
+                        <span className="trip-detail-prereq-title">{item.title}</span>
+                        {item.description && (
+                          <>
+                            <span className="trip-detail-prereq-title-sep"> — </span>
+                            <span className="trip-detail-prereq-desc">{item.description}</span>
+                          </>
+                        )}
+                      </span>
+                      <span className="trip-detail-prereq-status" data-status={item.status}>
+                        {item.status === "done"
+                          ? t("trips.prerequisiteStatusDone")
+                          : t("trips.prerequisiteStatusPending")}
+                      </span>
+                    </div>
+                    <div className="trip-detail-prereq-item-actions" ref={prereqAssignPopoverId === item.id ? prereqAssignPopoverRef : null}>
+                      {canAssignOrMarkDone && (
+                        <div className="trip-detail-prereq-assign-wrap">
+                          {item.assigneeUserId || item.assigneeEmail ? (
                             <button
                               type="button"
-                              className="trip-detail-prereq-assign-popover-item"
-                              role="menuitem"
-                              onClick={async () => {
-                                try {
-                                  const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: null });
-                                  setTripPrerequisitesOnly(updated);
-                                  setPrereqAssignPopoverId(null);
-                                } catch (err) {
-                                  setMessage(err?.message || "Update failed.");
-                                }
-                              }}
+                              className="trip-detail-prereq-avatar-btn"
+                              onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                              title={item.assigneeEmail || item.assigneeUserId}
+                              aria-label={t("trips.prerequisiteAssignTo") + ": " + (item.assigneeEmail || item.assigneeUserId)}
                             >
-                              {t("trips.prerequisiteUnassign")}
+                              <span className="trip-detail-prereq-avatar">
+                                {getInitials(item.assigneeEmail || item.assigneeUserId)}
+                              </span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              className="trip-detail-prereq-avatar-btn trip-detail-prereq-avatar-add"
+                              onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                              title={t("trips.prerequisiteAssign")}
+                              aria-label={t("trips.prerequisiteAssign")}
+                            >
+                              <span className="trip-detail-prereq-avatar trip-detail-prereq-avatar-add-icon" aria-hidden>
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                  <circle cx="8.5" cy="7" r="4" />
+                                  <line x1="20" y1="8" x2="20" y2="14" />
+                                  <line x1="23" y1="11" x2="17" y2="11" />
+                                </svg>
+                              </span>
                             </button>
                           )}
-                          {peopleOnTrip.map((p) => (
-                            <button
-                              key={p.id}
-                              type="button"
-                              className="trip-detail-prereq-assign-popover-item"
-                              role="menuitem"
-                              onClick={async () => {
-                                try {
-                                  const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: p.id });
-                                  setTripPrerequisitesOnly(updated);
-                                  setPrereqAssignPopoverId(null);
-                                } catch (err) {
-                                  setMessage(err?.message || "Update failed.");
-                                }
-                              }}
-                            >
-                              <span className="trip-detail-prereq-assign-popover-avatar">{getInitials(p.email)}</span>
-                              {p.email}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  {canAssignOrMarkDone && (
-                    <button
-                      type="button"
-                      className="trip-detail-prereq-icon-btn"
-                      onClick={async () => {
-                        try {
-                          const updated = await patchPrerequisite(trip.id, item.id, {
-                            status: item.status === "done" ? "pending" : "done",
-                          });
-                          setTripPrerequisitesOnly(updated);
-                        } catch (err) {
-                          setMessage(err?.message || "Update failed.");
-                        }
-                      }}
-                      title={
-                        item.status === "done"
-                          ? t("trips.prerequisiteMarkPending")
-                          : t("trips.prerequisiteMarkDone")
-                      }
-                      aria-label={
-                        item.status === "done"
-                          ? t("trips.prerequisiteMarkPending")
-                          : t("trips.prerequisiteMarkDone")
-                      }
-                    >
-                      {item.status === "done" ? (
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          aria-hidden
-                        >
-                          <path d="M3 6h18M7 12h10M9 18h6" />
-                        </svg>
-                      ) : (
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          aria-hidden
-                        >
-                          <path d="M20 6L9 17l-5-5" />
-                        </svg>
-                      )}
-                    </button>
-                  )}
-                  {canEditOrDelete && (
-                    <>
-                      <button
-                      type="button"
-                      className="trip-detail-prereq-icon-btn"
-                      onClick={() => {
-                        setPrereqEditingId(item.id);
-                        setPrereqFormTitle(item.title);
-                        setPrereqFormDescription(item.description || "");
-                        setPrereqFormCategory(item.category || "other");
-                        setPrereqFormImageKey(item.imageKey || "");
-                        setPrereqFormImageFile(null);
-                        setPrereqFormAssigneeUserId(item.assigneeUserId || "");
-                        setShowPrereqModal(true);
-                      }}
-                      title={t("trips.prerequisiteEdit")}
-                      aria-label={t("trips.prerequisiteEdit")}
-                    >
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        aria-hidden
-                      >
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                      </svg>
-                    </button>
-                    <div className="trip-detail-prereq-delete-wrap" ref={prereqDeleteConfirmId === item.id ? prereqDeleteWrapRef : null}>
-                      <button
-                        type="button"
-                        className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
-                        onClick={() => setPrereqDeleteConfirmId(item.id)}
-                        title={t("trips.prerequisiteDelete")}
-                        aria-label={t("trips.prerequisiteDelete")}
-                      >
-                        <svg
-                          width="18"
-                          height="18"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          aria-hidden
-                        >
-                          <polyline points="3 6 5 6 21 6" />
-                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                          <line x1="10" y1="11" x2="10" y2="17" />
-                          <line x1="14" y1="11" x2="14" y2="17" />
-                        </svg>
-                      </button>
-                      {prereqDeleteConfirmId === item.id && !isMobileView && (
-                        <div className="trip-detail-prereq-delete-popover" role="dialog" aria-label={t("trips.prerequisiteDeleteConfirm")}>
-                          <p className="trip-detail-prereq-delete-popover-text">{t("trips.prerequisiteDeleteConfirm")}</p>
-                          <div className="trip-detail-prereq-delete-popover-actions">
-                            <button
-                              type="button"
-                              className="btn primary btn-sm"
-                              onClick={async () => {
-                                try {
-                                  const updated = await deletePrerequisite(trip.id, item.id);
-                                  setTripPrerequisitesOnly(updated);
-                                  setPrereqDeleteConfirmId(null);
-                                  setMessage(t("trips.prerequisiteDeleteSuccess"));
-                                } catch (err) {
-                                  setMessage(err?.message || "Delete failed.");
-                                }
-                              }}
-                            >
-                              {t("trips.delete")}
-                            </button>
-                            <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
-                              {t("trips.cancel")}
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                  )}
-                </div>
-              </li>
-            ))}
-          </ul>
-          {filteredList.length > 2 && (
-            <button
-              type="button"
-              className="btn ghost btn-sm trip-detail-prereq-viewall-btn"
-              onClick={() => setPrereqViewAllOpen(true)}
-            >
-              {t("trips.viewAll")}
-            </button>
-          )}
-          {prereqViewAllOpen && (
-            <div
-              className="modal-overlay"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="prereq-viewall-title"
-              onClick={() => setPrereqViewAllOpen(false)}
-            >
-              <div className="modal-card trip-detail-prereq-viewall-modal" onClick={(e) => e.stopPropagation()}>
-                <div className="trip-detail-prereq-viewall-header">
-                  <h2 id="prereq-viewall-title">{t("trips.prerequisites")}</h2>
-                  <button
-                    type="button"
-                    className="trip-detail-prereq-viewall-close"
-                    onClick={() => setPrereqViewAllOpen(false)}
-                    aria-label={t("trips.close")}
-                    title={t("trips.close")}
-                  >
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                      <line x1="18" y1="6" x2="6" y2="18" />
-                      <line x1="6" y1="6" x2="18" y2="18" />
-                    </svg>
-                  </button>
-                </div>
-                <div className="trip-detail-prereq-viewall-body">
-                  <ul className="trip-detail-prereq-list">
-                    {filteredList.map((item) => (
-                      <li key={item.id} className={`trip-detail-prereq-item trip-detail-prereq-item-row ${item.status === "done" ? "is-done" : ""}`}>
-                        <div className="trip-detail-prereq-item-main">
-                          <span className="trip-detail-prereq-category" title={getCategoryLabel(item.category)} aria-hidden>
-                            {item.category === "documents" && "📄"}
-                            {item.category === "clothing" && "👕"}
-                            {item.category === "electronics" && "🔌"}
-                            {item.category === "medicine" && "💊"}
-                            {(!item.category || item.category === "other") && "📋"}
-                          </span>
-                          <span className="trip-detail-prereq-title-desc">
-                            <span className="trip-detail-prereq-title">{item.title}</span>
-                            {item.description && (
-                              <>
-                                <span className="trip-detail-prereq-title-sep"> — </span>
-                                <span className="trip-detail-prereq-desc">{item.description}</span>
-                              </>
-                            )}
-                          </span>
-                          <span className="trip-detail-prereq-status" data-status={item.status}>
-                            {item.status === "done" ? t("trips.prerequisiteStatusDone") : t("trips.prerequisiteStatusPending")}
-                          </span>
-                        </div>
-                        <div className="trip-detail-prereq-item-actions" ref={prereqAssignPopoverId === item.id ? prereqAssignPopoverRef : null}>
-                          {canAssignOrMarkDone && (
-                            <div className="trip-detail-prereq-assign-wrap">
-                              {item.assigneeUserId || item.assigneeEmail ? (
+                          {prereqAssignPopoverId === item.id && (
+                            <div className="trip-detail-prereq-assign-popover" role="menu">
+                              {(item.assigneeUserId || item.assigneeEmail) && (
                                 <button
                                   type="button"
-                                  className="trip-detail-prereq-avatar-btn"
-                                  onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
-                                  title={item.assigneeEmail || item.assigneeUserId}
-                                  aria-label={t("trips.prerequisiteAssignTo") + ": " + (item.assigneeEmail || item.assigneeUserId)}
+                                  className="trip-detail-prereq-assign-popover-item"
+                                  role="menuitem"
+                                  onClick={async () => {
+                                    try {
+                                      const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: null });
+                                      setTripPrerequisitesOnly(updated);
+                                      setPrereqAssignPopoverId(null);
+                                    } catch (err) {
+                                      setMessage(err?.message || "Update failed.");
+                                    }
+                                  }}
                                 >
-                                  <span className="trip-detail-prereq-avatar">{getInitials(item.assigneeEmail || item.assigneeUserId)}</span>
+                                  {t("trips.prerequisiteUnassign")}
                                 </button>
-                              ) : (
+                              )}
+                              {peopleOnTrip.map((p) => (
                                 <button
+                                  key={p.id}
                                   type="button"
-                                  className="trip-detail-prereq-avatar-btn trip-detail-prereq-avatar-add"
-                                  onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
-                                  title={t("trips.prerequisiteAssign")}
-                                  aria-label={t("trips.prerequisiteAssign")}
+                                  className="trip-detail-prereq-assign-popover-item"
+                                  role="menuitem"
+                                  onClick={async () => {
+                                    try {
+                                      const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: p.id });
+                                      setTripPrerequisitesOnly(updated);
+                                      setPrereqAssignPopoverId(null);
+                                    } catch (err) {
+                                      setMessage(err?.message || "Update failed.");
+                                    }
+                                  }}
                                 >
-                                  <span className="trip-detail-prereq-avatar trip-detail-prereq-avatar-add-icon" aria-hidden>
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                      <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
-                                      <circle cx="8.5" cy="7" r="4" />
-                                      <line x1="20" y1="8" x2="20" y2="14" />
-                                      <line x1="23" y1="11" x2="17" y2="11" />
-                                    </svg>
-                                  </span>
+                                  <span className="trip-detail-prereq-assign-popover-avatar">{getInitials(p.email)}</span>
+                                  {p.email}
                                 </button>
-                              )}
-                              {prereqAssignPopoverId === item.id && (
-                                <div className="trip-detail-prereq-assign-popover" role="menu">
-                                  {(item.assigneeUserId || item.assigneeEmail) && (
-                                    <button
-                                      type="button"
-                                      className="trip-detail-prereq-assign-popover-item"
-                                      role="menuitem"
-                                      onClick={async () => {
-                                        try {
-                                          const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: null });
-                                          setTripPrerequisitesOnly(updated);
-                                          setPrereqAssignPopoverId(null);
-                                        } catch (err) {
-                                          setMessage(err?.message || "Update failed.");
-                                        }
-                                      }}
-                                    >
-                                      {t("trips.prerequisiteUnassign")}
-                                    </button>
-                                  )}
-                                  {peopleOnTrip.map((p) => (
-                                    <button
-                                      key={p.id}
-                                      type="button"
-                                      className="trip-detail-prereq-assign-popover-item"
-                                      role="menuitem"
-                                      onClick={async () => {
-                                        try {
-                                          const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: p.id });
-                                          setTripPrerequisitesOnly(updated);
-                                          setPrereqAssignPopoverId(null);
-                                        } catch (err) {
-                                          setMessage(err?.message || "Update failed.");
-                                        }
-                                      }}
-                                    >
-                                      <span className="trip-detail-prereq-assign-popover-avatar">{getInitials(p.email)}</span>
-                                      {p.email}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
+                              ))}
                             </div>
                           )}
-                          {canAssignOrMarkDone && (
+                        </div>
+                      )}
+                      {canAssignOrMarkDone && (
+                        <button
+                          type="button"
+                          className="trip-detail-prereq-icon-btn"
+                          onClick={async () => {
+                            try {
+                              const updated = await patchPrerequisite(trip.id, item.id, {
+                                status: item.status === "done" ? "pending" : "done",
+                              });
+                              setTripPrerequisitesOnly(updated);
+                            } catch (err) {
+                              setMessage(err?.message || "Update failed.");
+                            }
+                          }}
+                          title={
+                            item.status === "done"
+                              ? t("trips.prerequisiteMarkPending")
+                              : t("trips.prerequisiteMarkDone")
+                          }
+                          aria-label={
+                            item.status === "done"
+                              ? t("trips.prerequisiteMarkPending")
+                              : t("trips.prerequisiteMarkDone")
+                          }
+                        >
+                          {item.status === "done" ? (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              aria-hidden
+                            >
+                              <path d="M3 6h18M7 12h10M9 18h6" />
+                            </svg>
+                          ) : (
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              aria-hidden
+                            >
+                              <path d="M20 6L9 17l-5-5" />
+                            </svg>
+                          )}
+                        </button>
+                      )}
+                      {canEditOrDelete && (
+                        <>
+                          <button
+                            type="button"
+                            className="trip-detail-prereq-icon-btn"
+                            onClick={() => {
+                              setPrereqEditingId(item.id);
+                              setPrereqFormTitle(item.title);
+                              setPrereqFormDescription(item.description || "");
+                              setPrereqFormCategory(item.category || "other");
+                              setPrereqFormImageKey(item.imageKey || "");
+                              setPrereqFormImageFile(null);
+                              setPrereqFormAssigneeUserId(item.assigneeUserId || "");
+                              setShowPrereqModal(true);
+                            }}
+                            title={t("trips.prerequisiteEdit")}
+                            aria-label={t("trips.prerequisiteEdit")}
+                          >
+                            <svg
+                              width="18"
+                              height="18"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              aria-hidden
+                            >
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+                          <div className="trip-detail-prereq-delete-wrap" ref={prereqDeleteConfirmId === item.id ? prereqDeleteWrapRef : null}>
                             <button
                               type="button"
-                              className="trip-detail-prereq-icon-btn"
-                              onClick={async () => {
-                                try {
-                                  const updated = await patchPrerequisite(trip.id, item.id, { status: item.status === "done" ? "pending" : "done" });
-                                  setTripPrerequisitesOnly(updated);
-                                } catch (err) {
-                                  setMessage(err?.message || "Update failed.");
-                                }
-                              }}
-                              title={item.status === "done" ? t("trips.prerequisiteMarkPending") : t("trips.prerequisiteMarkDone")}
-                              aria-label={item.status === "done" ? t("trips.prerequisiteMarkPending") : t("trips.prerequisiteMarkDone")}
+                              className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
+                              onClick={() => setPrereqDeleteConfirmId(item.id)}
+                              title={t("trips.prerequisiteDelete")}
+                              aria-label={t("trips.prerequisiteDelete")}
                             >
-                              {item.status === "done" ? (
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                                  <path d="M3 6h18M7 12h10M9 18h6" />
-                                </svg>
-                              ) : (
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                                  <path d="M20 6L9 17l-5-5" />
-                                </svg>
-                              )}
-                            </button>
-                          )}
-                          {canEditOrDelete && (
-                            <>
-                              <button
-                                type="button"
-                                className="trip-detail-prereq-icon-btn"
-                                onClick={() => {
-                                  setPrereqViewAllOpen(false);
-                                  setPrereqEditingId(item.id);
-                                  setPrereqFormTitle(item.title);
-                                  setPrereqFormDescription(item.description || "");
-                                  setPrereqFormCategory(item.category || "other");
-                                  setPrereqFormImageKey(item.imageKey || "");
-                                  setPrereqFormImageFile(null);
-                                  setPrereqFormAssigneeUserId(item.assigneeUserId || "");
-                                  setShowPrereqModal(true);
-                                }}
-                                title={t("trips.prerequisiteEdit")}
-                                aria-label={t("trips.prerequisiteEdit")}
+                              <svg
+                                width="18"
+                                height="18"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                aria-hidden
                               >
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-                                </svg>
-                              </button>
-                              <div className="trip-detail-prereq-delete-wrap" ref={prereqDeleteConfirmId === item.id ? prereqDeleteWrapRef : null}>
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                <line x1="10" y1="11" x2="10" y2="17" />
+                                <line x1="14" y1="11" x2="14" y2="17" />
+                              </svg>
+                            </button>
+                            {prereqDeleteConfirmId === item.id && !isMobileView && (
+                              <div className="trip-detail-prereq-delete-popover" role="dialog" aria-label={t("trips.prerequisiteDeleteConfirm")}>
+                                <p className="trip-detail-prereq-delete-popover-text">{t("trips.prerequisiteDeleteConfirm")}</p>
+                                <div className="trip-detail-prereq-delete-popover-actions">
+                                  <button
+                                    type="button"
+                                    className="btn primary btn-sm"
+                                    onClick={async () => {
+                                      try {
+                                        const updated = await deletePrerequisite(trip.id, item.id);
+                                        setTripPrerequisitesOnly(updated);
+                                        setPrereqDeleteConfirmId(null);
+                                        setMessage(t("trips.prerequisiteDeleteSuccess"));
+                                      } catch (err) {
+                                        setMessage(err?.message || "Delete failed.");
+                                      }
+                                    }}
+                                  >
+                                    {t("trips.delete")}
+                                  </button>
+                                  <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
+                                    {t("trips.cancel")}
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+              {filteredList.length > 2 && (
+                <button
+                  type="button"
+                  className="btn ghost btn-sm trip-detail-prereq-viewall-btn"
+                  onClick={() => setPrereqViewAllOpen(true)}
+                >
+                  {t("trips.viewAll")}
+                </button>
+              )}
+              {prereqViewAllOpen && (
+                <div
+                  className="modal-overlay"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="prereq-viewall-title"
+                  onClick={() => setPrereqViewAllOpen(false)}
+                >
+                  <div className="modal-card trip-detail-prereq-viewall-modal" onClick={(e) => e.stopPropagation()}>
+                    <div className="trip-detail-prereq-viewall-header">
+                      <h2 id="prereq-viewall-title">{t("trips.prerequisites")}</h2>
+                      <button
+                        type="button"
+                        className="trip-detail-prereq-viewall-close"
+                        onClick={() => setPrereqViewAllOpen(false)}
+                        aria-label={t("trips.close")}
+                        title={t("trips.close")}
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </div>
+                    <div className="trip-detail-prereq-viewall-body">
+                      <ul className="trip-detail-prereq-list">
+                        {filteredList.map((item) => (
+                          <li key={item.id} className={`trip-detail-prereq-item trip-detail-prereq-item-row ${item.status === "done" ? "is-done" : ""}`}>
+                            <div className="trip-detail-prereq-item-main">
+                              <span className="trip-detail-prereq-category" title={getCategoryLabel(item.category)} aria-hidden>
+                                {item.category === "documents" && "📄"}
+                                {item.category === "clothing" && "👕"}
+                                {item.category === "electronics" && "🔌"}
+                                {item.category === "medicine" && "💊"}
+                                {(!item.category || item.category === "other") && "📋"}
+                              </span>
+                              <span className="trip-detail-prereq-title-desc">
+                                <span className="trip-detail-prereq-title">{item.title}</span>
+                                {item.description && (
+                                  <>
+                                    <span className="trip-detail-prereq-title-sep"> — </span>
+                                    <span className="trip-detail-prereq-desc">{item.description}</span>
+                                  </>
+                                )}
+                              </span>
+                              <span className="trip-detail-prereq-status" data-status={item.status}>
+                                {item.status === "done" ? t("trips.prerequisiteStatusDone") : t("trips.prerequisiteStatusPending")}
+                              </span>
+                            </div>
+                            <div className="trip-detail-prereq-item-actions" ref={prereqAssignPopoverId === item.id ? prereqAssignPopoverRef : null}>
+                              {canAssignOrMarkDone && (
+                                <div className="trip-detail-prereq-assign-wrap">
+                                  {item.assigneeUserId || item.assigneeEmail ? (
+                                    <button
+                                      type="button"
+                                      className="trip-detail-prereq-avatar-btn"
+                                      onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                                      title={item.assigneeEmail || item.assigneeUserId}
+                                      aria-label={t("trips.prerequisiteAssignTo") + ": " + (item.assigneeEmail || item.assigneeUserId)}
+                                    >
+                                      <span className="trip-detail-prereq-avatar">{getInitials(item.assigneeEmail || item.assigneeUserId)}</span>
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      className="trip-detail-prereq-avatar-btn trip-detail-prereq-avatar-add"
+                                      onClick={() => setPrereqAssignPopoverId(prereqAssignPopoverId === item.id ? null : item.id)}
+                                      title={t("trips.prerequisiteAssign")}
+                                      aria-label={t("trips.prerequisiteAssign")}
+                                    >
+                                      <span className="trip-detail-prereq-avatar trip-detail-prereq-avatar-add-icon" aria-hidden>
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+                                          <circle cx="8.5" cy="7" r="4" />
+                                          <line x1="20" y1="8" x2="20" y2="14" />
+                                          <line x1="23" y1="11" x2="17" y2="11" />
+                                        </svg>
+                                      </span>
+                                    </button>
+                                  )}
+                                  {prereqAssignPopoverId === item.id && (
+                                    <div className="trip-detail-prereq-assign-popover" role="menu">
+                                      {(item.assigneeUserId || item.assigneeEmail) && (
+                                        <button
+                                          type="button"
+                                          className="trip-detail-prereq-assign-popover-item"
+                                          role="menuitem"
+                                          onClick={async () => {
+                                            try {
+                                              const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: null });
+                                              setTripPrerequisitesOnly(updated);
+                                              setPrereqAssignPopoverId(null);
+                                            } catch (err) {
+                                              setMessage(err?.message || "Update failed.");
+                                            }
+                                          }}
+                                        >
+                                          {t("trips.prerequisiteUnassign")}
+                                        </button>
+                                      )}
+                                      {peopleOnTrip.map((p) => (
+                                        <button
+                                          key={p.id}
+                                          type="button"
+                                          className="trip-detail-prereq-assign-popover-item"
+                                          role="menuitem"
+                                          onClick={async () => {
+                                            try {
+                                              const updated = await patchPrerequisite(trip.id, item.id, { assigneeUserId: p.id });
+                                              setTripPrerequisitesOnly(updated);
+                                              setPrereqAssignPopoverId(null);
+                                            } catch (err) {
+                                              setMessage(err?.message || "Update failed.");
+                                            }
+                                          }}
+                                        >
+                                          <span className="trip-detail-prereq-assign-popover-avatar">{getInitials(p.email)}</span>
+                                          {p.email}
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                              {canAssignOrMarkDone && (
                                 <button
                                   type="button"
-                                  className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
-                                  onClick={() => setPrereqDeleteConfirmId(item.id)}
-                                  title={t("trips.prerequisiteDelete")}
-                                  aria-label={t("trips.prerequisiteDelete")}
+                                  className="trip-detail-prereq-icon-btn"
+                                  onClick={async () => {
+                                    try {
+                                      const updated = await patchPrerequisite(trip.id, item.id, { status: item.status === "done" ? "pending" : "done" });
+                                      setTripPrerequisitesOnly(updated);
+                                    } catch (err) {
+                                      setMessage(err?.message || "Update failed.");
+                                    }
+                                  }}
+                                  title={item.status === "done" ? t("trips.prerequisiteMarkPending") : t("trips.prerequisiteMarkDone")}
+                                  aria-label={item.status === "done" ? t("trips.prerequisiteMarkPending") : t("trips.prerequisiteMarkDone")}
                                 >
-                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                                    <polyline points="3 6 5 6 21 6" />
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                                    <line x1="10" y1="11" x2="10" y2="17" />
-                                    <line x1="14" y1="11" x2="14" y2="17" />
-                                  </svg>
+                                  {item.status === "done" ? (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                      <path d="M3 6h18M7 12h10M9 18h6" />
+                                    </svg>
+                                  ) : (
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                      <path d="M20 6L9 17l-5-5" />
+                                    </svg>
+                                  )}
                                 </button>
-                                {prereqDeleteConfirmId === item.id && !isMobileView && (
-                                  <div className="trip-detail-prereq-delete-popover" role="dialog" aria-label={t("trips.prerequisiteDeleteConfirm")}>
-                                    <p className="trip-detail-prereq-delete-popover-text">{t("trips.prerequisiteDeleteConfirm")}</p>
-                                    <div className="trip-detail-prereq-delete-popover-actions">
-                                      <button
-                                        type="button"
-                                        className="btn primary btn-sm"
-                                        onClick={async () => {
-                                          try {
-                                            const updated = await deletePrerequisite(trip.id, item.id);
-                                            setTripPrerequisitesOnly(updated);
-                                            setPrereqDeleteConfirmId(null);
-                                            setPrereqViewAllOpen(false);
-                                            setMessage(t("trips.prerequisiteDeleteSuccess"));
-                                          } catch (err) {
-                                            setMessage(err?.message || "Delete failed.");
-                                          }
-                                        }}
-                                      >
-                                        {t("trips.delete")}
-                                      </button>
-                                      <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
-                                        {t("trips.cancel")}
-                                      </button>
-                                    </div>
+                              )}
+                              {canEditOrDelete && (
+                                <>
+                                  <button
+                                    type="button"
+                                    className="trip-detail-prereq-icon-btn"
+                                    onClick={() => {
+                                      setPrereqViewAllOpen(false);
+                                      setPrereqEditingId(item.id);
+                                      setPrereqFormTitle(item.title);
+                                      setPrereqFormDescription(item.description || "");
+                                      setPrereqFormCategory(item.category || "other");
+                                      setPrereqFormImageKey(item.imageKey || "");
+                                      setPrereqFormImageFile(null);
+                                      setPrereqFormAssigneeUserId(item.assigneeUserId || "");
+                                      setShowPrereqModal(true);
+                                    }}
+                                    title={t("trips.prerequisiteEdit")}
+                                    aria-label={t("trips.prerequisiteEdit")}
+                                  >
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                    </svg>
+                                  </button>
+                                  <div className="trip-detail-prereq-delete-wrap" ref={prereqDeleteConfirmId === item.id ? prereqDeleteWrapRef : null}>
+                                    <button
+                                      type="button"
+                                      className="trip-detail-prereq-icon-btn trip-detail-prereq-delete"
+                                      onClick={() => setPrereqDeleteConfirmId(item.id)}
+                                      title={t("trips.prerequisiteDelete")}
+                                      aria-label={t("trips.prerequisiteDelete")}
+                                    >
+                                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                        <line x1="10" y1="11" x2="10" y2="17" />
+                                        <line x1="14" y1="11" x2="14" y2="17" />
+                                      </svg>
+                                    </button>
+                                    {prereqDeleteConfirmId === item.id && !isMobileView && (
+                                      <div className="trip-detail-prereq-delete-popover" role="dialog" aria-label={t("trips.prerequisiteDeleteConfirm")}>
+                                        <p className="trip-detail-prereq-delete-popover-text">{t("trips.prerequisiteDeleteConfirm")}</p>
+                                        <div className="trip-detail-prereq-delete-popover-actions">
+                                          <button
+                                            type="button"
+                                            className="btn primary btn-sm"
+                                            onClick={async () => {
+                                              try {
+                                                const updated = await deletePrerequisite(trip.id, item.id);
+                                                setTripPrerequisitesOnly(updated);
+                                                setPrereqDeleteConfirmId(null);
+                                                setPrereqViewAllOpen(false);
+                                                setMessage(t("trips.prerequisiteDeleteSuccess"));
+                                              } catch (err) {
+                                                setMessage(err?.message || "Delete failed.");
+                                              }
+                                            }}
+                                          >
+                                            {t("trips.delete")}
+                                          </button>
+                                          <button type="button" className="btn ghost btn-sm" onClick={() => setPrereqDeleteConfirmId(null)}>
+                                            {t("trips.cancel")}
+                                          </button>
+                                        </div>
+                                      </div>
+                                    )}
                                   </div>
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
+                                </>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
-          )}
-          {isMobileView && prereqDeleteConfirmId && (
-            <div
-              className="modal-overlay"
-              role="dialog"
-              aria-modal="true"
-              aria-labelledby="prereq-delete-modal-title"
-              onClick={() => setPrereqDeleteConfirmId(null)}
-            >
-              <div className="modal-card trip-detail-prereq-delete-modal" onClick={(e) => e.stopPropagation()}>
-                <h2 id="prereq-delete-modal-title" className="trip-detail-prereq-delete-modal-title">
-                  {t("trips.prerequisiteDeleteConfirm")}
-                </h2>
-                <div className="trip-detail-prereq-delete-modal-actions">
-                  <button
-                    type="button"
-                    className="btn ghost"
-                    onClick={() => setPrereqDeleteConfirmId(null)}
-                  >
-                    {t("trips.cancel")}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn primary"
-                    onClick={async () => {
-                      try {
-                        const updated = await deletePrerequisite(trip.id, prereqDeleteConfirmId);
-                        setTripPrerequisitesOnly(updated);
-                        setPrereqDeleteConfirmId(null);
-                        setPrereqViewAllOpen(false);
-                        setMessage(t("trips.prerequisiteDeleteSuccess"));
-                      } catch (err) {
-                        setMessage(err?.message || "Delete failed.");
-                      }
-                    }}
-                  >
-                    {t("trips.delete")}
-                  </button>
+              )}
+              {isMobileView && prereqDeleteConfirmId && (
+                <div
+                  className="modal-overlay"
+                  role="dialog"
+                  aria-modal="true"
+                  aria-labelledby="prereq-delete-modal-title"
+                  onClick={() => setPrereqDeleteConfirmId(null)}
+                >
+                  <div className="modal-card trip-detail-prereq-delete-modal" onClick={(e) => e.stopPropagation()}>
+                    <h2 id="prereq-delete-modal-title" className="trip-detail-prereq-delete-modal-title">
+                      {t("trips.prerequisiteDeleteConfirm")}
+                    </h2>
+                    <div className="trip-detail-prereq-delete-modal-actions">
+                      <button
+                        type="button"
+                        className="btn ghost"
+                        onClick={() => setPrereqDeleteConfirmId(null)}
+                      >
+                        {t("trips.cancel")}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn primary"
+                        onClick={async () => {
+                          try {
+                            const updated = await deletePrerequisite(trip.id, prereqDeleteConfirmId);
+                            setTripPrerequisitesOnly(updated);
+                            setPrereqDeleteConfirmId(null);
+                            setPrereqViewAllOpen(false);
+                            setMessage(t("trips.prerequisiteDeleteSuccess"));
+                          } catch (err) {
+                            setMessage(err?.message || "Delete failed.");
+                          }
+                        }}
+                      >
+                        {t("trips.delete")}
+                      </button>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            </div>
+              )}
+            </>
           )}
-          </>
-        )}
         </div>
       </div>
     );
@@ -1219,11 +1231,11 @@ const TripDetail = () => {
               <span className="trip-detail-comment-time">
                 {c.createdAt
                   ? new Date(c.createdAt).toLocaleString(undefined, {
-                      month: "short",
-                      day: "numeric",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
+                    month: "short",
+                    day: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
                   : ""}
               </span>
             </li>
@@ -1254,7 +1266,7 @@ const TripDetail = () => {
         />
         <label className="trip-detail-comment-icon-btn trip-detail-comment-attach" title={t("trips.attachImage", "Attach image")} aria-label={t("trips.attachImage", "Attach image")}>
           <span className="trip-detail-comment-icon" aria-hidden>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
           </span>
           <input
             type="file"
@@ -1278,7 +1290,7 @@ const TripDetail = () => {
             {commentPosting ? (
               <span className="trip-detail-comment-loading">⋯</span>
             ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
             )}
           </span>
         </button>
@@ -1295,135 +1307,148 @@ const TripDetail = () => {
     <main className="trip-detail-page">
       <div className="trip-detail-layout">
         <div className="trip-detail-main">
-      <section className="container">
-        <header className="page-header" ref={pageHeaderRef}>
-          <Link to="/trips" className="page-header-back" aria-label={t("trips.title")} title={t("trips.title")}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
-          </Link>
-          <div className="page-header-title-wrap">
-            <h1 className="page-header-title">{trip.name}</h1>
-            <span className="trip-status-badge trip-status-badge-header" data-status={trip.status || "upcoming"}>
-              {t(`trips.status.${trip.status || "upcoming"}`)}
-            </span>
-          </div>
-          {(isOwner || isEditor) && (
-              <div className={`page-header-actions trip-detail-actions-wrap${!headerActionsUseOverflow ? " trip-detail-actions-expanded" : ""}`}>
-                {(isOwner || (trip.collaborators?.length > 0)) && (
-                  <div className="trip-detail-people-header" role="group" aria-label={t("trips.peopleOnTrip", "People on this trip")}>
-                    <div className="trip-detail-people-avatars">
-                      {peopleOnTrip.map((person) => (
-                        <div
-                          key={person.id}
-                          className={`trip-detail-avatar-wrap ${person.role === "owner" ? "trip-detail-avatar-owner" : ""}`}
-                          title={`${person.email} · ${t(`trips.role.${person.role}`, person.role)}`}
-                        >
-                          <span className="trip-detail-avatar">
-                            {getInitials(person.email)}
-                          </span>
-                          {canEdit && person.role !== "owner" && (isOwner || person.role === "viewer") && (
-                            <button
-                              type="button"
-                              className="trip-detail-avatar-remove"
-                              title={t("trips.removeCollaborator", "Remove from trip")}
-                              onClick={async (e) => {
-                                e.preventDefault();
-                                if (removingUserId) return;
-                                setRemovingUserId(person.id);
-                                setMessage("");
-                                try {
-                                  await removeCollaborator(trip.id, person.id);
-                                  const updated = await fetchTrip(trip.id);
-                                  setTrip(updated);
-                                  setMessage(t("trips.collaboratorRemoved", "Collaborator removed."));
-                                } catch (err) {
-                                  setMessage(err?.message || t("trips.removeCollaboratorFailed", "Could not remove."));
-                                } finally {
-                                  setRemovingUserId(null);
-                                }
-                              }}
-                              disabled={removingUserId === person.id}
-                              aria-label={t("trips.removeCollaborator", "Remove from trip")}
-                            >
-                              {removingUserId === person.id ? (
-                                <span className="trip-detail-avatar-remove-spinner" aria-hidden />
-                              ) : (
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M18 6L6 18M6 6l12 12" /></svg>
-                              )}
-                            </button>
-                          )}
+          <section className="container">
+            <header className="page-header" ref={pageHeaderRef}>
+              <Link to="/trips" className="page-header-back" aria-label={t("trips.title")} title={t("trips.title")}>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5M12 19l-7-7 7-7" /></svg>
+              </Link>
+              <div className="page-header-title-wrap">
+                <h1 className="page-header-title" title={trip.name || trip.destination}>
+                  {(() => {
+                    let displayTitle = trip.name || trip.destination;
+                    if (trip.destination && displayTitle) {
+                      const destStr = trip.destination;
+                      const pattern1 = new RegExp(`^${destStr} trip${destStr}`, 'i');
+                      const pattern2 = new RegExp(`${destStr} trip`, 'i');
+                      if (pattern1.test(displayTitle)) {
+                        displayTitle = displayTitle.replace(pattern2, "").trim();
+                      }
+                    }
+                    return displayTitle;
+                  })()}
+                </h1>
+                <span className="trip-status-badge trip-status-badge-header" data-status={trip.status || "upcoming"}>
+                  {t(`trips.status.${trip.status || "upcoming"}`)}
+                </span>
+              </div>
+              {(isOwner || isEditor) && (
+                <div className={`page-header-actions trip-detail-actions-wrap${!headerActionsUseOverflow ? " trip-detail-actions-expanded" : ""}`}>
+                  {(isOwner || (trip.collaborators?.length > 0)) && (
+                    <div className="trip-detail-people-header" role="group" aria-label={t("trips.peopleOnTrip", "People on this trip")}>
+                      <div className="trip-detail-people-avatars">
+                        {peopleOnTrip.map((person) => (
+                          <div
+                            key={person.id}
+                            className={`trip-detail-avatar-wrap ${person.role === "owner" ? "trip-detail-avatar-owner" : ""}`}
+                            title={`${person.email} · ${t(`trips.role.${person.role}`, person.role)}`}
+                          >
+                            <span className="trip-detail-avatar">
+                              {getInitials(person.email)}
+                            </span>
+                            {canEdit && person.role !== "owner" && (isOwner || person.role === "viewer") && (
+                              <button
+                                type="button"
+                                className="trip-detail-avatar-remove"
+                                title={t("trips.removeCollaborator", "Remove from trip")}
+                                onClick={async (e) => {
+                                  e.preventDefault();
+                                  if (removingUserId) return;
+                                  setRemovingUserId(person.id);
+                                  setMessage("");
+                                  try {
+                                    await removeCollaborator(trip.id, person.id);
+                                    const updated = await fetchTrip(trip.id);
+                                    setTrip(updated);
+                                    setMessage(t("trips.collaboratorRemoved", "Collaborator removed."));
+                                  } catch (err) {
+                                    setMessage(err?.message || t("trips.removeCollaboratorFailed", "Could not remove."));
+                                  } finally {
+                                    setRemovingUserId(null);
+                                  }
+                                }}
+                                disabled={removingUserId === person.id}
+                                aria-label={t("trips.removeCollaborator", "Remove from trip")}
+                              >
+                                {removingUserId === person.id ? (
+                                  <span className="trip-detail-avatar-remove-spinner" aria-hidden />
+                                ) : (
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M18 6L6 18M6 6l12 12" /></svg>
+                                )}
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                        {canEdit && isOwner && (
+                          <button
+                            type="button"
+                            className="trip-detail-avatar-invite"
+                            onClick={() => { setShowInviteModal(true); setInviteCode(null); }}
+                            aria-label={t("trips.invite")}
+                            title={t("trips.invite")}
+                          >
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" /><circle cx="8.5" cy="7" r="4" /><line x1="20" y1="8" x2="20" y2="14" /><line x1="23" y1="11" x2="17" y2="11" /></svg>
+                            <span className="trip-detail-avatar-invite-label">{t("trips.invite")}</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  <div className="trip-detail-actions-desktop" aria-hidden={headerActionsUseOverflow}>
+                    {trip.status !== "archived" ? (
+                      <button type="button" className="page-header-action-round" onClick={handleArchive} disabled={actionLoading} title={t("trips.archive")} aria-label={t("trips.archive")}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M21 8v13H3V8" /><path d="M1 3h22v5H1z" /><path d="M10 12h4" /></svg>
+                      </button>
+                    ) : (
+                      <button type="button" className="page-header-action-round" onClick={handleUnarchive} disabled={actionLoading} title={t("trips.unarchive")} aria-label={t("trips.unarchive")}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M21 8v13H3V8" /><path d="M1 3h22v5H1z" /><path d="M10 12h4" /></svg>
+                      </button>
+                    )}
+                    {isOwner && (
+                      <button type="button" className="page-header-action-round trip-detail-action-delete" onClick={() => setShowDeleteConfirm(true)} disabled={actionLoading} title={t("trips.delete")} aria-label={t("trips.delete")}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" /><line x1="10" y1="11" x2="10" y2="17" /><line x1="14" y1="11" x2="14" y2="17" /></svg>
+                      </button>
+                    )}
+                    <div className="trip-detail-actions-options-wrap" ref={optionsMenuRef}>
+                      <button
+                        type="button"
+                        className="page-header-action-round"
+                        onClick={(e) => { e.stopPropagation(); setOptionsMenuOpen((o) => !o); setActionsMenuOpen(false); }}
+                        aria-expanded={optionsMenuOpen}
+                        aria-haspopup="true"
+                        aria-label={t("trips.moreActions", "More actions")}
+                        title={t("trips.moreActions", "More actions")}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" /></svg>
+                      </button>
+                      {optionsMenuOpen && (
+                        <div className="trip-detail-actions-dropdown" role="menu">
+                          {trip.status !== "completed" && <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleStatusChange("completed"); setOptionsMenuOpen(false); }}>{t("trips.markComplete")}</button>}
+                          <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={async () => { setActionLoading(true); setMessage(""); try { const updated = await updateTrip(trip.id, { isPublic: !trip.isPublic }); setTrip(updated); setMessage(updated.isPublic ? t("trips.makePublicSuccess") : t("trips.makePrivateSuccess")); } catch (err) { setMessage(err?.message || "Update failed."); } finally { setActionLoading(false); } setOptionsMenuOpen(false); }}>{trip.isPublic ? t("trips.makePrivate") : t("trips.makePublic")}</button>
+                          <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => handleCopyLink(true)}>{shareLinkCopied ? t("trips.linkCopied") : t("trips.copyLink")}</button>
                         </div>
-                      ))}
-                      {canEdit && isOwner && (
-                        <button
-                          type="button"
-                          className="trip-detail-avatar-invite"
-                          onClick={() => { setShowInviteModal(true); setInviteCode(null); }}
-                          aria-label={t("trips.invite")}
-                          title={t("trips.invite")}
-                        >
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-                          <span className="trip-detail-avatar-invite-label">{t("trips.invite")}</span>
-                        </button>
                       )}
                     </div>
                   </div>
-                )}
-                <div className="trip-detail-actions-desktop" aria-hidden={headerActionsUseOverflow}>
-                  {trip.status !== "archived" ? (
-                    <button type="button" className="page-header-action-round" onClick={handleArchive} disabled={actionLoading} title={t("trips.archive")} aria-label={t("trips.archive")}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
+                  <div className="trip-detail-actions-mobile" ref={actionsMenuRef} aria-hidden={!headerActionsUseOverflow}>
+                    <button type="button" className="page-header-action-round" onClick={(e) => { e.stopPropagation(); setActionsMenuOpen((o) => !o); }} aria-expanded={actionsMenuOpen} aria-haspopup="true" aria-label={t("trips.tripActions", "Trip actions")} title={t("trips.tripActions", "Trip actions")}>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" /></svg>
                     </button>
-                  ) : (
-                    <button type="button" className="page-header-action-round" onClick={handleUnarchive} disabled={actionLoading} title={t("trips.unarchive")} aria-label={t("trips.unarchive")}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M21 8v13H3V8"/><path d="M1 3h22v5H1z"/><path d="M10 12h4"/></svg>
-                    </button>
-                  )}
-                  {isOwner && (
-                    <button type="button" className="page-header-action-round trip-detail-action-delete" onClick={() => setShowDeleteConfirm(true)} disabled={actionLoading} title={t("trips.delete")} aria-label={t("trips.delete")}>
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
-                    </button>
-                  )}
-                  <div className="trip-detail-actions-options-wrap" ref={optionsMenuRef}>
-                    <button
-                      type="button"
-                      className="page-header-action-round"
-                      onClick={(e) => { e.stopPropagation(); setOptionsMenuOpen((o) => !o); setActionsMenuOpen(false); }}
-                      aria-expanded={optionsMenuOpen}
-                      aria-haspopup="true"
-                      aria-label={t("trips.moreActions", "More actions")}
-                      title={t("trips.moreActions", "More actions")}
-                    >
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                    </button>
-                    {optionsMenuOpen && (
+                    {actionsMenuOpen && (
                       <div className="trip-detail-actions-dropdown" role="menu">
-                        {trip.status !== "completed" && <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleStatusChange("completed"); setOptionsMenuOpen(false); }}>{t("trips.markComplete")}</button>}
-                        <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={async () => { setActionLoading(true); setMessage(""); try { const updated = await updateTrip(trip.id, { isPublic: !trip.isPublic }); setTrip(updated); setMessage(updated.isPublic ? t("trips.makePublicSuccess") : t("trips.makePrivateSuccess")); } catch (err) { setMessage(err?.message || "Update failed."); } finally { setActionLoading(false); } setOptionsMenuOpen(false); }}>{trip.isPublic ? t("trips.makePrivate") : t("trips.makePublic")}</button>
+                        {trip.status !== "completed" && <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleStatusChange("completed"); setActionsMenuOpen(false); }}>{t("trips.markComplete")}</button>}
+                        {trip.status !== "archived" ? <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleArchive(); setActionsMenuOpen(false); }}>{t("trips.archive")}</button> : <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleUnarchive(); setActionsMenuOpen(false); }}>{t("trips.unarchive")}</button>}
+                        <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={async () => { setActionLoading(true); setMessage(""); try { const updated = await updateTrip(trip.id, { isPublic: !trip.isPublic }); setTrip(updated); setMessage(updated.isPublic ? t("trips.makePublicSuccess") : t("trips.makePrivateSuccess")); } catch (err) { setMessage(err?.message || "Update failed."); } finally { setActionLoading(false); } setActionsMenuOpen(false); }}>{trip.isPublic ? t("trips.makePrivate") : t("trips.makePublic")}</button>
+                        {isOwner && <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { setShowInviteModal(true); setInviteCode(null); setActionsMenuOpen(false); }}>{t("trips.invite")}</button>}
                         <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => handleCopyLink(true)}>{shareLinkCopied ? t("trips.linkCopied") : t("trips.copyLink")}</button>
+                        {isOwner && <button type="button" className="trip-detail-actions-dropdown-item trip-detail-actions-dropdown-item-danger" role="menuitem" onClick={() => { setShowDeleteConfirm(true); setActionsMenuOpen(false); }}>{t("trips.delete")}</button>}
                       </div>
                     )}
                   </div>
                 </div>
-                <div className="trip-detail-actions-mobile" ref={actionsMenuRef} aria-hidden={!headerActionsUseOverflow}>
-                  <button type="button" className="page-header-action-round" onClick={(e) => { e.stopPropagation(); setActionsMenuOpen((o) => !o); }} aria-expanded={actionsMenuOpen} aria-haspopup="true" aria-label={t("trips.tripActions", "Trip actions")} title={t("trips.tripActions", "Trip actions")}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
-                  </button>
-                  {actionsMenuOpen && (
-                    <div className="trip-detail-actions-dropdown" role="menu">
-                      {trip.status !== "completed" && <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleStatusChange("completed"); setActionsMenuOpen(false); }}>{t("trips.markComplete")}</button>}
-                      {trip.status !== "archived" ? <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleArchive(); setActionsMenuOpen(false); }}>{t("trips.archive")}</button> : <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { handleUnarchive(); setActionsMenuOpen(false); }}>{t("trips.unarchive")}</button>}
-                      <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={async () => { setActionLoading(true); setMessage(""); try { const updated = await updateTrip(trip.id, { isPublic: !trip.isPublic }); setTrip(updated); setMessage(updated.isPublic ? t("trips.makePublicSuccess") : t("trips.makePrivateSuccess")); } catch (err) { setMessage(err?.message || "Update failed."); } finally { setActionLoading(false); } setActionsMenuOpen(false); }}>{trip.isPublic ? t("trips.makePrivate") : t("trips.makePublic")}</button>
-                      {isOwner && <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => { setShowInviteModal(true); setInviteCode(null); setActionsMenuOpen(false); }}>{t("trips.invite")}</button>}
-                      <button type="button" className="trip-detail-actions-dropdown-item" role="menuitem" onClick={() => handleCopyLink(true)}>{shareLinkCopied ? t("trips.linkCopied") : t("trips.copyLink")}</button>
-                      {isOwner && <button type="button" className="trip-detail-actions-dropdown-item trip-detail-actions-dropdown-item-danger" role="menuitem" onClick={() => { setShowDeleteConfirm(true); setActionsMenuOpen(false); }}>{t("trips.delete")}</button>}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-        </header>
+              )}
+            </header>
 
-          <>
+            <>
               {trip.id && (
                 <div className="trip-detail-hero">
                   <div className="trip-detail-hero-carousel">
@@ -1485,7 +1510,7 @@ const TripDetail = () => {
                           {coverLoading ? (
                             <span className="trip-detail-hero-upload-spinner" aria-hidden />
                           ) : (
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>
                           )}
                         </span>
                         <input
@@ -1522,7 +1547,7 @@ const TripDetail = () => {
                       aria-label={t("trips.viewGallery", "View gallery")}
                     >
                       <span className="trip-detail-hero-action-icon" aria-hidden>
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" /></svg>
                       </span>
                       <span className="trip-detail-hero-action-label">{t("trips.viewGallery", "View gallery")}</span>
                     </Link>
@@ -1534,590 +1559,610 @@ const TripDetail = () => {
               )}
             </>
 
-          {message && (
-            <p
-              className={
-                message.includes("failed") || message.includes("Error")
-                  ? "message error"
-                  : "message success"
-              }
-              role="status"
-            >
-              {message}
-            </p>
-          )}
-
-        {trip && canShowChat && (
-          <section className="trip-detail-ai-insights" aria-labelledby="trip-detail-ai-insights-heading">
-            <h2 id="trip-detail-ai-insights-heading" className="sr-only">{t("tripPlanner.aiChat.title")}</h2>
-            <div
-              className="trip-detail-ai-insights-header"
-              onClick={() => setAgentPanelOpen(true)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  setAgentPanelOpen(true);
+            {message && (
+              <p
+                className={
+                  message.includes("failed") || message.includes("Error")
+                    ? "message error"
+                    : "message success"
                 }
-              }}
-              role="button"
-              tabIndex={0}
-              aria-expanded={aiInsightsExpanded}
-              aria-label={t("tripPlanner.aiChat.title")}
-            >
-              <span className="trip-detail-ai-insights-title">
-                {trip.destination
-                  ? t("tripPlanner.aiInsightsTitleWithDestination", { destination: trip.destination }, "Your trip to {{destination}} · AI insights")
-                  : t("tripPlanner.aiInsightsTitleFallback", "AI insights for your trip")}
-              </span>
-              <span className="trip-detail-ai-insights-icon" aria-hidden>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M9.937 15.5A2 2 0 0 1 8.5 17.438l-1.5.437.437-1.5a2 2 0 0 1 1.937-1.437Z" />
-                  <path d="M12 3l-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
-                </svg>
-              </span>
-              <button
-                type="button"
-                className="trip-detail-ai-insights-chevron"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setAiInsightsExpanded((b) => !b);
-                }}
-                aria-label={aiInsightsExpanded ? t("trips.collapse", "Collapse") : t("trips.expand", "Expand")}
-                aria-expanded={aiInsightsExpanded}
+                role="status"
               >
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  {aiInsightsExpanded ? (
-                    <path d="M18 15l-6-6-6 6" />
-                  ) : (
-                    <path d="M9 18l6-6-6-6" />
-                  )}
-                </svg>
-              </button>
-            </div>
-            {aiInsightsExpanded && (
-              <div className="trip-detail-ai-insights-body">
-                <p className="trip-detail-ai-insights-intro">{t("tripPlanner.aiInsightsIntro", "Get suggestions and refine your plan with AI.")}</p>
-                <button type="button" className="btn primary btn-sm" onClick={() => setAgentPanelOpen(true)}>
-                  {t("tripPlanner.aiChat.title")}
-                </button>
-              </div>
+                {message}
+              </p>
             )}
-          </section>
-        )}
 
-        {(() => {
-          const hubs = getTransportHubsForDestination(trip.destination);
-          const hasMap = !!mapCenter;
-          const hasTransport = !!hubs;
-          const prereqList = trip?.prerequisites || [];
-          const canAddPrereq = (isOwner || collab) && trip?.id;
-          const hasPrereq = prereqList.length > 0 || canAddPrereq;
-          if (!hasMap && !hasTransport && !hasPrereq) return null;
-
-          const sideColumnContent = (hasTransport || hasPrereq) && (
-            <div className="trip-detail-side-column">
-              {hasTransport && (
-                <div className="trip-detail-transport">
-                  <h2>{t("trips.transportation")}</h2>
-                  <ul className="transport-hubs-list">
-                    <li>
-                      <strong>{t("trips.nearestAirport")}:</strong> {hubs.airport?.name} — {hubs.airport?.distance}
-                    </li>
-                    <li>
-                      <strong>{t("trips.nearestTrain")}:</strong> {hubs.train?.name} — {hubs.train?.distance}
-                    </li>
-                    <li>
-                      <strong>{t("trips.nearestBus")}:</strong> {hubs.bus?.name} — {hubs.bus?.distance}
-                    </li>
-                  </ul>
-                </div>
-              )}
-              {hasPrereq && renderPrerequisitesCard()}
-            </div>
-          );
-
-          if (hasMap && (hasTransport || hasPrereq)) {
-            return (
-              <div className="trip-detail-map-transport-grid">
-                <div className="trip-detail-map">
-                  <div className="trip-detail-map-header">
-                    <h2>{t("trips.map")}</h2>
-                    <button
-                      type="button"
-                      className={`page-header-action-round trip-detail-map-location-btn${
-                        locationLoading ? " is-loading" : ""
-                      }`}
-                      onClick={() => {
-                        if (showMyLocation) {
-                          stopWatching();
-                          setShowMyLocation(false);
-                        } else {
-                          clearLocationError();
-                          startWatching();
-                          setShowMyLocation(true);
-                        }
-                      }}
-                      disabled={locationLoading}
-                      aria-pressed={showMyLocation}
-                      title={
-                        locationLoading
-                          ? t("trips.locationLoading")
-                          : showMyLocation
-                            ? t("trips.hideMyLocation")
-                            : t("trips.showMyLocation")
-                      }
-                      aria-label={
-                        locationLoading
-                          ? t("trips.locationLoading")
-                          : showMyLocation
-                            ? t("trips.hideMyLocation")
-                            : t("trips.showMyLocation")
-                      }
-                    >
-                      <span className="sr-only">
-                        {locationLoading
-                          ? t("trips.locationLoading")
-                          : showMyLocation
-                            ? t("trips.hideMyLocation")
-                            : t("trips.showMyLocation")}
-                      </span>
-                      <span className="page-header-action-round-icon" aria-hidden>
-                        {locationLoading ? (
-                          <span className="page-header-action-round-spinner" aria-hidden />
-                        ) : (
-                          <svg
-                            width="20"
-                            height="20"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                          >
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                            <circle cx="12" cy="10" r="3" />
-                          </svg>
-                        )}
-                      </span>
-                    </button>
-                  </div>
-                  {locationError && (
-                    <p className="message error trip-detail-location-error" role="alert">
-                      {locationError}
-                    </p>
-                  )}
-                  {showMyLocation && currentLocationPosition && itineraryMarkers.length > 0 && (() => {
-                    const closest = getClosestStop(currentLocationPosition, itineraryMarkers);
-                    if (!closest) return null;
-                    const { distanceKm, marker, estimatedMinutes } = closest;
-                    const name = marker?.name || t("trips.nextStop", "Next stop");
-                    if (distanceKm < 0.2) {
-                      return (
-                        <p className="trip-detail-eta trip-detail-eta-close" role="status">
-                          {t("trips.youAreCloseTo", { name }, "Very close to {{name}}")}
-                        </p>
-                      );
+            {trip && canShowChat && (
+              <section className="trip-detail-ai-insights" aria-labelledby="trip-detail-ai-insights-heading">
+                <h2 id="trip-detail-ai-insights-heading" className="sr-only">{t("tripPlanner.aiChat.title")}</h2>
+                <div
+                  className="trip-detail-ai-insights-header"
+                  onClick={() => setAgentPanelOpen(true)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setAgentPanelOpen(true);
                     }
-                    return (
-                      <>
-                        <p className="trip-detail-eta" role="status">
-                          {t(
-                            "trips.etaToNext",
-                            { km: distanceKm, name, min: estimatedMinutes },
-                            "~{{km}} km to {{name}} · ~{{min}} min",
-                          )}
-                        </p>
-                        {distanceKm > 15 && (
-                          <p className="trip-detail-eta-alert" role="status">
-                            {t(
-                              "trips.farFromNextStop",
-                              "Far from next stop — consider adjusting your schedule.",
-                            )}
-                          </p>
-                        )}
-                      </>
-                    );
-                  })()}
-                  {mapLoading && (
-                    <p className="muted trip-detail-map-loading">{t("labels.loading")}</p>
-                  )}
-                  {!mapLoading && (
-                    <MapView
-                      center={mapCenter}
-                      destinationLabel={trip.destination}
-                      itineraryMarkers={itineraryMarkers}
-                      dayRoutes={dayRoutes}
-                      currentLocation={showMyLocation ? currentLocationPosition : null}
-                    />
-                  )}
-                </div>
-                {sideColumnContent}
-              </div>
-            );
-          }
-
-          if (hasMap) {
-            return (
-              <div className="trip-detail-map">
-                <div className="trip-detail-map-header">
-                  <h2>{t("trips.map")}</h2>
-                  <button
-                    type="button"
-                    className={`page-header-action-round trip-detail-map-location-btn${
-                      locationLoading ? " is-loading" : ""
-                    }`}
-                    onClick={() => {
-                      if (showMyLocation) {
-                        stopWatching();
-                        setShowMyLocation(false);
-                      } else {
-                        clearLocationError();
-                        startWatching();
-                        setShowMyLocation(true);
-                      }
-                    }}
-                    disabled={locationLoading}
-                    aria-pressed={showMyLocation}
-                    title={
-                      locationLoading
-                        ? t("trips.locationLoading")
-                        : showMyLocation
-                          ? t("trips.hideMyLocation")
-                          : t("trips.showMyLocation")
-                    }
-                    aria-label={
-                      locationLoading
-                        ? t("trips.locationLoading")
-                        : showMyLocation
-                          ? t("trips.hideMyLocation")
-                          : t("trips.showMyLocation")
-                    }
-                  >
-                    <span className="sr-only">
-                      {locationLoading
-                        ? t("trips.locationLoading")
-                        : showMyLocation
-                          ? t("trips.hideMyLocation")
-                          : t("trips.showMyLocation")}
-                    </span>
-                    <span className="page-header-action-round-icon" aria-hidden>
-                      {locationLoading ? (
-                        <span className="page-header-action-round-spinner" aria-hidden />
-                      ) : (
-                        <svg
-                          width="20"
-                          height="20"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        >
-                          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
-                          <circle cx="12" cy="10" r="3" />
-                        </svg>
-                      )}
-                    </span>
-                  </button>
-                </div>
-                {locationError && (
-                  <p className="message error trip-detail-location-error" role="alert">
-                    {locationError}
-                  </p>
-                )}
-                {showMyLocation && currentLocationPosition && itineraryMarkers.length > 0 && (() => {
-                  const closest = getClosestStop(currentLocationPosition, itineraryMarkers);
-                  if (!closest) return null;
-                  const { distanceKm, marker, estimatedMinutes } = closest;
-                  const name = marker?.name || t("trips.nextStop", "Next stop");
-                  if (distanceKm < 0.2) {
-                    return (
-                      <p className="trip-detail-eta trip-detail-eta-close" role="status">
-                        {t("trips.youAreCloseTo", { name }, "Very close to {{name}}")}
-                      </p>
-                    );
-                  }
-                  return (
-                    <>
-                      <p className="trip-detail-eta" role="status">
-                        {t(
-                          "trips.etaToNext",
-                          { km: distanceKm, name, min: estimatedMinutes },
-                          "~{{km}} km to {{name}} · ~{{min}} min",
-                        )}
-                      </p>
-                      {distanceKm > 15 && (
-                        <p className="trip-detail-eta-alert" role="status">
-                          {t(
-                            "trips.farFromNextStop",
-                            "Far from next stop — consider adjusting your schedule.",
-                          )}
-                        </p>
-                      )}
-                    </>
-                  );
-                })()}
-                {mapLoading && (
-                  <p className="muted trip-detail-map-loading">{t("labels.loading")}</p>
-                )}
-                {!mapLoading && (
-                  <MapView
-                    center={mapCenter}
-                    destinationLabel={trip.destination}
-                    itineraryMarkers={itineraryMarkers}
-                    dayRoutes={dayRoutes}
-                    currentLocation={showMyLocation ? currentLocationPosition : null}
-                  />
-                )}
-              </div>
-            );
-          }
-
-          return (
-            <>
-              {hasTransport && (
-                <div className="trip-detail-transport">
-                  <h2>{t("trips.transportation")}</h2>
-                  <ul className="transport-hubs-list">
-                    <li>
-                      <strong>{t("trips.nearestAirport")}:</strong> {hubs.airport?.name} — {hubs.airport?.distance}
-                    </li>
-                    <li>
-                      <strong>{t("trips.nearestTrain")}:</strong> {hubs.train?.name} — {hubs.train?.distance}
-                    </li>
-                    <li>
-                      <strong>{t("trips.nearestBus")}:</strong> {hubs.bus?.name} — {hubs.bus?.distance}
-                    </li>
-                  </ul>
-                </div>
-              )}
-              {hasPrereq && renderPrerequisitesCard()}
-            </>
-          );
-        })()}
-
-        {trip.itinerary && trip.itinerary.length > 0 && (
-          <div className="trip-detail-itinerary">
-            <h2>Itinerary</h2>
-            <p className="trip-detail-itinerary-map-hint muted">{t("trips.itineraryMapHint", "Day colors match the route lines on the map above.")}</p>
-            {trip.itinerary.map((day, i) => (
-              <article key={day.day || i} className="trip-day trip-day-colored">
-                <span className="trip-day-color-bar" aria-hidden style={{ backgroundColor: getDayRouteColor(i) }} />
-                <h3>{t("tripPlanner.results.dayLabel", { day: day.day })}</h3>
-                {day.area && <p className="muted">{day.area}</p>}
-                {day.slots?.map((slot) => (
-                  <section key={slot.timeOfDay}>
-                    <h4>{t(`tripPlanner.slots.${slot.timeOfDay}`)}</h4>
-                    <ul>
-                      {slot.items?.map((item, j) => {
-                        const mapsQuery = `${item.name}, ${trip.destination || ""}`.trim();
-                        const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
-                        return (
-                          <li key={j} className="trip-itinerary-item">
-                            <span>{item.name}</span>
-                            <a
-                              href={mapsUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="trip-itinerary-map-link"
-                              title={t("trips.openInMaps", "Open in Google Maps")}
-                              aria-label={t("trips.openInMaps", "Open in Google Maps") + ": " + item.name}
-                            >
-                              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                              </svg>
-                            </a>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </section>
-                ))}
-              </article>
-            ))}
-          </div>
-        )}
-
-        {trip?.id && (
-          <div className="trip-detail-comments-mobile-inline">
-            <h2 className="trip-detail-comments-mobile-inline-title">{t("feed.comments", "Comments")}</h2>
-            <div className="trip-detail-comments-mobile-inline-body">
-              {commentsListContent}
-            </div>
-            <div className="trip-detail-comments-mobile-inline-footer">
-              {commentsFormContent}
-            </div>
-          </div>
-        )}
-      </section>
-
-        {trip?.id && (
-            <>
-              <div className="trip-detail-fabs">
-              {!isMobileView && (
-                <button
-                  type="button"
-                  className="trip-detail-comments-fab"
-                  onClick={() => setCommentsPanelOpen((open) => !open)}
-                  title={t("feed.comments", "Comments")}
-                  aria-label={t("feed.comments", "Comments")}
-                  aria-expanded={commentsPanelOpen}
-                >
-                  <span className="trip-detail-comments-fab-icon" aria-hidden>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                  </span>
-                  {comments.length > 0 && (
-                    <span className="trip-detail-comments-fab-badge" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
-                  )}
-                </button>
-              )}
-              {/* AI FAB removed: entry point is the in-content AI insights accordion between map and image */}
-              {false && trip && canShowChat && !chatPanelOpen && (
-                <button
-                  type="button"
-                  className={`trip-agent-fab ${canEdit ? "trip-agent-fab--highlight" : ""}`}
-                  onClick={() => setAgentPanelOpen((o) => !o)}
+                  }}
+                  role="button"
+                  tabIndex={0}
+                  aria-expanded={aiInsightsExpanded}
                   aria-label={t("tripPlanner.aiChat.title")}
-                  title={t("tripPlanner.aiChat.title")}
-                  aria-expanded={agentPanelOpen}
                 >
-                  <span className="trip-agent-fab-icon trip-agent-fab-icon--magic" aria-hidden>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <span className="trip-detail-ai-insights-title">
+                    {trip.destination
+                      ? t("tripPlanner.aiInsightsTitleWithDestination", { destination: trip.destination }, "Your trip to {{destination}} · AI insights")
+                      : t("tripPlanner.aiInsightsTitleFallback", "AI insights for your trip")}
+                  </span>
+                  <span className="trip-detail-ai-insights-icon" aria-hidden>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M9.937 15.5A2 2 0 0 1 8.5 17.438l-1.5.437.437-1.5a2 2 0 0 1 1.937-1.437Z" />
-                      <path d="M15 3.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5V4a.5.5 0 0 1-.5.5H15.5a.5.5 0 0 1-.5-.5Z" />
-                      <path d="M20.5 9.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5v.5a.5.5 0 0 1-.5.5H21a.5.5 0 0 1-.5-.5Z" />
-                      <path d="M16.5 19.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5v.5a.5.5 0 0 1-.5.5H17a.5.5 0 0 1-.5-.5Z" />
-                      <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                      <path d="M12 3l-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
                     </svg>
                   </span>
-                </button>
-              )}
-              {/* Chat FAB: show when chat panel closed; hide when agent panel open */}
-              {(isOwner || collab) && !agentPanelOpen && (
-                <button
-                  type="button"
-                  className="trip-detail-chat-fab"
-                  onClick={() => setChatPanelOpen((open) => !open)}
-                  title={t("trips.chat", "Trip chat")}
-                  aria-label={t("trips.chat", "Trip chat")}
-                  aria-expanded={chatPanelOpen}
-                >
-                  <span className="trip-detail-chat-fab-icon" aria-hidden>💬</span>
-                  {messages.length > 0 && (
-                    <span className="trip-detail-chat-fab-badge">{messages.length > 99 ? "99+" : messages.length}</span>
-                  )}
-                </button>
-              )}
-            </div>
-            {(isOwner || collab) && chatPanelOpen && (
-              <div className="trip-detail-chat-panel" role="dialog" aria-label={t("trips.chat", "Trip chat")}>
-                <div className="trip-detail-chat-panel-inner">
-                  <div className="trip-detail-chat-panel-header">
-                    <h2 className="trip-detail-chat-panel-title">{t("trips.chat", "Trip chat")}</h2>
-                    <button
-                      type="button"
-                      className="btn ghost btn-sm trip-detail-chat-panel-close"
-                      onClick={() => setChatPanelOpen(false)}
-                      title={t("trips.close", "Close")}
-                      aria-label={t("trips.close", "Close")}
-                    >
-                      ×
+                  <button
+                    type="button"
+                    className="trip-detail-ai-insights-chevron"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setAiInsightsExpanded((b) => !b);
+                    }}
+                    aria-label={aiInsightsExpanded ? t("trips.collapse", "Collapse") : t("trips.expand", "Expand")}
+                    aria-expanded={aiInsightsExpanded}
+                  >
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                      {aiInsightsExpanded ? (
+                        <path d="M18 15l-6-6-6 6" />
+                      ) : (
+                        <path d="M9 18l6-6-6-6" />
+                      )}
+                    </svg>
+                  </button>
+                </div>
+                {aiInsightsExpanded && (
+                  <div className="trip-detail-ai-insights-body">
+                    <p className="trip-detail-ai-insights-intro">{t("tripPlanner.aiInsightsIntro", "Get suggestions and refine your plan with AI.")}</p>
+                    <button type="button" className="btn primary btn-sm" onClick={() => setAgentPanelOpen(true)}>
+                      {t("tripPlanner.aiChat.title")}
                     </button>
                   </div>
-                  <div className="trip-detail-chat-messages">
-                    {messages.length === 0 ? (
-                      <p className="muted">{t("trips.chatEmpty", "No messages yet. Say something!")}</p>
-                    ) : (
-                      [...messages].reverse().map((msg) => (
-                        <div key={msg.id} className="trip-detail-chat-message">
-                          <span className="trip-detail-chat-sender">
-                            {msg.userId === currentUser?.id ? t("trips.chatYou", "You") : t("trips.chatMember", "Trip member")}:
-                          </span>{" "}
-                          {msg.imageKey && (
-                            <a
-                              href={`${getApiBaseUrl()}/media/${encodeURIComponent(msg.imageKey)}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="trip-detail-chat-image-wrap"
-                            >
-                              <img
-                                src={`${getApiBaseUrl()}/media/${encodeURIComponent(msg.imageKey)}`}
-                                alt=""
-                                className="trip-detail-chat-image"
-                                loading="lazy"
-                              />
-                            </a>
-                          )}
-                          {msg.text && <span className="trip-detail-chat-text">{msg.text}</span>}
-                          <span className="trip-detail-chat-time">
-                            {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : ""}
+                )}
+              </section>
+            )}
+
+            {(() => {
+              const hubs = getTransportHubsForDestination(trip.destination);
+              const hasMap = !!mapCenter;
+              const hasTransport = !!hubs;
+              const prereqList = trip?.prerequisites || [];
+              const canAddPrereq = (isOwner || collab) && trip?.id;
+              const hasPrereq = prereqList.length > 0 || canAddPrereq;
+              if (!hasMap && !hasTransport && !hasPrereq) return null;
+
+              const sideColumnContent = (hasTransport || hasPrereq) && (
+                <div className="trip-detail-side-column">
+                  {hasTransport && (
+                    <div className="trip-detail-transport">
+                      <h2>{t("trips.transportation")}</h2>
+                      <ul className="transport-hubs-list">
+                        <li>
+                          <strong>{t("trips.nearestAirport")}:</strong> {hubs.airport?.name} — {hubs.airport?.distance}
+                        </li>
+                        <li>
+                          <strong>{t("trips.nearestTrain")}:</strong> {hubs.train?.name} — {hubs.train?.distance}
+                        </li>
+                        <li>
+                          <strong>{t("trips.nearestBus")}:</strong> {hubs.bus?.name} — {hubs.bus?.distance}
+                        </li>
+                      </ul>
+                    </div>
+                  )}
+                  {hasPrereq && renderPrerequisitesCard()}
+                </div>
+              );
+
+              if (hasMap && (hasTransport || hasPrereq)) {
+                return (
+                  <div className="trip-detail-map-transport-grid">
+                    <div className="trip-detail-map">
+                      <div className="trip-detail-map-header">
+                        <h2>{t("trips.map")}</h2>
+                        <button
+                          type="button"
+                          className={`page-header-action-round trip-detail-map-location-btn${locationLoading ? " is-loading" : ""
+                            }`}
+                          onClick={() => {
+                            if (showMyLocation) {
+                              stopWatching();
+                              setShowMyLocation(false);
+                            } else {
+                              clearLocationError();
+                              startWatching();
+                              setShowMyLocation(true);
+                            }
+                          }}
+                          disabled={locationLoading}
+                          aria-pressed={showMyLocation}
+                          title={
+                            locationLoading
+                              ? t("trips.locationLoading")
+                              : showMyLocation
+                                ? t("trips.hideMyLocation")
+                                : t("trips.showMyLocation")
+                          }
+                          aria-label={
+                            locationLoading
+                              ? t("trips.locationLoading")
+                              : showMyLocation
+                                ? t("trips.hideMyLocation")
+                                : t("trips.showMyLocation")
+                          }
+                        >
+                          <span className="sr-only">
+                            {locationLoading
+                              ? t("trips.locationLoading")
+                              : showMyLocation
+                                ? t("trips.hideMyLocation")
+                                : t("trips.showMyLocation")}
                           </span>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                  {canEdit && (
-                    <form className="trip-detail-chat-form" onSubmit={handleSendMessage}>
-                      {chatImageFile && (
-                        <div className="trip-detail-chat-attach-preview">
-                          <span>{chatImageFile.name}</span>
-                          <button type="button" className="btn ghost btn-sm" onClick={() => setChatImageFile(null)} aria-label={t("trips.removeImage", "Remove image")}>
-                            ×
-                          </button>
-                        </div>
-                      )}
-                      <div className="trip-detail-chat-form-row">
-                        <input
-                          type="text"
-                          className="trip-detail-chat-input"
-                          value={chatInput}
-                          onChange={(e) => setChatInput(e.target.value)}
-                          placeholder={t("trips.chatPlaceholder", "Type a message...")}
-                          maxLength={500}
-                          disabled={chatLoading}
-                          aria-label={t("trips.chatPlaceholder", "Type a message...")}
-                        />
-                        <label className="trip-detail-chat-icon-btn trip-detail-chat-attach" title={t("trips.attachImage", "Attach image")}>
-                          <span className="trip-detail-chat-icon" aria-hidden>
-                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
-                          </span>
-                          <input
-                            type="file"
-                            accept="image/jpeg,image/png,image/gif,image/webp"
-                            className="sr-only"
-                            onChange={(e) => {
-                              const file = e.target.files?.[0];
-                              if (file && file.size <= 5 * 1024 * 1024) setChatImageFile(file);
-                              else if (file) setChatError(t("trips.imageTooLarge", "Image must be 5 MB or less."));
-                              e.target.value = "";
-                            }}
-                          />
-                        </label>
-                        <button type="submit" className="trip-detail-chat-icon-btn trip-detail-chat-send" disabled={chatLoading || (!chatInput.trim() && !chatImageFile)} aria-label={t("trips.chatSend", "Send")} title={t("trips.chatSend", "Send")}>
-                          <span className="trip-detail-chat-icon" aria-hidden>
-                            {chatLoading ? (
-                              <span className="trip-detail-chat-loading">⋯</span>
+                          <span className="page-header-action-round-icon" aria-hidden>
+                            {locationLoading ? (
+                              <span className="page-header-action-round-spinner" aria-hidden />
                             ) : (
-                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                              <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                <circle cx="12" cy="10" r="3" />
+                              </svg>
                             )}
                           </span>
                         </button>
                       </div>
-                    </form>
+                      {locationError && (
+                        <p className="message error trip-detail-location-error" role="alert">
+                          {locationError}
+                        </p>
+                      )}
+                      {showMyLocation && currentLocationPosition && itineraryMarkers.length > 0 && (() => {
+                        const closest = getClosestStop(currentLocationPosition, itineraryMarkers);
+                        if (!closest) return null;
+                        const { distanceKm, marker, estimatedMinutes } = closest;
+                        const name = marker?.name || t("trips.nextStop", "Next stop");
+                        if (distanceKm < 0.2) {
+                          return (
+                            <p className="trip-detail-eta trip-detail-eta-close" role="status">
+                              {t("trips.youAreCloseTo", { name }, "Very close to {{name}}")}
+                            </p>
+                          );
+                        }
+                        return (
+                          <>
+                            <p className="trip-detail-eta" role="status">
+                              {t(
+                                "trips.etaToNext",
+                                { km: distanceKm, name, min: estimatedMinutes },
+                                "~{{km}} km to {{name}} · ~{{min}} min",
+                              )}
+                            </p>
+                            {distanceKm > 15 && (
+                              <p className="trip-detail-eta-alert" role="status">
+                                {t(
+                                  "trips.farFromNextStop",
+                                  "Far from next stop — consider adjusting your schedule.",
+                                )}
+                              </p>
+                            )}
+                          </>
+                        );
+                      })()}
+                      {mapLoading && (
+                        <p className="muted trip-detail-map-loading">{t("labels.loading")}</p>
+                      )}
+                      {!mapLoading && (
+                        <MapView
+                          center={mapCenter}
+                          destinationLabel={trip.destination}
+                          itineraryMarkers={itineraryMarkers}
+                          dayRoutes={dayRoutes}
+                          currentLocation={showMyLocation ? currentLocationPosition : null}
+                          activeDayIndex={activeMapDay}
+                        />
+                      )}
+                    </div>
+                    {sideColumnContent}
+                  </div>
+                );
+              }
+
+              if (hasMap) {
+                return (
+                  <div className="trip-detail-map">
+                    <div className="trip-detail-map-header">
+                      <h2>{t("trips.map")}</h2>
+                      {trip?.itinerary?.length > 1 && (
+                        <label className="trip-detail-map-day-filter">
+                          <span className="sr-only">{t("trips.mapShowDay", "Show on map")}</span>
+                          <select
+                            value={activeMapDay == null ? "" : activeMapDay}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              setActiveMapDay(v === "" ? null : Number(v));
+                            }}
+                            aria-label={t("trips.mapShowDay", "Show on map")}
+                          >
+                            <option value="">{t("trips.mapAllDays", "All days")}</option>
+                            {trip.itinerary.map((day, i) => (
+                              <option key={i} value={i}>
+                                {t("tripPlanner.results.dayLabel", { day: day.day })}
+                              </option>
+                            ))}
+                          </select>
+                        </label>
+                      )}
+                      <button
+                        type="button"
+                        className={`page-header-action-round trip-detail-map-location-btn${locationLoading ? " is-loading" : ""
+                          }`}
+                        onClick={() => {
+                          if (showMyLocation) {
+                            stopWatching();
+                            setShowMyLocation(false);
+                          } else {
+                            clearLocationError();
+                            startWatching();
+                            setShowMyLocation(true);
+                          }
+                        }}
+                        disabled={locationLoading}
+                        aria-pressed={showMyLocation}
+                        title={
+                          locationLoading
+                            ? t("trips.locationLoading")
+                            : showMyLocation
+                              ? t("trips.hideMyLocation")
+                              : t("trips.showMyLocation")
+                        }
+                        aria-label={
+                          locationLoading
+                            ? t("trips.locationLoading")
+                            : showMyLocation
+                              ? t("trips.hideMyLocation")
+                              : t("trips.showMyLocation")
+                        }
+                      >
+                        <span className="sr-only">
+                          {locationLoading
+                            ? t("trips.locationLoading")
+                            : showMyLocation
+                              ? t("trips.hideMyLocation")
+                              : t("trips.showMyLocation")}
+                        </span>
+                        <span className="page-header-action-round-icon" aria-hidden>
+                          {locationLoading ? (
+                            <span className="page-header-action-round-spinner" aria-hidden />
+                          ) : (
+                            <svg
+                              width="20"
+                              height="20"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                            >
+                              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                              <circle cx="12" cy="10" r="3" />
+                            </svg>
+                          )}
+                        </span>
+                      </button>
+                    </div>
+                    {locationError && (
+                      <p className="message error trip-detail-location-error" role="alert">
+                        {locationError}
+                      </p>
+                    )}
+                    {showMyLocation && currentLocationPosition && itineraryMarkers.length > 0 && (() => {
+                      const closest = getClosestStop(currentLocationPosition, itineraryMarkers);
+                      if (!closest) return null;
+                      const { distanceKm, marker, estimatedMinutes } = closest;
+                      const name = marker?.name || t("trips.nextStop", "Next stop");
+                      if (distanceKm < 0.2) {
+                        return (
+                          <p className="trip-detail-eta trip-detail-eta-close" role="status">
+                            {t("trips.youAreCloseTo", { name }, "Very close to {{name}}")}
+                          </p>
+                        );
+                      }
+                      return (
+                        <>
+                          <p className="trip-detail-eta" role="status">
+                            {t(
+                              "trips.etaToNext",
+                              { km: distanceKm, name, min: estimatedMinutes },
+                              "~{{km}} km to {{name}} · ~{{min}} min",
+                            )}
+                          </p>
+                          {distanceKm > 15 && (
+                            <p className="trip-detail-eta-alert" role="status">
+                              {t(
+                                "trips.farFromNextStop",
+                                "Far from next stop — consider adjusting your schedule.",
+                              )}
+                            </p>
+                          )}
+                        </>
+                      );
+                    })()}
+                    {mapLoading && (
+                      <p className="muted trip-detail-map-loading">{t("labels.loading")}</p>
+                    )}
+                    {!mapLoading && (
+                      <MapView
+                        center={mapCenter}
+                        destinationLabel={trip.destination}
+                        itineraryMarkers={itineraryMarkers}
+                        dayRoutes={dayRoutes}
+                        currentLocation={showMyLocation ? currentLocationPosition : null}
+                        activeDayIndex={activeMapDay}
+                      />
+                    )}
+                  </div>
+                );
+              }
+
+              return (
+                <>
+                  {hasTransport && (
+                    <div className="trip-detail-transport">
+                      <h2>{t("trips.transportation")}</h2>
+                      <ul className="transport-hubs-list">
+                        <li>
+                          <strong>{t("trips.nearestAirport")}:</strong> {hubs.airport?.name} — {hubs.airport?.distance}
+                        </li>
+                        <li>
+                          <strong>{t("trips.nearestTrain")}:</strong> {hubs.train?.name} — {hubs.train?.distance}
+                        </li>
+                        <li>
+                          <strong>{t("trips.nearestBus")}:</strong> {hubs.bus?.name} — {hubs.bus?.distance}
+                        </li>
+                      </ul>
+                    </div>
                   )}
-                  {chatError && (
-                    <p className="message error trip-detail-chat-error" role="alert">
-                      {chatError}
-                    </p>
-                  )}
+                  {hasPrereq && renderPrerequisitesCard()}
+                </>
+              );
+            })()}
+
+            {trip.itinerary && trip.itinerary.length > 0 && (
+              <div className="trip-detail-itinerary">
+                <h2>Itinerary</h2>
+                <p className="trip-detail-itinerary-map-hint muted">{t("trips.itineraryMapHint", "Day colors match the route lines on the map above.")}</p>
+                {trip.itinerary.map((day, i) => (
+                  <article key={day.day || i} className="trip-day trip-day-colored">
+                    <span className="trip-day-color-bar" aria-hidden style={{ backgroundColor: getDayRouteColor(i) }} />
+                    <h3>{t("tripPlanner.results.dayLabel", { day: day.day })}</h3>
+                    {day.area && <p className="muted">{day.area}</p>}
+                    {day.slots?.map((slot) => (
+                      <section key={slot.timeOfDay}>
+                        <h4>{t(`tripPlanner.slots.${slot.timeOfDay}`)}</h4>
+                        <ul>
+                          {slot.items?.map((item, j) => {
+                            const mapsQuery = `${item.name}, ${trip.destination || ""}`.trim();
+                            const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsQuery)}`;
+                            return (
+                              <li key={j} className="trip-itinerary-item">
+                                <span>{item.name}</span>
+                                <a
+                                  href={mapsUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="trip-itinerary-map-link"
+                                  title={t("trips.openInMaps", "Open in Google Maps")}
+                                  aria-label={t("trips.openInMaps", "Open in Google Maps") + ": " + item.name}
+                                >
+                                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                    <circle cx="12" cy="10" r="3" />
+                                  </svg>
+                                </a>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </section>
+                    ))}
+                  </article>
+                ))}
+              </div>
+            )}
+
+            {trip?.id && (
+              <div className="trip-detail-comments-mobile-inline">
+                <h2 className="trip-detail-comments-mobile-inline-title">{t("feed.comments", "Comments")}</h2>
+                <div className="trip-detail-comments-mobile-inline-body">
+                  {commentsListContent}
+                </div>
+                <div className="trip-detail-comments-mobile-inline-footer">
+                  {commentsFormContent}
                 </div>
               </div>
+            )}
+          </section>
+
+          {trip?.id && (
+            <>
+              <div className="trip-detail-fabs">
+                {!isMobileView && (
+                  <button
+                    type="button"
+                    className="trip-detail-comments-fab"
+                    onClick={() => setCommentsPanelOpen((open) => !open)}
+                    title={t("feed.comments", "Comments")}
+                    aria-label={t("feed.comments", "Comments")}
+                    aria-expanded={commentsPanelOpen}
+                  >
+                    <span className="trip-detail-comments-fab-icon" aria-hidden>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    </span>
+                    {comments.length > 0 && (
+                      <span className="trip-detail-comments-fab-badge" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
+                    )}
+                  </button>
+                )}
+                {/* AI Agent Chat FAB for trip owners/editors */}
+                {trip && canShowChat && !chatPanelOpen && (
+                  <button
+                    type="button"
+                    className={`trip-agent-fab ${canEdit ? "trip-agent-fab--highlight" : ""}`}
+                    onClick={() => setAgentPanelOpen((o) => !o)}
+                    aria-label={t("tripPlanner.aiChat.title")}
+                    title={t("tripPlanner.aiChat.title")}
+                    aria-expanded={agentPanelOpen}
+                  >
+                    <span className="trip-agent-fab-icon trip-agent-fab-icon--magic" aria-hidden>
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                        <path d="M9.937 15.5A2 2 0 0 1 8.5 17.438l-1.5.437.437-1.5a2 2 0 0 1 1.937-1.437Z" />
+                        <path d="M15 3.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5V4a.5.5 0 0 1-.5.5H15.5a.5.5 0 0 1-.5-.5Z" />
+                        <path d="M20.5 9.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5v.5a.5.5 0 0 1-.5.5H21a.5.5 0 0 1-.5-.5Z" />
+                        <path d="M16.5 19.5a.5.5 0 0 1 .5-.5h.5a.5.5 0 0 1 .5.5v.5a.5.5 0 0 1-.5.5H17a.5.5 0 0 1-.5-.5Z" />
+                        <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+                      </svg>
+                    </span>
+                  </button>
+                )}
+                {/* Chat FAB: show when chat panel closed; hide when agent panel open */}
+                {(isOwner || collab) && !agentPanelOpen && (
+                  <button
+                    type="button"
+                    className="trip-detail-chat-fab"
+                    onClick={() => setChatPanelOpen((open) => !open)}
+                    title={t("trips.chat", "Trip chat")}
+                    aria-label={t("trips.chat", "Trip chat")}
+                    aria-expanded={chatPanelOpen}
+                  >
+                    <span className="trip-detail-chat-fab-icon" aria-hidden>💬</span>
+                    {messages.length > 0 && (
+                      <span className="trip-detail-chat-fab-badge">{messages.length > 99 ? "99+" : messages.length}</span>
+                    )}
+                  </button>
+                )}
+              </div>
+              {(isOwner || collab) && chatPanelOpen && (
+                <div className="trip-detail-chat-panel" role="dialog" aria-label={t("trips.chat", "Trip chat")}>
+                  <div className="trip-detail-chat-panel-inner">
+                    <div className="trip-detail-chat-panel-header">
+                      <h2 className="trip-detail-chat-panel-title">{t("trips.chat", "Trip chat")}</h2>
+                      <button
+                        type="button"
+                        className="btn ghost btn-sm trip-detail-chat-panel-close"
+                        onClick={() => setChatPanelOpen(false)}
+                        title={t("trips.close", "Close")}
+                        aria-label={t("trips.close", "Close")}
+                      >
+                        ×
+                      </button>
+                    </div>
+                    <div className="trip-detail-chat-messages">
+                      {messages.length === 0 ? (
+                        <p className="muted">{t("trips.chatEmpty", "No messages yet. Say something!")}</p>
+                      ) : (
+                        [...messages].reverse().map((msg) => (
+                          <div key={msg.id} className="trip-detail-chat-message">
+                            <span className="trip-detail-chat-sender">
+                              {msg.userId === currentUser?.id ? t("trips.chatYou", "You") : t("trips.chatMember", "Trip member")}:
+                            </span>{" "}
+                            {msg.imageKey && (
+                              <a
+                                href={`${getApiBaseUrl()}/media/${encodeURIComponent(msg.imageKey)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="trip-detail-chat-image-wrap"
+                              >
+                                <img
+                                  src={`${getApiBaseUrl()}/media/${encodeURIComponent(msg.imageKey)}`}
+                                  alt=""
+                                  className="trip-detail-chat-image"
+                                  loading="lazy"
+                                />
+                              </a>
+                            )}
+                            {msg.text && <span className="trip-detail-chat-text">{msg.text}</span>}
+                            <span className="trip-detail-chat-time">
+                              {msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }) : ""}
+                            </span>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    {canEdit && (
+                      <form className="trip-detail-chat-form" onSubmit={handleSendMessage}>
+                        {chatImageFile && (
+                          <div className="trip-detail-chat-attach-preview">
+                            <span>{chatImageFile.name}</span>
+                            <button type="button" className="btn ghost btn-sm" onClick={() => setChatImageFile(null)} aria-label={t("trips.removeImage", "Remove image")}>
+                              ×
+                            </button>
+                          </div>
+                        )}
+                        <div className="trip-detail-chat-form-row">
+                          <input
+                            type="text"
+                            className="trip-detail-chat-input"
+                            value={chatInput}
+                            onChange={(e) => setChatInput(e.target.value)}
+                            placeholder={t("trips.chatPlaceholder", "Type a message...")}
+                            maxLength={500}
+                            disabled={chatLoading}
+                            aria-label={t("trips.chatPlaceholder", "Type a message...")}
+                          />
+                          <label className="trip-detail-chat-icon-btn trip-detail-chat-attach" title={t("trips.attachImage", "Attach image")}>
+                            <span className="trip-detail-chat-icon" aria-hidden>
+                              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
+                            </span>
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/gif,image/webp"
+                              className="sr-only"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (file && file.size <= 5 * 1024 * 1024) setChatImageFile(file);
+                                else if (file) setChatError(t("trips.imageTooLarge", "Image must be 5 MB or less."));
+                                e.target.value = "";
+                              }}
+                            />
+                          </label>
+                          <button type="submit" className="trip-detail-chat-icon-btn trip-detail-chat-send" disabled={chatLoading || (!chatInput.trim() && !chatImageFile)} aria-label={t("trips.chatSend", "Send")} title={t("trips.chatSend", "Send")}>
+                            <span className="trip-detail-chat-icon" aria-hidden>
+                              {chatLoading ? (
+                                <span className="trip-detail-chat-loading">⋯</span>
+                              ) : (
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
+                              )}
+                            </span>
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                    {chatError && (
+                      <p className="message error trip-detail-chat-error" role="alert">
+                        {chatError}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </>
           )}
-          </>
-        )}
         </div>
 
         {trip.id && (
@@ -2138,7 +2183,7 @@ const TripDetail = () => {
                 aria-hidden={!commentsPanelOpen}
               >
                 <span className="trip-detail-comments-waterdrop-icon" aria-hidden>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18l6-6-6-6" /></svg>
                 </span>
               </button>
               <div className="trip-detail-comments-sidebar-inner">
@@ -2163,12 +2208,12 @@ const TripDetail = () => {
             >
               {commentsPanelOpen ? (
                 <span className="trip-detail-comments-toggle-icon" aria-hidden>
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
                 </span>
               ) : (
                 <>
                   <span className="trip-detail-comments-toggle-icon" aria-hidden>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
                   </span>
                   {comments.length > 0 && (
                     <span className="trip-detail-comments-toggle-count" aria-hidden>{comments.length > 99 ? "99+" : comments.length}</span>
@@ -2521,7 +2566,7 @@ const TripDetail = () => {
                     {agentLoading ? (
                       <span className="trip-detail-chat-loading">⋯</span>
                     ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13" /><path d="M22 2l-7 20-4-9-9-4 20-7z" /></svg>
                     )}
                   </span>
                 </button>

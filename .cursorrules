@@ -158,7 +158,7 @@ ID:       dev-user-00000000-0000-0000-0000-000000000001
 - ✅ Consistent ID for predictable testing
 - ✅ Never gets deleted (ephemeral storage workaround)
 
-**ALWAYS use this user. NEVER create new test users unless explicitly asked.**
+**ALWAYS use this user for single-user testing.** For multi-user flows (collaboration, invite codes), additional auto-seeded users are available: `test1@tripmaker.com` and `test2@tripmaker.com` (same password: `DevUser123!`). See TEST_USER.md.
 
 ---
 

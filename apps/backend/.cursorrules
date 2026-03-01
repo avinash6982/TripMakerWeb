@@ -3,9 +3,8 @@
 ## Project Context
 This is the backend API for TripMaker (Waypoint) - a travel planning application.
 
-**Frontend:** https://trip-maker-web.vercel.app  
-**Backend:** https://trip-maker-web-be.vercel.app  
-**API Docs:** https://trip-maker-web-be.vercel.app/api-docs
+**Frontend/Backend:** Use your Render static site and web service URLs (see repo RENDER_DEPLOYMENT_GUIDE.md).  
+**API Docs (local):** http://localhost:3000/api-docs
 
 ---
 
@@ -17,12 +16,12 @@ This is the backend API for TripMaker (Waypoint) - a travel planning application
 - **Security:** helmet, cors, express-rate-limit, express-validator
 - **Documentation:** Swagger/OpenAPI 3.0 (swagger-jsdoc, swagger-ui-express)
 - **Storage:** File-based JSON (data/users.json)
-- **Deployment:** Vercel (serverless)
+- **Deployment:** Render (Web Service running server.js)
 
 ### Key Files
 - `server.js` - Main application (1195 lines)
 - `package.json` - Dependencies and scripts
-- `vercel.json` - Vercel deployment configuration
+- See repo root RENDER_DEPLOYMENT_GUIDE.md for deployment
 - `.env` - Local environment variables (gitignored)
 - `.env.example` - Environment variable template
 

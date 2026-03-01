@@ -73,12 +73,14 @@ function MapSizeSync() {
 
 /**
  * Interactive map with destination marker (red), itinerary markers (blue), and day-wise route polylines (MVP2).
+ * When activeDayIndex is set, only that day's markers and route are shown (reduces clutter).
  * @param {Object} props
  * @param {{ lat: number, lon?: number, lng?: number }} props.center - Center of map (destination).
  * @param {string} [props.destinationLabel] - Label for destination popup.
- * @param {Array<{ lat: number, lng: number, name: string, category?: string }>} [props.itineraryMarkers] - Blue markers for places.
+ * @param {Array<{ lat: number, lng: number, name: string, category?: string, dayIndex?: number }>} [props.itineraryMarkers] - Blue markers for places (optional dayIndex for active-day filter).
  * @param {Array<Array<[number, number]>>} [props.dayRoutes] - MVP2: positions per day for polylines.
  * @param {{ lat: number, lng: number }} [props.currentLocation] - MVP3: user's current position ("You are here" marker).
+ * @param {number|null} [props.activeDayIndex] - When set, show only this day's markers and route; null = show all.
  */
 const MapView = ({
   center,
@@ -86,6 +88,7 @@ const MapView = ({
   itineraryMarkers = [],
   dayRoutes = [],
   currentLocation = null,
+  activeDayIndex = null,
 }) => {
   const lat = center?.lat;
   const lon = center?.lon ?? center?.lng;
@@ -96,6 +99,14 @@ const MapView = ({
   }
 
   const centerPos = [lat, lon];
+
+  const showAllDays = activeDayIndex == null || !Number.isFinite(activeDayIndex);
+  const markersToShow = showAllDays
+    ? (itineraryMarkers || [])
+    : (itineraryMarkers || []).filter((m) => m.dayIndex === activeDayIndex);
+  const routesToShow = showAllDays
+    ? (dayRoutes || [])
+    : (dayRoutes || []).filter((_, i) => i === activeDayIndex);
 
   return (
     <div className="map-view-container">
@@ -110,15 +121,16 @@ const MapView = ({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        {(dayRoutes || []).map((positions, dayIndex) => {
+        {(routesToShow || []).map((positions, idx) => {
           const valid = (positions || []).filter(
             (p) => Array.isArray(p) && p.length >= 2 && Number.isFinite(p[0]) && Number.isFinite(p[1])
           );
           if (valid.length < 2) return null;
+          const dayIndex = showAllDays ? idx : activeDayIndex;
           const color = getDayRouteColor(dayIndex);
           return (
             <Polyline
-              key={`route-day-${dayIndex}`}
+              key={`route-day-${dayIndex}-${idx}`}
               positions={valid}
               pathOptions={{ color, weight: 6, opacity: 0.85 }}
             />
@@ -129,7 +141,7 @@ const MapView = ({
             <strong>{destinationLabel || "Destination"}</strong>
           </Popup>
         </Marker>
-        {(itineraryMarkers || []).map((m, i) => {
+        {(markersToShow || []).map((m, i) => {
           if (!Number.isFinite(m.lat) || !Number.isFinite(m.lng)) return null;
           return (
             <Marker

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { clearStoredUser, getStoredUser } from "../services/auth";
 import { clearStoredProfile } from "../services/profile";
 import LanguageSwitch from "../components/LanguageSwitch";
+import NotificationBell from "../components/NotificationBell";
 
 /* Paper plane logo icon (teal, matches prototype) */
 const LogoIcon = () => (
@@ -108,6 +109,7 @@ const SiteLayout = () => {
             })}
           </nav>
           <div className="nav-actions">
+            <NotificationBell />
             <LanguageSwitch />
             {user && (
               <button

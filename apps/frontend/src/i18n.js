@@ -28,6 +28,11 @@ const resources = {
         loading: "Loading...",
         close: "Close",
       },
+      notifications: {
+        title: "Notifications",
+        empty: "No notifications yet.",
+        markAllRead: "Mark all read",
+      },
       home: {
         title: "Home",
         subtitle: "Your trip workspace is ready.",
@@ -79,6 +84,9 @@ const resources = {
           regeneratingDay: "Regenerating...",
           editDay: "Edit day",
           doneEditing: "Done editing",
+          dragItem: "Drag to move activity",
+          moveUp: "Move up",
+          moveDown: "Move down",
           saveTrip: "Save trip",
         },
         saveTrip: {

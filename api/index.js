@@ -1,5 +1,5 @@
 /**
- * Single API entry point for Vercel (Hobby plan: max 12 serverless functions).
+ * Optional serverless API entry (e.g. Vercel). Production uses Render with apps/backend/server.js.
  * All /api/* requests are rewritten here; we route by path and method.
  */
 const handleHealth = require('./lib/handlers/health');

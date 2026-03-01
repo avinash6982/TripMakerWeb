@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate, useSearchParams } from "react-router-do
 import { useTranslation } from "react-i18next";
 import MapView from "../components/MapView";
 import PlaceAutocomplete from "../components/PlaceAutocomplete";
+import { ItineraryDndContext, DraggableItem, DroppableSlot } from "../components/ItineraryDnd";
 import {
   buildOpenStreetMapLink,
   buildOpenStreetMapSearchLink,
@@ -55,7 +56,27 @@ const Home = () => {
   const [agentLoading, setAgentLoading] = useState(false);
   const [agentChatInput, setAgentChatInput] = useState("");
   const agentMessagesEndRef = useRef(null);
+  const agentChatInputRef = useRef(null);
+  const agentLoadingPrevRef = useRef(false);
   const [dayAccordionExpanded, setDayAccordionExpanded] = useState(() => new Set());
+  const [isMobileView, setIsMobileView] = useState(
+    () => (typeof window !== "undefined" ? window.matchMedia("(max-width: 767px)").matches : false)
+  );
+
+  useEffect(() => {
+    const m = window.matchMedia("(max-width: 767px)");
+    const fn = () => setIsMobileView(m.matches);
+    m.addEventListener("change", fn);
+    return () => m.removeEventListener("change", fn);
+  }, []);
+
+  // Restore focus to the agent chat input after a message is sent and the response is done
+  useEffect(() => {
+    if (agentLoadingPrevRef.current && !agentLoading) {
+      agentChatInputRef.current?.focus();
+    }
+    agentLoadingPrevRef.current = agentLoading;
+  }, [agentLoading]);
 
   useEffect(() => {
     agentMessagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -409,6 +430,65 @@ const Home = () => {
     });
   };
 
+  /** Reorder an item within the same slot (up = swap with previous, down = swap with next). Used for mobile up/down arrows. */
+  const handleReorderItemInSlot = (dayIndex, slotIndex, itemIndex, direction) => {
+    setPlan((prev) => {
+      if (!prev?.itinerary?.length) return prev;
+      const day = prev.itinerary[dayIndex];
+      const slot = day?.slots?.[slotIndex];
+      const items = slot?.items;
+      if (!items || items.length < 2) return prev;
+      const nextIndex = direction === "up" ? itemIndex - 1 : itemIndex + 1;
+      if (nextIndex < 0 || nextIndex >= items.length) return prev;
+      const itinerary = prev.itinerary.map((d, dIdx) => {
+        if (dIdx !== dayIndex) return d;
+        return {
+          ...d,
+          slots: d.slots.map((s, sIdx) => {
+            if (sIdx !== slotIndex) return s;
+            const newItems = [...s.items];
+            [newItems[itemIndex], newItems[nextIndex]] = [newItems[nextIndex], newItems[itemIndex]];
+            return {
+              ...s,
+              items: newItems,
+              totalHours: newItems.reduce((sum, i) => sum + (i.durationHours || 0), 0),
+            };
+          }),
+        };
+      });
+      const recalcDay = (d) => ({
+        ...d,
+        totalHours: (d.slots || []).reduce((sum, s) => sum + (s.totalHours || 0), 0),
+      });
+      return { ...prev, itinerary: itinerary.map(recalcDay) };
+    });
+  };
+
+  /** Move one itinerary item from (fromDay, fromSlot, itemIndex) to (toDay, toSlot). */
+  const handleMoveItineraryItem = (fromDay, fromSlot, itemIndex, toDay, toSlot) => {
+    setPlan((prev) => {
+      if (!prev?.itinerary?.length) return prev;
+      const itinerary = prev.itinerary.map((day) => ({
+        ...day,
+        slots: day.slots.map((s) => ({ ...s, items: [...(s.items || [])] })),
+      }));
+      const fromSlotData = itinerary[fromDay]?.slots?.[fromSlot];
+      const toSlotData = itinerary[toDay]?.slots?.[toSlot];
+      if (!fromSlotData?.items?.[itemIndex] || !toSlotData) return prev;
+      const [item] = fromSlotData.items.splice(itemIndex, 1);
+      toSlotData.items.push(item);
+      const recalcSlot = (slot) => ({
+        ...slot,
+        totalHours: (slot.items || []).reduce((sum, i) => sum + (i.durationHours || 0), 0),
+      });
+      itinerary.forEach((day) => {
+        day.slots = day.slots.map(recalcSlot);
+        day.totalHours = day.slots.reduce((sum, s) => sum + (s.totalHours || 0), 0);
+      });
+      return { ...prev, itinerary };
+    });
+  };
+
   const handleSaveTrip = async (e) => {
     e?.preventDefault();
     if (!plan) return;
@@ -642,6 +722,7 @@ const Home = () => {
                   </div>
                   <form className="trip-agent-chat-form" onSubmit={handleAgentSend}>
                     <input
+                      ref={agentChatInputRef}
                       id="agent-chat-input"
                       data-testid="agent-chat-input"
                       type="text"
@@ -848,74 +929,88 @@ const Home = () => {
                               className="planner-day-accordion-body"
                             >
                               <div className="planner-slots">
-                            {day.slots.map((slot, slotIndex) => (
-                              <section className="planner-slot" key={`${day.day}-${slot.timeOfDay}`}>
-                                <div className="planner-slot-header">
-                                  <h4>{t(`tripPlanner.slots.${slot.timeOfDay}`)}</h4>
-                                  <span className="planner-slot-hours">
-                                    {t("tripPlanner.results.hoursShort", {
-                                      hours: slot.totalHours,
-                                    })}
-                                  </span>
-                                </div>
-                                <ul className="planner-items">
-                                  {slot.items.map((item, itemIndex) => {
-                                    const categoryLabel = t(`tripPlanner.categories.${item.category}`, {
-                                      defaultValue: item.category,
-                                    });
-                                    const marker = itineraryMarkers.find((m) => m.name === item.name);
-                                    const mapHref =
-                                      marker && Number.isFinite(marker.lat) && Number.isFinite(marker.lng)
-                                        ? buildOpenStreetMapLink({ lat: marker.lat, lon: marker.lng })
-                                        : buildOpenStreetMapSearchLink(item.name, plan.destination);
-                                    return (
-                                      <li
-                                        className="planner-item"
-                                        key={`day-${day.day}-slot-${slot.timeOfDay}-item-${itemIndex}`}
-                                      >
-                                        {editingDay === dayIndex ? (
-                                          <PlaceAutocomplete
-                                            value={item.name}
-                                            onChange={(value) =>
-                                              handleItemChange(
-                                                dayIndex,
-                                                slotIndex,
-                                                itemIndex,
-                                                value
-                                              )
-                                            }
-                                            destination={plan.destination}
-                                            aria-label={t("tripPlanner.results.placeName", "Place name")}
-                                          />
-                                        ) : (
-                                          <span className="planner-item-name">{item.name}</span>
-                                        )}
-                                        <div className="planner-item-right">
-                                          <span className="planner-item-meta">
-                                            {t("tripPlanner.results.itemMeta", {
-                                              hours: item.durationHours,
-                                              category: categoryLabel,
-                                            })}
-                                          </span>
-                                          {mapHref && (
-                                            <a
-                                              href={mapHref}
-                                              target="_blank"
-                                              rel="noopener noreferrer"
-                                              className="planner-item-map-link"
-                                              title={t("tripPlanner.map.open")}
-                                              aria-label={t("tripPlanner.map.open")}
+                                <ItineraryDndContext onMoveItem={handleMoveItineraryItem}>
+                                  {day.slots.map((slot, slotIndex) => (
+                                    <DroppableSlot key={`${day.day}-${slot.timeOfDay}`} dayIndex={dayIndex} slotIndex={slotIndex}>
+                                      <div className="planner-slot-header">
+                                        <h4>{t(`tripPlanner.slots.${slot.timeOfDay}`)}</h4>
+                                        <span className="planner-slot-hours">
+                                          {t("tripPlanner.results.hoursShort", {
+                                            hours: slot.totalHours,
+                                          })}
+                                        </span>
+                                      </div>
+                                      <ul className="planner-items">
+                                        {slot.items.map((item, itemIndex) => {
+                                          const categoryLabel = t(`tripPlanner.categories.${item.category}`, {
+                                            defaultValue: item.category,
+                                          });
+                                          const marker = itineraryMarkers.find((m) => m.name === item.name);
+                                          const mapHref =
+                                            marker && Number.isFinite(marker.lat) && Number.isFinite(marker.lng)
+                                              ? buildOpenStreetMapLink({ lat: marker.lat, lon: marker.lng })
+                                              : buildOpenStreetMapSearchLink(item.name, plan.destination);
+                                          return (
+                                            <DraggableItem
+                                              key={`day-${day.day}-slot-${slot.timeOfDay}-item-${itemIndex}`}
+                                              dayIndex={dayIndex}
+                                              slotIndex={slotIndex}
+                                              itemIndex={itemIndex}
+                                              totalItemsInSlot={slot.items.length}
+                                              disabled={editingDay === dayIndex}
+                                              dragLabel={t("tripPlanner.actions.dragItem", "Drag to move activity")}
+                                              isMobile={isMobileView}
+                                              onMoveUp={() => handleReorderItemInSlot(dayIndex, slotIndex, itemIndex, "up")}
+                                              onMoveDown={() => handleReorderItemInSlot(dayIndex, slotIndex, itemIndex, "down")}
+                                              moveUpLabel={t("tripPlanner.actions.moveUp", "Move up")}
+                                              moveDownLabel={t("tripPlanner.actions.moveDown", "Move down")}
                                             >
-                                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                                            </a>
-                                          )}
-                                        </div>
-                                      </li>
-                                    );
-                                  })}
-                                </ul>
-                              </section>
-                            ))}
+                                              <>
+                                                {editingDay === dayIndex ? (
+                                                  <PlaceAutocomplete
+                                                    value={item.name}
+                                                    onChange={(value) =>
+                                                      handleItemChange(
+                                                        dayIndex,
+                                                        slotIndex,
+                                                        itemIndex,
+                                                        value
+                                                      )
+                                                    }
+                                                    destination={plan.destination}
+                                                    aria-label={t("tripPlanner.results.placeName", "Place name")}
+                                                  />
+                                                ) : (
+                                                  <span className="planner-item-name">{item.name}</span>
+                                                )}
+                                                <div className="planner-item-right">
+                                                  <span className="planner-item-meta">
+                                                    {t("tripPlanner.results.itemMeta", {
+                                                      hours: item.durationHours,
+                                                      category: categoryLabel,
+                                                    })}
+                                                  </span>
+                                                  {mapHref && (
+                                                    <a
+                                                      href={mapHref}
+                                                      target="_blank"
+                                                      rel="noopener noreferrer"
+                                                      className="planner-item-map-link"
+                                                      title={t("tripPlanner.map.open")}
+                                                      aria-label={t("tripPlanner.map.open")}
+                                                    >
+                                                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                                                    </a>
+                                                  )}
+                                                </div>
+                                              </>
+                                            </DraggableItem>
+                                          );
+                                        })}
+                                      </ul>
+                                    </DroppableSlot>
+                                  ))}
+                                </ItineraryDndContext>
                               </div>
                             </div>
                           </article>
