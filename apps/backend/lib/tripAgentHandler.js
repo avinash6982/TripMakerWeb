@@ -210,7 +210,9 @@ async function handleTripAgentChat({ messages = [], context = {}, buildTripPlan 
   normalizePlanToDays(plan, requestedDays);
 
   const assistantMessage = isDayChangeRequest
-    ? `I've updated your plan to ${requestedDays} days. You can ask for more changes or ask how good the plan is.`
+    ? (isEditMode
+      ? `I've updated your plan to ${requestedDays} days. You can ask for more changes or ask how good the plan is.`
+      : `I've created your ${requestedDays}-day plan. You can ask for changes or ask how good the plan is.`)
     : (plan.assistantMessage && String(plan.assistantMessage).trim()) || shortQuestionReply(plan, requestedDays, destination);
 
   return {
