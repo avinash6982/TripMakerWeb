@@ -1213,20 +1213,38 @@ curl -X POST http://localhost:3000/login \
 
 ### Planned Endpoints
 
-**Trips:**
+**Admin & User Management (Pre-MVP5, planned):**
+
+- `GET /admin/users` – List users (admin only), with filters (status, role, email search).
+- `PATCH /admin/users/:id` – Update `role` (`user` \| `admin`) and/or `status` (`pending` \| `approved` \| `rejected`) for a user (admin only).
+- `POST /admin/users` – Create a new user (email + password) directly from the admin panel (admin only, auto-approved).
+- `DELETE /admin/users/:id` – Delete a user account (admin only; exact deletion vs soft-delete semantics TBD).
+
+> These endpoints are **not implemented yet**; they are part of the planned **Pre-MVP5: Admin & User Approval** phase and will be fully specified here (request/response bodies, errors) when implemented.
+
+**Chat / GetStream Integration (Pre-MVP5, planned):**
+
+- `POST /trips/:id/chat/bootstrap` – For an authenticated user, returns the configuration needed to join that trip’s chat channel via GetStream:
+  - Fields (conceptual): `streamAppKey`, `streamUserId`, `streamUserToken`, `channelId` (e.g. `trip-{tripId}`), plus optional feature flags.
+  - Behavior: Verifies the caller has access to the trip (owner or collaborator) and that the trip exists; then ensures the corresponding Stream user/channel exist (via the backend chat adapter) and issues a short-lived Stream user token.
+- (Optional, future) `POST /webhooks/stream/chat` – Webhook receiver for Stream chat events if we later want to mirror certain events into our own domain (e.g. logging, analytics). Not required for initial integration.
+
+> These endpoints are **not implemented yet**; they are part of the planned **Pre-MVP5: Chat Infrastructure (GetStream)** work. Once implemented, this document will be updated with full request/response schemas and error codes.
+
+**Trips (historical plan, now implemented via existing routes above):**
 - `POST /trips` - Create trip
 - `GET /trips` - List user's trips
 - `GET /trips/:id` - Get trip details
 - `PUT /trips/:id` - Update trip
 - `DELETE /trips/:id` - Delete trip
 
-**Invitations:**
+**Invitations (historical plan / overlaps with existing invite endpoints):**
 - `POST /trips/:id/invites` - Invite user to trip
 - `GET /invites` - List pending invites
 - `PUT /invites/:id/accept` - Accept invite
 - `DELETE /invites/:id` - Decline invite
 
-**Itinerary:**
+**Itinerary (future enhancement):**
 - `POST /trips/:id/items` - Add itinerary item
 - `PUT /trips/:id/items/:itemId` - Update item
 - `DELETE /trips/:id/items/:itemId` - Remove item

@@ -99,10 +99,11 @@
 ## 🎯 Next Tasks (Priority Order)
 
 ### What’s next (pick one when ready)
-1. **MVP5 (Marketplace):** Transport pricing, accommodation suggestions, paid APIs. **Start only when you explicitly approve.**
-2. **Image uploads:** Configure **Cloudflare R2** (env vars + CORS) so trip cover, gallery, and chat images work (see RENDER_DEPLOYMENT_GUIDE.md).
-3. **MongoDB (optional):** Persistent users/trips in production (see MONGODB_SETUP.md).
-4. **Resume UI Enhancement:** Trip view polish, other flows as needed (see UI_ENHANCEMENT_MOBILE.md).
+1. **Pre-MVP5: Admin & User Approval (planning now):** Add user roles (`user`/`admin`), approval status (`pending`/`approved`/`rejected`), login gating, and an admin dashboard/API for managing users and approvals. This phase must land **before** Marketplace so only approved users can consume rate-limited / paid resources. (Spec: `MVP_PLAN.md`, `MVP_ROADMAP.md`, `APP_ARCHITECTURE.md`, `API_REFERENCE.md` updated in March 2026.)
+2. **Pre-MVP5: Chat Infrastructure (GetStream) – planning:** Design a GetStream-based chat adapter and TripChat wrapper so in-trip chat can use Stream’s hosted chat (React components, presence, reactions) without tightly coupling the rest of the app to Stream. Keep Cloudflare R2 as the backing store for chat images and preserve the 100 MB/user quota; Stream messages should carry R2 URLs/keys. (Spec: `MVP_ROADMAP.md`, `MVP_PLAN.md`, `APP_ARCHITECTURE.md`, `API_REFERENCE.md` updated in March 2026.)
+3. **Image uploads:** Configure **Cloudflare R2** (env vars + CORS) so trip cover, gallery, and chat images work (see RENDER_DEPLOYMENT_GUIDE.md).
+4. **MongoDB (optional):** Persistent users/trips in production (see MONGODB_SETUP.md).
+5. **Resume UI Enhancement:** Trip view polish, other flows as needed (see UI_ENHANCEMENT_MOBILE.md).
 
 ### When you approve
 1. **MVP5 (Marketplace):** Do not start until explicitly approved. Will introduce paid services (Skyscanner, accommodation APIs).
@@ -117,7 +118,7 @@
 
 ### Completed
 - MVP1, MVP2, MVP3 (all features); Design Optimization; Additional features (Prerequisites).
-- Browser verification required after each future task (see `MVP1_BROWSER_TEST_CHECKLIST.md`).
+- Browser verification required after each future task (exercise relevant flows in a real browser).
 
 ---
 
@@ -155,7 +156,7 @@
 
 ### Current Sprint
 - **Focus:** MVP4 complete; next MVP5 when you approve.
-- **Practice:** Browser verification required after each future task (see MVP1_BROWSER_TEST_CHECKLIST.md).
+- **Practice:** Browser verification required after each future task (exercise relevant flows in a real browser).
 
 ### Code Statistics
 - **Backend Endpoints:** 5 total (2 needed for trips)
@@ -210,7 +211,7 @@
 
 ### Task-Level DoD
 - [ ] Code implemented and tested locally
-- [ ] **Verified in browser:** Relevant flows from `MVP1_BROWSER_TEST_CHECKLIST.md` exercised; no regressions
+- [ ] **Verified in browser:** Relevant flows for the change exercised; no regressions
 - [ ] No console errors or warnings
 - [ ] API/docs updated if applicable
 - [ ] Git commit with clear message
@@ -295,6 +296,7 @@ MVP1–MVP3 and Design Optimization are complete. No fixed sprint schedule until
 - **MVP Plan:** `/MVP_PLAN.md`
 - **Architecture:** `/APP_ARCHITECTURE.md`
 - **API Docs:** `/API_REFERENCE.md`
+- **Test users:** `/TEST_USER.md`
 - **Backend:** `/apps/backend/server.js`
 - **Frontend:** `/apps/frontend/src/`
 - **Backend (Render):** `apps/backend/server.js`; optional `api/` for reference

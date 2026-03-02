@@ -175,9 +175,10 @@ Quick reference:
 
 ---
 
-## 🧪 Test User
+## 🧪 Test Users
 
-**For all development and testing:**
+For all development and testing, use the **auto-seeded test users** documented in `TEST_USER.md`. The primary dev user is:
+
 ```
 Email: dev@tripmaker.com
 Password: DevUser123!
@@ -190,7 +191,7 @@ Password: DevUser123!
 - **Setup issues?** → [QUICK_START.md](QUICK_START.md)
 - **Architecture questions?** → [APP_ARCHITECTURE.md](APP_ARCHITECTURE.md)
 - **API questions?** → [API_REFERENCE.md](API_REFERENCE.md)
-- **What to work on?** → [MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)
+- **What to work on?** → [MVP_PLAN.md](MVP_PLAN.md) and [MVP_ROADMAP.md](MVP_ROADMAP.md)
 - **All docs index** → [DOCUMENTATION_INDEX.md](DOCUMENTATION_INDEX.md)
 
 ---

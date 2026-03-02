@@ -27,12 +27,8 @@
 |----------|---------|------------------|
 | **[PRODUCT_VISION.md](PRODUCT_VISION.md)** | Long-term vision, business model | Quarterly |
 | **[MVP_ROADMAP.md](MVP_ROADMAP.md)** | Phase breakdown, progress tracking | Weekly |
-| **[ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md)** | Features between MVP3 and MVP4 (e.g. Prerequisites) | Per feature |
-| **[MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)** | MVP4 AI Trip Agent: planning, adapter pattern, itinerary contract | When implementing MVP4 |
-| **[UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md)** | UI Enhancement (mobile focus): flows done and next (trip view, edit) | Per flow |
-| **[MVP3_TASK_BREAKDOWN.md](MVP3_TASK_BREAKDOWN.md)** | MVP3 atomic tasks and verification | Per task |
-| **[MVP2_TASK_BREAKDOWN.md](MVP2_TASK_BREAKDOWN.md)** | MVP2 reference (complete) | Rarely |
-| **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)** | MVP1 reference (complete) | Rarely |
+| **[MVP_PLAN.md](MVP_PLAN.md)** | Detailed MVP feature breakdown and phase planning | As needed |
+| **[MVP4_AI_AGENT.md](MVP4_AI_AGENT.md)** | MVP4 AI Trip Agent: planning, adapter pattern, itinerary contract | When updating AI |
 
 ### Architecture & Technical
 | Document | Purpose | Update Frequency |
@@ -56,10 +52,8 @@
 ### Testing & Reference
 | Document | Purpose | Update Frequency |
 |----------|---------|------------------|
-| **[MVP1_BROWSER_TEST_CHECKLIST.md](MVP1_BROWSER_TEST_CHECKLIST.md)** | Browser verification (MVP1 flows) | Per task |
-| **[MVP2_QA_CHECKLIST.md](MVP2_QA_CHECKLIST.md)** | MVP2 verification (map, feed, invite) | Per task |
-| **[TEST_USER.md](TEST_USER.md)** | Dev user credentials | Never |
-| **[scripts/README.md](scripts/README.md)** | Scripts (UI review via browser MCP; optional Playwright) | Rarely |
+| **[TEST_USER.md](TEST_USER.md)** | Dev and test user credentials | Rarely |
+| **[EVALUATION_REPORT.md](EVALUATION_REPORT.md)** | Snapshot of full project evaluation (API, UI, docs) | When re-running a full eval |
 
 ### Cursor AI Integration
 | Document | Purpose | Update Frequency |
@@ -90,9 +84,9 @@
 - Update progress percentage
 - Update "Last Updated" date
 
-✅ **[MVP1_TASK_BREAKDOWN.md](MVP1_TASK_BREAKDOWN.md)**
-- Check off completed tasks
-- Update sprint timeline
+✅ **[MVP_PLAN.md](MVP_PLAN.md)**
+- Check off completed tasks / phases
+- Update sprint timeline and priorities
 
 #### When Changing Architecture
 ✅ **[APP_ARCHITECTURE.md](APP_ARCHITECTURE.md)**

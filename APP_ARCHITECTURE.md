@@ -498,6 +498,8 @@ interface User {
   email: string;                 // Normalized, unique
   passwordHash: string;          // salt:hash format
   trips: Trip[];                 // Saved trips
+  role: 'user' | 'admin';        // Access level (admin can manage users)
+  status: 'pending' | 'approved' | 'rejected'; // Login / approval status
   profile: {
     phone: string;               // Optional
     country: string;             // Optional
@@ -507,7 +509,7 @@ interface User {
   createdAt: string;             // ISO 8601 timestamp
 }
 
-// Dev User (Auto-seeded)
+// Dev & Test Users (Auto-seeded – see TEST_USER.md)
 const DEV_USER = {
   id: 'dev-user-00000000-0000-0000-0000-000000000001',
   email: 'dev@tripmaker.com',
@@ -521,6 +523,58 @@ const DEV_USER = {
   }
 };
 ```
+
+### Planned: Admin & User Approval (Pre-MVP5)
+
+To protect free-tier resources (AI providers, Cloudflare R2, MongoDB, etc.) before introducing paid Marketplace integrations, the architecture will add an **Admin & User Approval** layer ahead of MVP5:
+
+- **User fields (planned, see `MVP_PLAN.md`):**
+  - `role`: `'user' | 'admin'` – determines access to admin APIs and dashboard.
+  - `status`: `'pending' | 'approved' | 'rejected'` – controls whether a user can log in.
+- **Signup (planned change):**
+  - `POST /register` creates users with `status: "pending"` by default.
+  - Frontend shows: *"You will be able to log in after your account has been approved by the admin."*
+- **Login (planned change):**
+  - `POST /login` will only issue JWTs for `status === "approved"` users.
+  - Pending/rejected users receive a clear error (e.g. "Your account is pending admin approval.") and cannot obtain a token.
+- **Admin user (planned):**
+  - At least one admin account will be created via seed/config so there is always a way to access the admin dashboard.
+  - When new seeded admin/test users are introduced, keep `TEST_USER.md` in sync so all shared test credentials are documented in one place.
+- **Admin capabilities (planned):**
+  - List/search/filter users.
+  - Approve/reject pending signups.
+  - Change user roles (promote/demote admin).
+  - Delete users (plus a separate self-service delete path for users via Profile).
+
+Implementation details (routes, UI, and security rules) are defined at a high level in `MVP_PLAN.md` and will be reflected in `API_REFERENCE.md` once the endpoints are implemented.
+
+### Planned: GetStream-Based Trip Chat (Pre-MVP5)
+
+To upgrade the in-trip chat experience without rebuilding all chat infrastructure ourselves, we plan a **GetStream-based chat adapter** as part of the Pre-MVP5 work:
+
+- **Service choice:** Use GetStream Chat (`https://getstream.io/chat/`) for real-time messaging, presence, reactions, and modern chat UI components. Stream runs on a global edge network with SDKs for React and supports features like reactions, threads, URL enrichment, and presence (see their product overview).
+- **Ownership boundaries:**
+  - Trip, user, feed, gallery, and prerequisites data remain in our backend (MongoDB/file).
+  - Chat messages live primarily in Stream; we do not replicate the full message history into our DB unless we have a strong reason.
+  - Media storage for chat (images) continues to use **Cloudflare R2** with the existing **100 MB/user** quota; Stream messages reference R2 URLs/keys.
+- **User & channel mapping (planned):**
+  - Each TripMaker user corresponds to a Stream user (id derived from our user ID and normalized email).
+  - Each trip corresponds to a Stream channel (e.g. `trip-{tripId}`), with membership kept in sync with trip collaborators.
+- **Backend adapter (planned):**
+  - A chat adapter module that:
+    - Creates/ensures Stream users and channels on demand.
+    - Issues Stream user tokens for authenticated TripMaker users.
+    - Encapsulates all Stream-specific API calls so other parts of the backend do not import Stream SDKs directly.
+- **Frontend integration (planned):**
+  - A `TripChat` React component that:
+    - Calls a backend bootstrap endpoint (e.g. `POST /trips/:id/chat/bootstrap`) to obtain Stream config (app key, user token, channel id, feature flags).
+    - Mounts GetStream’s React chat components (channel list, message list, input, etc.) inside our Trip Detail layout.
+    - Handles R2-based file selection/upload before sending attachments into Stream as message attachments/URLs.
+- **Future replacement:**
+  - By keeping Stream-specific logic inside the chat adapter and `TripChat` wrapper, we can later implement an in-house WebSocket/socket.io chat backend that:
+    - Accepts the same high-level operations (join trip chat, send message, attach image).
+    - Exposes the same frontend props and backend bootstrap contract.
+  - This minimizes vendor lock-in and ensures that replacing Stream does not require large-scale changes in other parts of the app.
 
 ### Security Implementation
 

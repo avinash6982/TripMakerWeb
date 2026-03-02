@@ -21,12 +21,10 @@
 
 ## 2. Documentation and project plan
 
-### 2.1 Reviewed artifacts
+### 2.1 Reviewed artifacts (at time of evaluation)
 
 - **MVP_ROADMAP.md** – Phases MVP1–MVP4 complete; MVP5/MVP6 not started; progress table and next steps clear.
 - **DEVELOPMENT_STATUS.md** – Current phase (MVP4 complete), next (MVP5 when approved), recent tasks (auth/session, MongoDB startup) up to date.
-- **MVP1_BROWSER_TEST_CHECKLIST.md** – Auth, trip planning, save, My Trips, Trip Detail, archive/unarchive/delete, transport hubs, smoke.
-- **MVP2_QA_CHECKLIST.md** – Multi-day routes, Discover feed, sharing, transport mode, invite/redeem, responsive and a11y.
 - **MVP4_AI_AGENT.md** – Goal, scope, adapter pattern, contract (itinerary format), provider notes.
 - **API_REFERENCE.md** – Auth, session expiry, endpoints described.
 - **MONGODB_SETUP.md** – Startup behavior (MongoDB-first when `MONGODB_URI` set) documented.

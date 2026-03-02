@@ -1,8 +1,8 @@
 # 🎯 TripMaker MVP Plan & Feature Breakdown
 
-> **Last Updated:** February 7, 2026  
-> **Current Phase:** Ready for MVP4 (AI Trip Agent)  
-> **Status:** MVP1 100%; MVP2 100%; MVP3 100%; Design Optimization complete; MVP4 (AI Trip Agent) not started (awaiting approval). See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
+> **Last Updated:** March 2026  
+> **Current Phase:** Post-MVP4; planning Pre-MVP5 phases (Admin/User Approval and Chat infra) before MVP5  
+> **Status:** MVP1–MVP4 100%; Design Optimization complete; UI Enhancement (mobile) phase closed (no active UI issues); next structural phases are **Pre-MVP5: Admin & User Approval** and **Pre-MVP5: Chat Infrastructure (GetStream)**. See [MVP_ROADMAP.md](MVP_ROADMAP.md).
 
 ---
 
@@ -144,13 +144,13 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| 4.1 | Backend adapter (interface + e.g. Gemini, Groq, OpenRouter); env config; fallback to static planner | ⏸️ Not started | P0 |
-| 4.2 | Chat endpoint(s): messages + context → plan response (same as `/trips/plan`) | ⏸️ Not started | P0 |
-| 4.3 | Frontend: AI chat after destination/pace/days; "Start over"; itinerary preview; create trip | ⏸️ Not started | P0 |
-| 4.4 | Frontend: AI chat FAB on relevant screens for trip edits (create + edit only in MVP4) | ⏸️ Not started | P1 |
-| 4.5 | Keep existing static plan flow; AI is alternative path | ⏸️ Not started | P0 |
+| 4.1 | Backend adapter (interface + e.g. Gemini, Groq, OpenRouter); env config; fallback to static planner | ✅ DONE | P0 |
+| 4.2 | Chat endpoint(s): messages + context → plan response (same as `/trips/plan`) | ✅ DONE | P0 |
+| 4.3 | Frontend: AI chat after destination/pace/days; "Start over"; itinerary preview; create trip | ✅ DONE | P0 |
+| 4.4 | Frontend: AI chat FAB on relevant screens for trip edits (create + edit only in MVP4) | ✅ DONE | P1 |
+| 4.5 | Keep existing static plan flow; AI is alternative path | ✅ DONE | P0 |
 
-**MVP4 Start Date:** After explicit user approval (see MVP_ROADMAP.md). **Status:** MVP4 is complete (see MVP_ROADMAP.md). Trip Detail entry point is the in-content AI insights accordion (simple title, expand to chat).
+**MVP4 Status:** Complete. Trip Detail entry point is the in-content AI insights accordion (simple title, expand to chat).
 
 ---
 
@@ -163,6 +163,100 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 2. **Trip edit / ongoing trip AI enhancements** — **Fully functional AI chat–based edit trip** with a dedicated FAB floating component on Trip Detail for instant conversational modifications to living itineraries.
 
 ---
+
+### 🛡️ Pre-MVP5: Admin & User Approval (PLANNING)
+
+**Goal:** Protect free-tier resources (AI, R2, MongoDB, etc.) by adding an approval layer and a robust admin panel so only approved users can log in and use the app.
+
+**Principles:**
+- New user signups must be **approved by an admin** before they can log in.
+- Admin functionality must be **fully functional and reliable**, not a toy dashboard.
+- Email/OTP flows (login/signup/reset/notifications) are **explicitly deferred** to a later MVP because they may require paid email services.
+
+#### Planned Features
+
+| # | Feature | Status | Priority |
+|---|---------|--------|----------|
+| A.1 | Extend user model with `role` (`user` \| `admin`) and `status` (`pending` \| `approved` \| `rejected`) | 🟡 Planned | P0 |
+| A.2 | Seed at least one admin user (known credentials in dev; config/seed for prod) | 🟡 Planned | P0 |
+| A.3 | Registration flow: create users as `status: "pending"` and show "You will be able to log in after your account has been approved by the admin." | 🟡 Planned | P0 |
+| A.4 | Login gating: `/login` only succeeds for `status === "approved"`; pending/rejected users get a clear error and cannot obtain a token | 🟡 Planned | P0 |
+| A.5 | Admin-only API endpoints for user management (list/filter users, approve/reject, change role, create user, delete user) | 🟡 Planned | P0 |
+| A.6 | Admin dashboard UI (web) for managing users: pending queue, all-users view, detail view, status/role controls, delete and create user | 🟡 Planned | P1 |
+| A.7 | Self-service account deletion endpoint + UI (user-initiated delete) | 🟡 Planned | P1 |
+| A.8 | Documentation updates: architecture (data model, flows), API reference (planned admin endpoints), docs for initial admin setup | 🟡 Planned | P0 |
+| A.9 | Future (separate MVP): email & OTP flows (signup/login/password reset/notifications) using a zero- or low-cost email provider | 🟡 Planned | P2 (later phase) |
+
+#### High-Level Tasks
+
+- **Backend / Data Model**
+  - Add `role` and `status` fields to `User` (file-based + MongoDB models).
+  - Ensure dev/test users (listed in `TEST_USER.md`) are created with `role: "admin"` or `status: "approved"` as needed for smooth local testing, and add any new seeded admin accounts there too.
+  - Enforce status checks in the login handler; return specific error codes/messages for pending and rejected accounts.
+- **Admin API**
+  - Protect all admin routes with both JWT auth and a `role === "admin"` guard.
+  - Endpoints (conceptual, to be fully specified in API_REFERENCE when implemented):
+    - `GET /admin/users` – list users with filters (status, role, email search).
+    - `PATCH /admin/users/:id` – update `role` and/or `status`.
+    - `POST /admin/users` – create a new user (email + password, auto-approved).
+    - `DELETE /admin/users/:id` – hard-delete or soft-delete a user (TBD).
+- **Admin UI**
+  - New protected route (e.g. `/admin/users`) visible only to admin users.
+  - Sections: Pending approvals list, all users table, user detail/edit drawer.
+  - Actions: Approve/reject, promote/demote admin, delete, create user.
+- **User Experience**
+  - After signup: replace "Registration successful" with a clear "awaiting admin approval" message (all 6 languages).
+  - After login attempt by pending/rejected user: show friendly, explicit error explaining the state.
+  - Provide a "Delete my account" action in Profile with a confirmation flow.
+
+---
+
+### 💬 Pre-MVP5: Chat Infrastructure (GetStream) – PLANNING
+
+**Goal:** Upgrade trip chat to use GetStream Chat for production-grade, feature-rich messaging (presence, reactions, threads, etc.) with minimal custom backend work, while keeping a clean abstraction so we can swap to an in-house socket-based solution later.
+
+**Context:** Current in-trip chat is implemented via our own REST polling endpoints and R2-backed image uploads. It satisfies MVP3 but is relatively basic and home-grown. GetStream (`https://getstream.io/chat/`) provides:
+- Hosted chat infrastructure with low latency and global edge network.
+- Feature-rich chat SDKs and React components (threads, reactions, presence, URL enrichment, etc.) [source: `https://getstream.io/chat/`].
+
+We plan to:
+- Use Stream for **trip chat only** (each trip ↔ one Stream channel).
+- Keep **trip data, feed, gallery, and storage quota logic** within our own backend.
+- Keep **R2 media** and 100MB/user quota, using Stream messages as a transport for R2 URLs/keys rather than moving media storage into Stream.
+
+#### Planned Features
+
+| # | Feature | Status | Priority |
+|---|---------|--------|----------|
+| C.1 | Define chat integration strategy and abstraction (chat adapter layer) | 🟡 Planned | P0 |
+| C.2 | Map TripMaker users to Stream users; design backend-issued Stream auth tokens | 🟡 Planned | P0 |
+| C.3 | Map trips to Stream channels (e.g. `trip-{tripId}`) and keep membership in sync with trip collaborators | 🟡 Planned | P0 |
+| C.4 | Design minimal backend endpoints for chat config/token (e.g. per-trip chat bootstrap endpoint) | 🟡 Planned | P0 |
+| C.5 | Integrate GetStream React components into a `TripChat` wrapper component that hides Stream specifics from the rest of the app | 🟡 Planned | P1 |
+| C.6 | Preserve existing behaviors: per-trip chat panel, attach image via R2, respect 100MB/user quota; Stream messages carry R2 URLs/keys | 🟡 Planned | P1 |
+| C.7 | Decide which Stream features to enable (typing indicators, reactions, read receipts) and how they map to UX | 🟡 Planned | P2 |
+| C.8 | Document migration and fallback path so we can later replace Stream with an in-house socket server without changing page-level components | 🟡 Planned | P1 |
+
+#### High-Level Tasks
+
+- **Backend / Integration Design**
+  - Evaluate GetStream’s pricing and free tier vs. our expected usage and zero-cost constraints before implementation; confirm that using Stream for trip chat is acceptable for the phase this work lands in.
+  - Add a conceptual **chat adapter** in the backend that:
+    - Knows how to create/find a Stream user for a TripMaker user.
+    - Knows how to create/find the channel for a given trip.
+    - Issues short-lived Stream tokens to authenticated clients.
+  - Define one or more API endpoints (to be fully specified later in `API_REFERENCE.md`), for example:
+    - `POST /trips/:id/chat/bootstrap` – returns Stream token, app key, channel info, and any feature flags the frontend needs.
+- **Frontend / UI**
+  - Implement a `TripChat` component that:
+    - Calls the bootstrap endpoint to obtain Stream configuration.
+    - Mounts GetStream’s React components inside our layout (so the rest of the app simply renders `<TripChat tripId={...} />`).
+    - Continues to support R2-based image attachments and existing chat placement on Trip Detail.
+- **Future Replacement**
+  - Ensure page-level components never talk directly to Stream APIs/SDKs; all usage goes through:
+    - Our `TripChat` wrapper on the frontend.
+    - Our chat adapter on the backend.
+  - Document expectations for an eventual in-house chat backend (e.g. event types, message shape, attachment behavior) so it can implement the same contract later.
 
 ### 🟡 MVP5: Marketplace Integration
 

@@ -152,17 +152,17 @@ The AI adapter **must** return the same shape as the current `POST /trips/plan` 
 
 ---
 
-## 6. Implementation checklist (placeholder)
+## 6. Implementation checklist (completed)
 
-*Do not implement in the “docs only” pass; this is the checklist for when development starts.*
+All MVP4 work described above has been implemented; this checklist is kept as a historical summary of what was done.
 
-- [ ] Backend: Define adapter interface and plan response type (JSDoc or comments).
-- [ ] Backend: Implement at least one adapter (e.g. Gemini) and wire to env.
-- [ ] Backend: New endpoint(s) for “chat” (e.g. POST with messages + context; return plan or error).
-- [ ] Backend: Fallback to existing static planner when AI unavailable or fails.
-- [ ] Frontend: Replace plan form with AI chat after destination/pace/days (+ “Start over”).
-- [ ] Frontend: FAB for AI chat on trip screens; only trip create/edit in MVP4.
-- [ ] Docs: Update API_REFERENCE.md and APP_ARCHITECTURE.md when endpoints and flow exist.
+- [x] Backend: Define adapter interface and plan response type (JSDoc or comments).
+- [x] Backend: Implement at least one adapter (Gemini, with Groq fallback) and wire to env.
+- [x] Backend: New endpoint for “chat” (`POST /trips/agent/chat` with messages + context; returns plan or error/flags).
+- [x] Backend: Fallback to existing static planner when AI unavailable or fails, including `aiUnconfigured`/`agentUnavailable` flags.
+- [x] Frontend: Replace plan form with AI chat after destination/pace/days (+ “Start over”) on Home.
+- [x] Frontend: FAB for AI chat on Trip Detail for trip create/edit via AI.
+- [x] Docs: Update `API_REFERENCE.md` and `APP_ARCHITECTURE.md` for endpoints, flows, and configuration.
 
 ---
 

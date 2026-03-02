@@ -24,8 +24,8 @@
    - Update "Last Updated" timestamp
    - Add to decision log if needed
 
-2. **`MVP1_TASK_BREAKDOWN.md`** - Update task completion
-   - Check off completed tasks
+2. **`MVP_PLAN.md`** - Update task/phase completion
+   - Check off completed tasks or phases
    - Update sprint timeline
    - Mark any blockers
 
@@ -49,7 +49,7 @@
 - ✅ Update DEVELOPMENT_STATUS.md with completion
 - ✅ Update API_REFERENCE.md if API changed
 - ✅ Update APP_ARCHITECTURE.md if data model changed
-- ✅ **Verify in browser:** Run the app, exercise the changed flow in a real browser (see `MVP1_BROWSER_TEST_CHECKLIST.md` for flows). Do not mark the task complete until the feature works correctly in browser view.
+- ✅ **Verify in browser:** Run the app, exercise the changed flow in a real browser. Do not mark the task complete until the feature works correctly in browser view.
 - ✅ Commit with clear message referencing task number
 
 #### Rule 2: Scope Management (CRITICAL)

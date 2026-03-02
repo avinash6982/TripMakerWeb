@@ -145,36 +145,10 @@ The detailed task breakdown for MVP1 now lives in `MVP1_TASK_BREAKDOWN.md` and i
 ### 🎨 Design Optimization
 
 **Status:** ✅ Complete (February 2026)  
-**Goal:** UI/design review and polish before MVP4  
+**Goal:** UI/design review and polish between MVP3 and MVP4 (one visual change per feedback item, no new features).  
 **Prerequisites:** MVP3 complete  
-**Reference:** [DESIGN_OPTIMIZATION.md](DESIGN_OPTIMIZATION.md)
 
-Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); start only with explicit user approval. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
-
----
-
-### 📱 UI Enhancement (Mobile Focus)
-
-**Status:** 🔄 In progress  
-**Goal:** Improve and enhance the UI with a focus on mobile screens. Flows are made usable, consistent, and polished on small viewports; desktop is unchanged.  
-**Reference:** [UI_ENHANCEMENT_MOBILE.md](UI_ENHANCEMENT_MOBILE.md)
-
-#### Scope
-- **Focus:** Mobile viewports (e.g. ≤900px, small phones ≤480px).
-- **Approach:** One flow at a time; mobile-only CSS/layout where possible; document completed and next flows.
-
-#### Completed ✅
-- **Login & Register:** Mobile layout/alignment (covered in earlier design passes).
-- **Trip creation flow (Home):**
-  - Plan with AI and Draft itinerary sections: full-height min on mobile (`100vh - header - tabbar - padding`).
-  - Map moved inside draft itinerary (before days); sidebar and Trending hidden on mobile; single scroll for header + map + days.
-  - Regenerate / Edit day: icon-only buttons on mobile (~30% smaller, no border).
-  - App bar: Waypoint logo vertically centered on mobile.
-
-#### Next 📋
-- **Trip view (Trip Detail):** Mobile layout, map, chat FAB, headers.
-- **Edit trip:** Removed (AI chat–based edit in MVP4+ AI Capability Enhancements).
-- **Other flows:** Discover (Feed), Profile, My Trips, Gallery, as needed.
+Design Optimization phase is complete. Next phase after this work was **MVP4 (AI Trip Agent)**; see [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md) for AI details.
 
 ---
 
@@ -277,6 +251,52 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 
 ---
 
+### 🛡️ Pre-MVP5: Admin & User Approval
+
+**Status:** 🟡 Planned (before MVP5)  
+**Goal:** Add an approval layer and admin tools for managing users so that free-tier resources (AI, R2, etc.) are protected and only approved accounts can log in.
+
+#### Scope
+
+- **User approval gate:** New signups are created in a **pending** state. Until approved by an admin, they cannot log in.
+- **Roles:** Introduce `role` on users (`user` \| `admin`) and `status` (`pending` \| `approved` \| `rejected`).
+- **Admin user:** Seed at least one admin account (e.g. via seed script or config) who can access the admin dashboard.
+- **Admin panel:** Web UI where admins can:
+  - See pending signup requests and **approve** or **reject** them.
+  - See all users, filter/sort, change role (`user` ↔ `admin`), and delete users.
+  - Manually create a user (email + password) for trusted testers/guests.
+- **Login gating:** `/login` only succeeds for `status === "approved"` users. Pending/rejected users get a clear error (e.g. "Your account is pending admin approval.").
+- **Self-service delete:** Authenticated users can delete their own account (subject to data retention rules); admins can also delete users from the admin panel.
+- **Email/OTP:** Out of scope for this phase. Email notifications (OTP login/signup/reset, approval emails) will be part of a **later MVP** because they may require paid email services.
+
+#### Notes
+
+- This phase **must complete before MVP5 (Marketplace)** so that any paid or rate-limited integrations are only exposed to approved users.
+- All admin functionality must be **fully functional and reliable** (no "toy" dashboards).
+
+---
+
+### 💬 Pre-MVP5: Chat Infrastructure (GetStream)
+
+**Status:** 🟡 Planned (before MVP5)  
+**Goal:** Migrate in-trip chat to a third-party chat service (GetStream Chat) to get a richer, more robust chat UI/UX quickly, while keeping a clean abstraction so we can replace it with an in-house socket-based chat later if needed.
+
+#### Scope (planned)
+
+- **Service:** Use GetStream Chat (`https://getstream.io/chat/`) for trip chat channels, leveraging its hosted infrastructure, presence, reactions, and modern React components.
+- **Per-trip channels:** Map each trip to a dedicated Stream channel (e.g. `trip-{tripId}`), with channel members kept in sync with trip collaborators.
+- **Auth model:** Backend issues short-lived Stream user tokens for authenticated TripMaker users; frontend never sees Stream secrets.
+- **UI integration:** Wrap GetStream’s React components in a thin TripMaker `TripChat` shell so the rest of the app only depends on our own component API, not directly on Stream.
+- **Attachments:** Continue to use Cloudflare R2 for chat images and count storage towards the existing **100 MB/user** quota; Stream messages carry R2 URLs/keys as attachments so quotas and Profile usage remain accurate.
+- **Feature parity:** Preserve existing behaviors (per-trip chat, media uploads, basic message history) and selectively adopt Stream features (typing indicators, reactions, read receipts) where they fit.
+
+#### Future-proofing
+
+- Design the integration behind a **chat adapter layer** so that if we later implement our own WebSocket/socket.io-based chat, we can:
+  - Keep the same frontend `TripChat` props/contract.
+  - Swap Stream-specific token/channel logic for our own without touching unrelated pages.
+- Treat Stream as an **implementation detail** of the chat subsystem, not as the source of truth for unrelated domains (trips, feed, gallery), to avoid deep vendor lock-in.
+
 ### 💼 MVP5: Marketplace Integration
 
 **Status:** ⏸️ NOT STARTED  
@@ -321,10 +341,12 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 | MVP2 | ✅ Complete | 100% | Jan 31, 2026 |
 | MVP3 | ✅ Complete | 100% | Feb 2026 |
 | Design Optimization | ✅ Complete | — | Feb 2026 |
-| **UI Enhancement (Mobile)** | 🔄 In progress | — | Ongoing |
+| **UI Enhancement (Mobile)** | ✅ Closed | — | Feb 2026 (no further work planned) |
 | **Improvements** | ✅ Complete | 100% | Feb 2026 |
 | MVP4 (AI Trip Agent) | ✅ Complete | 100% | Feb 2026 |
-| **MVP4+ AI Capability Enhancements** | ⏸️ Not Started | 0% | After approval |
+| **MVP4+ AI Capability Enhancements** | ✅ Complete | 100% | Feb 2026 |
+| **Pre-MVP5: Admin & User Approval** | 🟡 Planned | 0% | Before MVP5 |
+| **Pre-MVP5: Chat Infrastructure (GetStream)** | 🟡 Planned | 0% | Before MVP5 |
 | MVP5 (Marketplace) | ⏸️ Not Started | 0% | After approval |
 | MVP6 (Enterprise) | ⏸️ Not Started | 0% | TBD |
 
@@ -332,7 +354,7 @@ Design Optimization phase is complete. Next phase is **MVP4** (AI Trip Agent); s
 
 | Feature | Summary | Status |
 |--------|---------|--------|
-| **Prerequisites** | Trip checklist: add/assign/mark done by collaborators; public view read-only. See [ADDITIONAL_FEATURES.md](ADDITIONAL_FEATURES.md). | ✅ Complete |
+| **Prerequisites** | Trip checklist: add/assign/mark done by collaborators; public view read-only. See `API_REFERENCE.md` (Trip Prerequisites) for full API details. | ✅ Complete |
 | **MongoDB** | Optional DB: `lib/db.js` (users + trips); migration script `scripts/migrate-file-to-mongo.js`. See [MONGODB_SETUP.md](MONGODB_SETUP.md). | ✅ Complete |
 
 ### Current Phase: UI Enhancement (mobile) + MVP5 when approved
