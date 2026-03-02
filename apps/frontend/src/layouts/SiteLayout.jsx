@@ -44,19 +44,30 @@ const TabIconProfile = () => (
   </svg>
 );
 
-const navConfig = (t) => [
-  { to: "/home", label: t("nav.home"), icon: TabIconHome },
-  { to: "/trips", label: t("nav.trips"), icon: TabIconTrips, end: true }, /* end: true so trip detail (/trips/:id) doesn't highlight My Trips */
-  { to: "/feed", label: t("nav.feed"), icon: TabIconFeed },
-  { to: "/profile", label: t("nav.profile"), icon: TabIconProfile },
-];
+const navConfig = (t, isAdmin) => {
+  const items = [
+    { to: "/home", label: t("nav.home"), icon: TabIconHome },
+    { to: "/trips", label: t("nav.trips"), icon: TabIconTrips, end: true }, /* end: true so trip detail (/trips/:id) doesn't highlight My Trips */
+    { to: "/feed", label: t("nav.feed"), icon: TabIconFeed },
+    { to: "/profile", label: t("nav.profile"), icon: TabIconProfile },
+  ];
+  if (isAdmin) {
+    items.push({
+      to: "/admin/users",
+      label: t("nav.admin", "Admin"),
+      icon: TabIconProfile,
+    });
+  }
+  return items;
+};
 
 const SiteLayout = () => {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const [user, setUser] = useState(getStoredUser());
-  const navLinks = navConfig(t);
+  const isAdmin = user?.role === "admin";
+  const navLinks = navConfig(t, isAdmin);
 
   /* Discover is active when on /feed or when on trip detail opened from Discover */
   const isDiscoverActive = (link) => {

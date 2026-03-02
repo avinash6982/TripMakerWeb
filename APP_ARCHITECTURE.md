@@ -1,6 +1,6 @@
 # 🏗️ TripMaker Application Architecture
 
-**Last Updated:** February 2026 (MongoDB migration; frontend UI standards: touchable, page header, spacing)  
+**Last Updated:** March 2026 (MongoDB migration; frontend UI standards: touchable, page header, spacing; admin/users table + modal patterns)  
 **Version:** 1.0.0  
 **Status:** Production-Ready
 
@@ -524,29 +524,29 @@ const DEV_USER = {
 };
 ```
 
-### Planned: Admin & User Approval (Pre-MVP5)
+### Admin & User Approval (Pre-MVP5 — Complete)
 
-To protect free-tier resources (AI providers, Cloudflare R2, MongoDB, etc.) before introducing paid Marketplace integrations, the architecture will add an **Admin & User Approval** layer ahead of MVP5:
+To protect free-tier resources (AI providers, Cloudflare R2, MongoDB, etc.) before introducing paid Marketplace integrations, the architecture includes an **Admin & User Approval** layer ahead of MVP5:
 
-- **User fields (planned, see `MVP_PLAN.md`):**
-  - `role`: `'user' | 'admin'` – determines access to admin APIs and dashboard.
+- **User fields (implemented, see `MVP_PLAN.md`):**
+  - `role`: `'user' | 'admin'` – determines access to admin APIs and dashboard. The seeded dev user (`dev@tripmaker.com`) is an `admin`.
   - `status`: `'pending' | 'approved' | 'rejected'` – controls whether a user can log in.
-- **Signup (planned change):**
+- **Signup:**
   - `POST /register` creates users with `status: "pending"` by default.
-  - Frontend shows: *"You will be able to log in after your account has been approved by the admin."*
-- **Login (planned change):**
-  - `POST /login` will only issue JWTs for `status === "approved"` users.
-  - Pending/rejected users receive a clear error (e.g. "Your account is pending admin approval.") and cannot obtain a token.
-- **Admin user (planned):**
-  - At least one admin account will be created via seed/config so there is always a way to access the admin dashboard.
-  - When new seeded admin/test users are introduced, keep `TEST_USER.md` in sync so all shared test credentials are documented in one place.
-- **Admin capabilities (planned):**
-  - List/search/filter users.
-  - Approve/reject pending signups.
-  - Change user roles (promote/demote admin).
-  - Delete users (plus a separate self-service delete path for users via Profile).
-
-Implementation details (routes, UI, and security rules) are defined at a high level in `MVP_PLAN.md` and will be reflected in `API_REFERENCE.md` once the endpoints are implemented.
+  - Frontend shows a clear message: *"Account created. Your account is pending admin approval."*
+- **Login:**
+  - `POST /login` only issues JWTs for `status === "approved"` users.
+  - Pending/rejected users receive 403 responses with explicit messages (pending approval / rejected) which the frontend maps to translated UI copy.
+- **Admin user:**
+  - Dev/test users are auto-seeded with appropriate roles/status; the dev user is an admin. See `TEST_USER.md` for the full list.
+- **Admin capabilities (implemented):**
+  - `GET /admin/users` – list users (id, email, role, status, createdAt, isTestUser).
+  - `PATCH /admin/users/:id` – approve/reject users and promote/demote admins.
+  - `POST /admin/users` – create approved users (optionally admins) directly from the dashboard.
+  - `DELETE /admin/users/:id` – delete users (and their trips).
+  - Admin-only UI page `/admin/users` shows a pending queue, paginated all-users table, role/status controls, per-row loading spinners, and a modal “Create user” form with inline validation.
+- **Self-service delete (implemented):**
+  - `DELETE /profile/{id}` with `requireAuth` allows a user to delete their own account; Profile page surfaces a **Delete my account** button that calls this endpoint, clears local storage, and redirects to login.
 
 ### Planned: GetStream-Based Trip Chat (Pre-MVP5)
 

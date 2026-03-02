@@ -523,43 +523,52 @@ async function ensureUsersFile() {
 }
 
 // Development and test users for consistent testing (auto-seeded)
+// Pre-MVP5 Admin & User Approval:
+// - DEV_USER is an approved admin
+// - TEST_USER_1 and TEST_USER_2 are approved regular users
 const DEV_USER = {
-  id: 'dev-user-00000000-0000-0000-0000-000000000001',
-  email: 'dev@tripmaker.com',
-  password: 'DevUser123!',
+  id: "dev-user-00000000-0000-0000-0000-000000000001",
+  email: "dev@tripmaker.com",
+  password: "DevUser123!",
+  role: "admin",
+  status: "approved",
   trips: [],
   profile: {
-    phone: '+1 555 123 4567',
-    country: 'United States',
-    language: 'en',
-    currencyType: 'USD'
-  }
+    phone: "+1 555 123 4567",
+    country: "United States",
+    language: "en",
+    currencyType: "USD",
+  },
 };
 
 const TEST_USER_1 = {
-  id: 'test-user-00000000-0000-0000-0000-000000000002',
-  email: 'test1@tripmaker.com',
-  password: 'DevUser123!',
+  id: "test-user-00000000-0000-0000-0000-000000000002",
+  email: "test1@tripmaker.com",
+  password: "DevUser123!",
+  role: "user",
+  status: "approved",
   trips: [],
   profile: {
-    phone: '',
-    country: '',
-    language: 'en',
-    currencyType: 'USD'
-  }
+    phone: "",
+    country: "",
+    language: "en",
+    currencyType: "USD",
+  },
 };
 
 const TEST_USER_2 = {
-  id: 'test-user-00000000-0000-0000-0000-000000000003',
-  email: 'test2@tripmaker.com',
-  password: 'DevUser123!',
+  id: "test-user-00000000-0000-0000-0000-000000000003",
+  email: "test2@tripmaker.com",
+  password: "DevUser123!",
+  role: "user",
+  status: "approved",
   trips: [],
   profile: {
-    phone: '',
-    country: '',
-    language: 'en',
-    currencyType: 'USD'
-  }
+    phone: "",
+    country: "",
+    language: "en",
+    currencyType: "USD",
+  },
 };
 
 const SEED_USERS = [DEV_USER, TEST_USER_1, TEST_USER_2];
@@ -575,6 +584,8 @@ async function seedDevUser() {
         id: seed.id,
         email: seed.email,
         passwordHash: hashPassword(seed.password),
+        role: seed.role || "user",
+        status: seed.status || "approved",
         trips: [],
         profile: { ...seed.profile },
         createdAt: new Date().toISOString(),
@@ -599,7 +610,11 @@ async function readUsersFile() {
   try {
     const parsed = JSON.parse(raw);
     const users = Array.isArray(parsed) ? parsed : [];
-    users.forEach((user) => ensureTrips(user));
+    users.forEach((user) => {
+      ensureTrips(user);
+      ensureUserAccessFields(user);
+      ensureProfile(user);
+    });
     return users;
   } catch (error) {
     error.message = `Invalid users data file: ${error.message}`;
@@ -662,6 +677,26 @@ function ensureProfile(user) {
   };
   if (typeof user.profile.storageUsed !== "number") user.profile.storageUsed = 0;
   return user.profile;
+}
+
+const VALID_ROLES = ["user", "admin"];
+const VALID_STATUSES = ["pending", "approved", "rejected"];
+
+function ensureUserAccessFields(user) {
+  const isDevUser =
+    user.id === "dev-user-00000000-0000-0000-0000-000000000001" ||
+    user.email === "dev@tripmaker.com";
+
+  if (!user.role || !VALID_ROLES.includes(user.role)) {
+    user.role = isDevUser ? "admin" : "user";
+  }
+
+  if (!user.status || !VALID_STATUSES.includes(user.status)) {
+    // Existing users are treated as approved; new registrations will set status explicitly.
+    user.status = "approved";
+  }
+
+  return user;
 }
 
 const TRANSPORT_MODES = ["flight", "train", "bus"];
@@ -734,6 +769,7 @@ function ensureProfileArray(val) {
 
 function buildProfileResponse(user) {
   const profile = ensureProfile(user);
+  ensureUserAccessFields(user);
   const storageUsed = typeof profile.storageUsed === "number" ? profile.storageUsed : 0;
   const limitBytes = 100 * 1024 * 1024; // 100 MB (MVP3.6)
   return {
@@ -756,6 +792,7 @@ function generateToken(user) {
     {
       id: user.id,
       email: user.email,
+      role: user.role || "user",
     },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN }
@@ -1326,6 +1363,16 @@ const requireAuth = (req, res, next) => {
   }
 };
 
+const requireAdmin = (req, res, next) => {
+  if (!req.user) {
+    return res.status(401).json({ error: "Authorization token required." });
+  }
+  if (req.user.role !== "admin") {
+    return res.status(403).json({ error: "Admin privileges required." });
+  }
+  next();
+};
+
 // Validation error handler
 const handleValidationErrors = (req, res, next) => {
   const errors = validationResult(req);
@@ -1420,6 +1467,285 @@ app.get("/health", (_req, res) => {
     uptime: process.uptime(),
   });
 });
+
+/**
+ * @swagger
+ * /admin/users:
+ *   get:
+ *     tags: [Admin]
+ *     summary: List users (admin only)
+ *     description: Returns a list of users with basic fields (id, email, role, status, createdAt, isTestUser).
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       401:
+ *         description: Missing or invalid token
+ *       403:
+ *         description: User is not an admin
+ */
+app.get("/admin/users", requireAuth, requireAdmin, async (_req, res, next) => {
+  try {
+    const users = await readUsers();
+    const sanitized = users.map((user) => {
+      ensureUserAccessFields(user);
+      return {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt,
+        isTestUser: Boolean(user.isTestUser),
+      };
+    });
+    sanitized.sort((a, b) => (a.createdAt || "").localeCompare(b.createdAt || ""));
+    return res.status(200).json({ users: sanitized });
+  } catch (error) {
+    return next(error);
+  }
+});
+
+/**
+ * @swagger
+ * /admin/users/{id}:
+ *   patch:
+ *     tags: [Admin]
+ *     summary: Update a user's role or status
+ *     description: Admin-only endpoint to change a user's role (user/admin) and/or status (pending/approved/rejected).
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID to update
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *               status:
+ *                 type: string
+ *                 enum: [pending, approved, rejected]
+ *     responses:
+ *       200:
+ *         description: Updated user
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Missing or invalid token
+ *       403:
+ *         description: User is not an admin
+ *       404:
+ *         description: User not found
+ */
+app.patch(
+  "/admin/users/:id",
+  requireAuth,
+  requireAdmin,
+  [
+    param("id").notEmpty().withMessage("User ID is required."),
+    body("role")
+      .optional()
+      .isIn(VALID_ROLES)
+      .withMessage(`Role must be one of: ${VALID_ROLES.join(", ")}`),
+    body("status")
+      .optional()
+      .isIn(VALID_STATUSES)
+      .withMessage(`Status must be one of: ${VALID_STATUSES.join(", ")}`),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { role, status } = req.body || {};
+      const users = await readUsers();
+      const user = users.find((u) => u.id === id);
+
+      if (!user) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      if (role) {
+        user.role = role;
+      }
+      if (status) {
+        user.status = status;
+      }
+
+      ensureUserAccessFields(user);
+      await writeUsers(users);
+
+      return res.status(200).json({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        createdAt: user.createdAt,
+        isTestUser: Boolean(user.isTestUser),
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /admin/users:
+ *   post:
+ *     tags: [Admin]
+ *     summary: Create a new user (admin only)
+ *     description: Admin-only endpoint to create a new approved user account.
+ *     security:
+ *       - bearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - email
+ *               - password
+ *             properties:
+ *               email:
+ *                 type: string
+ *                 format: email
+ *               password:
+ *                 type: string
+ *                 minLength: 6
+ *               role:
+ *                 type: string
+ *                 enum: [user, admin]
+ *     responses:
+ *       201:
+ *         description: User created
+ *       400:
+ *         description: Validation error
+ *       401:
+ *         description: Missing or invalid token
+ *       403:
+ *         description: User is not an admin
+ *       409:
+ *         description: Email already registered
+ */
+app.post(
+  "/admin/users",
+  requireAuth,
+  requireAdmin,
+  [
+    body("email")
+      .trim()
+      .isEmail()
+      .withMessage("Please provide a valid email address.")
+      .normalizeEmail(),
+    body("password")
+      .isLength({ min: 6 })
+      .withMessage("Password must be at least 6 characters long."),
+    body("role")
+      .optional()
+      .isIn(VALID_ROLES)
+      .withMessage(`Role must be one of: ${VALID_ROLES.join(", ")}`),
+  ],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const email = normalizeEmail(req.body?.email);
+      const password = String(req.body?.password || "");
+      const role = req.body?.role && VALID_ROLES.includes(req.body.role) ? req.body.role : "user";
+
+      const users = await readUsers();
+      const existing = users.find((user) => user.email === email);
+      if (existing) {
+        return res.status(409).json({ error: "Email is already registered." });
+      }
+
+      const newUser = {
+        id: crypto.randomUUID(),
+        email,
+        passwordHash: hashPassword(password),
+        role,
+        status: "approved",
+        trips: [],
+        profile: { ...DEFAULT_PROFILE },
+        createdAt: new Date().toISOString(),
+      };
+
+      users.push(newUser);
+      await writeUsers(users);
+
+      return res.status(201).json({
+        id: newUser.id,
+        email: newUser.email,
+        role: newUser.role,
+        status: newUser.status,
+        createdAt: newUser.createdAt,
+      });
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /admin/users/{id}:
+ *   delete:
+ *     tags: [Admin]
+ *     summary: Delete a user (admin only)
+ *     description: Permanently deletes a user account and associated trips.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID to delete
+ *     responses:
+ *       204:
+ *         description: User deleted
+ *       401:
+ *         description: Missing or invalid token
+ *       403:
+ *         description: User is not an admin
+ *       404:
+ *         description: User not found
+ */
+app.delete(
+  "/admin/users/:id",
+  requireAuth,
+  requireAdmin,
+  [param("id").notEmpty().withMessage("User ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const users = await readUsers();
+      const index = users.findIndex((u) => u.id === id);
+
+      if (index === -1) {
+        return res.status(404).json({ error: "User not found." });
+      }
+
+      users.splice(index, 1);
+      await writeUsers(users);
+      return res.status(204).send();
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
 
 /**
  * @swagger
@@ -1544,6 +1870,8 @@ app.post(
         id: crypto.randomUUID(),
         email,
         passwordHash: hashPassword(password),
+        role: "user",
+        status: "pending",
         trips: [],
         profile: { ...DEFAULT_PROFILE },
         createdAt: new Date().toISOString(),
@@ -1552,13 +1880,13 @@ app.post(
       users.push(newUser);
       await writeUsers(users);
 
-      const token = generateToken(newUser);
-
       return res.status(201).json({
         id: newUser.id,
         email: newUser.email,
-        token,
         createdAt: newUser.createdAt,
+        status: newUser.status,
+        message:
+          "Registration successful. Your account is pending admin approval.",
       });
     } catch (error) {
       return next(error);
@@ -1662,11 +1990,27 @@ app.post(
       }
 
       const users = await readUsers();
-      const user = users.find((candidate) => candidate.email === email);
+      const candidates = users.filter((candidate) => candidate.email === email);
+      const user =
+        candidates.find((candidate) => candidate.isTestUser) || candidates[0];
 
       if (!user || !verifyPassword(password, user.passwordHash)) {
         return res.status(401).json({
           error: "Invalid credentials.",
+        });
+      }
+
+      ensureUserAccessFields(user);
+
+      if (user.status === "pending") {
+        return res.status(403).json({
+          error: "Your account is pending admin approval.",
+        });
+      }
+
+      if (user.status === "rejected") {
+        return res.status(403).json({
+          error: "Your account has been rejected. Please contact support.",
         });
       }
 
@@ -1675,6 +2019,8 @@ app.post(
       return res.status(200).json({
         id: user.id,
         email: user.email,
+        role: user.role,
+        status: user.status,
         token,
         message: "Login successful.",
       });
@@ -3722,6 +4068,58 @@ app.put(
 
       await writeUsers(users);
       return res.status(200).json(buildProfileResponse(user));
+    } catch (error) {
+      return next(error);
+    }
+  }
+);
+
+/**
+ * @swagger
+ * /profile/{id}:
+ *   delete:
+ *     tags: [Profile]
+ *     summary: Delete current user's account
+ *     description: Deletes the authenticated user's account and associated trips. The path ID must match the authenticated user.
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: User ID of the account to delete (must match the authenticated user)
+ *     responses:
+ *       204:
+ *         description: Account deleted successfully
+ *       401:
+ *         description: Missing or invalid token
+ *       403:
+ *         description: Cannot delete another user's account
+ *       404:
+ *         description: User not found
+ */
+app.delete(
+  "/profile/:id",
+  requireAuth,
+  [param("id").notEmpty().withMessage("User ID is required.")],
+  handleValidationErrors,
+  async (req, res, next) => {
+    try {
+      const userId = String(req.params.id || "");
+      if (req.user.id !== userId) {
+        return res.status(403).json({ error: "You can only delete your own account." });
+      }
+      const users = await readUsers();
+      const index = users.findIndex((candidate) => candidate.id === userId);
+      if (index === -1) {
+        return res.status(404).json({ error: "User not found." });
+      }
+      users.splice(index, 1);
+      await writeUsers(users);
+      return res.status(204).send();
     } catch (error) {
       return next(error);
     }

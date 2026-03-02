@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { getStoredUser } from "../services/auth";
 import {
@@ -41,6 +41,7 @@ const languageOptions = [
 
 const Profile = () => {
   const { t, i18n } = useTranslation();
+  const navigate = useNavigate();
   const [user, setUser] = useState(() => getStoredUser());
   const [formState, setFormState] = useState({
     email: "",
@@ -55,6 +56,7 @@ const Profile = () => {
   });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   useEffect(() => {
     const storedProfile = getStoredProfile();
@@ -148,6 +150,31 @@ const Profile = () => {
     } catch (error) {
       setStatus("error");
       setMessage(error.message || t("profile.status.saveError"));
+    }
+  };
+
+  const performDeleteAccount = async () => {
+    if (!user) return;
+    setStatus("saving");
+    setMessage("");
+    try {
+      const storedUser = getStoredUser();
+      await fetch(`/profile/${user.id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(storedUser?.token ? { Authorization: `Bearer ${storedUser.token}` } : {}),
+        },
+      });
+      window.localStorage.removeItem("waypoint.user");
+      window.localStorage.removeItem("waypoint.profile");
+      window.dispatchEvent(new Event("authchange"));
+      navigate("/login", { replace: true });
+      setDeleteModalOpen(false);
+    } catch (error) {
+      setStatus("error");
+      setMessage(error.message || t("profile.status.deleteError", "Could not delete your account."));
+      setDeleteModalOpen(false);
     }
   };
 
@@ -349,11 +376,58 @@ const Profile = () => {
                 <button type="submit" className="btn primary" disabled={status === "saving"}>
                   {status === "saving" ? t("profile.actions.saving") : t("profile.actions.save")}
                 </button>
+                <button
+                  type="button"
+                  className="btn danger outline"
+                  onClick={() => setDeleteModalOpen(true)}
+                >
+                  {t("profile.actions.deleteAccount", "Delete my account")}
+                </button>
               </div>
             </form>
           </div>
         </div>
       </section>
+      {deleteModalOpen && (
+        <div
+          className="modal-overlay"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="profile-delete-title"
+        >
+          <div className="modal-card">
+            <h2 id="profile-delete-title">
+              {t("profile.deleteConfirmTitle", "Delete your account?")}
+            </h2>
+            <p>
+              {t(
+                "profile.deleteConfirm",
+                "Delete your account and all associated trips? This cannot be undone."
+              )}
+            </p>
+            <div className="modal-actions">
+              <button
+                type="button"
+                className="btn danger"
+                onClick={performDeleteAccount}
+                disabled={status === "saving"}
+              >
+                {status === "saving"
+                  ? t("profile.actions.deleting", "Deleting…")
+                  : t("profile.actions.deleteAccount", "Delete my account")}
+              </button>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setDeleteModalOpen(false)}
+                disabled={status === "saving"}
+              >
+                {t("trips.cancel", "Cancel")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 };

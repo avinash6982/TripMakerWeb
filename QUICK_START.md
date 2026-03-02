@@ -24,25 +24,25 @@ npm run dev
 ```
 
 This starts both apps simultaneously:
-- **Frontend**: http://localhost:5173
-- **Backend**: http://localhost:3000
+- **Frontend**: http://localhost:5175
+- **Backend**: http://localhost:4310
 
 ### 3. Open in Browser
 
-Visit: http://localhost:5173
+Visit: http://localhost:5175
 
 ## What's Running?
 
 ### Frontend (React/Vite)
-- **URL**: http://localhost:5173
+- **URL**: http://localhost:5175
 - **Code**: `apps/frontend/`
 - **Hot reload**: Enabled
 
 ### Backend (Express.js API)
-- **URL**: http://localhost:3000
+- **URL**: http://localhost:4310
 - **Code**: `apps/backend/`
-- **API Docs**: http://localhost:3000/api-docs
-- **Health Check**: http://localhost:3000/health
+- **API Docs**: http://localhost:4310/api-docs
+- **Health Check**: http://localhost:4310/health
 
 ## Environment Configuration
 
@@ -50,14 +50,14 @@ The apps use `.env.development` files which are already configured:
 
 **Frontend** (`apps/frontend/.env.development`):
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:4310
 ```
 
 **Backend** (`apps/backend/.env.development`):
 ```env
-PORT=3000
+PORT=4310
 NODE_ENV=development
-CORS_ORIGINS=http://localhost:5173,http://localhost:4173
+CORS_ORIGINS=http://localhost:5175,http://localhost:4173
 ```
 
 **No `.env` file is required.** The repo uses only `.env.development` for local dev; production uses the Render Dashboard.
@@ -76,31 +76,31 @@ npm run dev:backend
 npm run build
 
 # Test backend API
-curl http://localhost:3000/health
+curl http://localhost:4310/health
 ```
 
 ## Testing the API
 
 ### Using Swagger UI
-Visit http://localhost:3000/api-docs for interactive API documentation.
+Visit http://localhost:4310/api-docs for interactive API documentation.
 
 ### Using curl
 
 **Health Check:**
 ```bash
-curl http://localhost:3000/health
+curl http://localhost:4310/health
 ```
 
 **Register User:**
 ```bash
-curl -X POST http://localhost:3000/register \
+curl -X POST http://localhost:4310/register \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123"}'
 ```
 
 **Login:**
 ```bash
-curl -X POST http://localhost:3000/login \
+curl -X POST http://localhost:4310/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"password123"}'
 ```
@@ -109,7 +109,7 @@ curl -X POST http://localhost:3000/login \
 
 ### Port Already in Use
 
-If port 3000 or 5173 is already in use:
+If port 4310 or 5175 is already in use:
 
 1. Stop the process using the port
 2. Or change the port in `.env.development`
@@ -125,7 +125,7 @@ npm install
 
 ### Frontend Can't Connect to Backend
 
-1. Ensure backend is running on http://localhost:3000
+1. Ensure backend is running on http://localhost:4310
 2. Check `VITE_API_URL` in `apps/frontend/.env.development`
 3. Look for CORS errors in browser console
 
@@ -147,7 +147,7 @@ npm install
 ### Backend Development
 - All routes: `apps/backend/server.js`
 - API docs: Add Swagger comments above routes
-- Test immediately: http://localhost:3000/api-docs
+- Test immediately: http://localhost:4310/api-docs
 
 ### Hot Reload
 Both frontend and backend support hot reload. Changes are reflected automatically!

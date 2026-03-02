@@ -14,6 +14,7 @@ const Register = () => {
   });
   const [status, setStatus] = useState("idle");
   const [message, setMessage] = useState("");
+  const [redirectSeconds, setRedirectSeconds] = useState(null);
 
   useEffect(() => {
     const user = getStoredUser();
@@ -21,6 +22,31 @@ const Register = () => {
       navigate("/home", { replace: true });
     }
   }, [navigate]);
+
+  useEffect(() => {
+    if (status !== "success") {
+      setRedirectSeconds(null);
+      return;
+    }
+    setRedirectSeconds(10);
+    const intervalId = setInterval(() => {
+      setRedirectSeconds((prev) => {
+        if (prev === null) return prev;
+        if (prev <= 1) {
+          clearInterval(intervalId);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    const timeoutId = setTimeout(() => {
+      navigate("/login", { replace: true });
+    }, 10000);
+    return () => {
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
+  }, [status, navigate]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -49,18 +75,15 @@ const Register = () => {
         email: formState.email,
         password: formState.password,
       });
-      setStoredUser(data);
+      setStatus("success");
       setFormState((prev) => ({ ...prev, password: "", confirmPassword: "" }));
-      try {
-        const profile = await fetchProfile(data.id);
-        saveProfile(profile);
-        if (profile.language) {
-          i18n.changeLanguage(profile.language);
-        }
-      } catch (error) {
-        // Ignore profile fetch failures after registration.
-      }
-      navigate("/home", { replace: true, state: { welcomeNew: true } });
+      setMessage(
+        data?.message ||
+          t(
+            "auth.messages.registerPendingApproval",
+            "Account created. Your account is pending admin approval."
+          )
+      );
     } catch (error) {
       setStatus("error");
       setMessage(error.message);
@@ -123,7 +146,16 @@ const Register = () => {
                 role={status === "error" ? "alert" : "status"}
                 aria-live={status === "error" ? "assertive" : "polite"}
               >
-                {message}
+                <p>{message}</p>
+                {status === "success" && redirectSeconds != null && redirectSeconds > 0 && (
+                  <p className="muted">
+                    {t(
+                      "auth.register.redirectCountdown",
+                      "Redirecting to login in {{seconds}}s…",
+                      { seconds: redirectSeconds }
+                    )}
+                  </p>
+                )}
               </div>
             )}
             <button

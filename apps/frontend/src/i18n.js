@@ -14,6 +14,7 @@ const resources = {
         pricing: "Pricing",
         stories: "Stories",
         profile: "Profile",
+        admin: "Admin",
       },
       actions: {
         startPlanning: "Start planning",
@@ -322,6 +323,34 @@ const resources = {
         prerequisitesEmptyFilter: "No items match the filter.",
         viewAll: "View all",
       },
+      admin: {
+        title: "User administration",
+        pendingTitle: "Pending approvals",
+        noPending: "No pending signups right now.",
+        allUsersTitle: "All users",
+        createTitle: "Create user",
+        roleLabel: "Role",
+        role: {
+          user: "User",
+          admin: "Admin",
+        },
+        status: {
+          pending: "Pending",
+          approved: "Approved",
+          rejected: "Rejected",
+        },
+        testUser: "Test user",
+        deleteConfirm: "Delete this user and all of their trips? This cannot be undone.",
+        actions: {
+          approve: "Approve",
+          reject: "Reject",
+          promote: "Make admin",
+          demote: "Remove admin",
+          delete: "Delete",
+          createUser: "Create user",
+          creating: "Creating…",
+        },
+      },
       feed: {
         title: "Discover",
         heroTitle: "Discover Public Trips",
@@ -562,10 +591,16 @@ const resources = {
           invalidCredentials: "Invalid email or password.",
           loginSuccess: "Login successful.",
           registerSuccess: "Account created. You can now log in.",
+          registerPendingApproval:
+            "Account created. Your account is pending admin approval.",
           profileHint: "Account created. Update your profile details next.",
           sessionExpired: "Your session has expired. Please log in again.",
           welcomeBack: "Welcome back!",
           welcomeNew: "Account created! Plan your first trip below.",
+          pendingApproval:
+            "Your account is pending admin approval. Please try again after an admin approves your account.",
+          rejectedAccount:
+            "Your account has been rejected. Please contact the admin for details.",
         },
         login: {
           eyebrow: "Welcome back",
@@ -648,11 +683,13 @@ const resources = {
         actions: {
           save: "Save changes",
           saving: "Saving...",
+          deleteAccount: "Delete my account",
         },
         status: {
           saved: "Profile updated successfully.",
           loadError: "We couldn't load your profile.",
           saveError: "We couldn't save your changes.",
+          deleteError: "We couldn't delete your account.",
         },
       },
       languages: {
