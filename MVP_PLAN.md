@@ -134,7 +134,7 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 ---
 
-### 🟡 MVP4: AI Trip Agent
+### 🟢 MVP4: AI Trip Agent
 
 **Goal:** Users create and edit trips by chatting with an AI agent; any destination/pace/days; AI returns data in the same format as existing trip plan. Provider-agnostic adapter pattern; user supplies API keys. See [MVP4_AI_AGENT.md](MVP4_AI_AGENT.md).
 
