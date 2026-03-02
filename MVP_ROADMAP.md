@@ -1,6 +1,6 @@
 # 🗺️ TripMaker MVP Roadmap
 
-**Last Updated:** February 2026  
+**Last Updated:** March 2026  
 **Current Phase:** UI work paused; ready for next phase  
 **Overall Progress:** MVP1 100%; MVP2 100%; MVP3 100%; MVP4 100%; Prerequisites 100%; Design Optimization complete; UI Enhancement (login, register, trip creation, headers/lists/trip-detail consistency) done and paused. **Next:** Improvements phase (optional) or MVP5 (Marketplace) when approved; or R2 (uploads), MongoDB (optional). See DEVELOPMENT_STATUS.md.
 
@@ -185,6 +185,7 @@ Design Optimization phase is complete. Next phase after this work was **MVP4 (AI
 - **PWA:** Run `npm run build` in apps/frontend → serve dist (e.g. `npx serve dist`) → in DevTools Application tab, confirm Manifest and Service Worker; reload offline to test cache.
 - **Notifications:** In the header, click the bell icon → panel opens with "No notifications yet."; add one via console: `window.__NOTIFICATION_ADD?.({ title: 'Test', subtitle: 'Test notification' })` or from code using `useNotificationStore.getState().add({ title: 'Test' })`.
 - **Zustand:** Trip Detail map day filter and trip data are driven by `useTripDetailStore`; no functional change visible beyond the map filter UI.
+- **Admin & UI polish:** Admin Users dashboard uses a semantic table with status badges and modal confirmation for deletes; Profile delete and feed comments use the shared modal/icon-button patterns so future screens stay consistent.
 
 ---
 
@@ -253,7 +254,7 @@ Design Optimization phase is complete. Next phase after this work was **MVP4 (AI
 
 ### 🛡️ Pre-MVP5: Admin & User Approval
 
-**Status:** 🟡 Planned (before MVP5)  
+**Status:** ✅ Complete (before MVP5)  
 **Goal:** Add an approval layer and admin tools for managing users so that free-tier resources (AI, R2, etc.) are protected and only approved accounts can log in.
 
 #### Scope
@@ -345,7 +346,7 @@ Design Optimization phase is complete. Next phase after this work was **MVP4 (AI
 | **Improvements** | ✅ Complete | 100% | Feb 2026 |
 | MVP4 (AI Trip Agent) | ✅ Complete | 100% | Feb 2026 |
 | **MVP4+ AI Capability Enhancements** | ✅ Complete | 100% | Feb 2026 |
-| **Pre-MVP5: Admin & User Approval** | 🟡 Planned | 0% | Before MVP5 |
+| **Pre-MVP5: Admin & User Approval** | ✅ Complete | 100% | Mar 2026 (before MVP5) |
 | **Pre-MVP5: Chat Infrastructure (GetStream)** | 🟡 Planned | 0% | Before MVP5 |
 | MVP5 (Marketplace) | ⏸️ Not Started | 0% | After approval |
 | MVP6 (Enterprise) | ⏸️ Not Started | 0% | TBD |

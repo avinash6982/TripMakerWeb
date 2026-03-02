@@ -1,8 +1,8 @@
 # 🚧 Development Status
 
-> **Last Updated:** February 2026  
-> **Current Phase:** UI work paused; ready for next phase  
-> **Next:** MVP5 (Marketplace) when approved; or optional: R2 (image uploads), MongoDB. **Improvements phase** is complete. **MVP4+ AI Capability Enhancements** (Gather-before-plan, AI chat-based edit trip) is complete. See [MVP_ROADMAP.md](MVP_ROADMAP.md).
+> **Last Updated:** March 2026  
+> **Current Phase:** Post-MVP4; Pre-MVP5 Admin & User Approval complete; preparing Pre-MVP5 Chat Infrastructure (GetStream)  
+> **Next:** Pre-MVP5: Chat Infrastructure (GetStream) planning/implementation; then MVP5 (Marketplace) when approved. **Improvements phase** is complete. **MVP4+ AI Capability Enhancements** (Gather-before-plan, AI chat-based edit trip) is complete. See [MVP_ROADMAP.md](MVP_ROADMAP.md).
 
 ---
 
@@ -99,11 +99,10 @@
 ## 🎯 Next Tasks (Priority Order)
 
 ### What’s next (pick one when ready)
-1. **Pre-MVP5: Admin & User Approval (planning now):** Add user roles (`user`/`admin`), approval status (`pending`/`approved`/`rejected`), login gating, and an admin dashboard/API for managing users and approvals. This phase must land **before** Marketplace so only approved users can consume rate-limited / paid resources. (Spec: `MVP_PLAN.md`, `MVP_ROADMAP.md`, `APP_ARCHITECTURE.md`, `API_REFERENCE.md` updated in March 2026.)
-2. **Pre-MVP5: Chat Infrastructure (GetStream) – planning:** Design a GetStream-based chat adapter and TripChat wrapper so in-trip chat can use Stream’s hosted chat (React components, presence, reactions) without tightly coupling the rest of the app to Stream. Keep Cloudflare R2 as the backing store for chat images and preserve the 100 MB/user quota; Stream messages should carry R2 URLs/keys. (Spec: `MVP_ROADMAP.md`, `MVP_PLAN.md`, `APP_ARCHITECTURE.md`, `API_REFERENCE.md` updated in March 2026.)
-3. **Image uploads:** Configure **Cloudflare R2** (env vars + CORS) so trip cover, gallery, and chat images work (see RENDER_DEPLOYMENT_GUIDE.md).
-4. **MongoDB (optional):** Persistent users/trips in production (see MONGODB_SETUP.md).
-5. **Resume UI Enhancement:** Trip view polish, other flows as needed (see UI_ENHANCEMENT_MOBILE.md).
+1. **Pre-MVP5: Chat Infrastructure (GetStream) – planning:** Design a GetStream-based chat adapter and TripChat wrapper so in-trip chat can use Stream’s hosted chat (React components, presence, reactions) without tightly coupling the rest of the app to Stream. Keep Cloudflare R2 as the backing store for chat images and preserve the 100 MB/user quota; Stream messages should carry R2 URLs/keys. (Spec: `MVP_ROADMAP.md`, `MVP_PLAN.md`, `APP_ARCHITECTURE.md`, `API_REFERENCE.md` updated in March 2026.)
+2. **Image uploads:** Configure **Cloudflare R2** (env vars + CORS) so trip cover, gallery, and chat images work (see RENDER_DEPLOYMENT_GUIDE.md).
+3. **MongoDB (optional):** Persistent users/trips in production (see MONGODB_SETUP.md).
+4. **Resume UI Enhancement:** Trip view polish, other flows as needed (see UI_ENHANCEMENT_MOBILE.md).
 
 ### When you approve
 1. **MVP5 (Marketplace):** Do not start until explicitly approved. Will introduce paid services (Skyscanner, accommodation APIs).
@@ -152,10 +151,11 @@
 - **MVP4:** AI Trip Agent (100%) ✅
 - **Design Optimization:** Complete ✅
 - **Additional features (Prerequisites):** Complete ✅
+- **Pre-MVP5: Admin & User Approval:** Complete ✅
 - **MVP5:** Not started (awaiting approval)
 
 ### Current Sprint
-- **Focus:** MVP4 complete; next MVP5 when you approve.
+- **Focus:** Pre-MVP5 Admin & User Approval complete; next Pre-MVP5 Chat infra or MVP5 when you approve.
 - **Practice:** Browser verification required after each future task (exercise relevant flows in a real browser).
 
 ### Code Statistics

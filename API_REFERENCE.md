@@ -3,7 +3,7 @@
 **Base URL (Local):** `http://localhost:3000`  
 **Base URL (Production):** Your Render backend URL (e.g. `https://your-backend.onrender.com`)  
 **API Version:** 2.0.0  
-**Last Updated:** January 31, 2026 (trips list + get + save UI)
+**Last Updated:** March 2026 (reviewed; no API changes, UI-only admin/profile/feed polish)
 
 ---
 
@@ -1211,16 +1211,16 @@ curl -X POST http://localhost:3000/login \
 
 ## API Evolution
 
-### Planned Endpoints
+### Additional Endpoints
 
-**Admin & User Management (Pre-MVP5, planned):**
+**Admin & User Management (Pre-MVP5 — implemented):**
 
-- `GET /admin/users` – List users (admin only), with filters (status, role, email search).
+- `GET /admin/users` – List users (admin only). Returns `{ users: [{ id, email, role, status, createdAt, isTestUser }] }`.
 - `PATCH /admin/users/:id` – Update `role` (`user` \| `admin`) and/or `status` (`pending` \| `approved` \| `rejected`) for a user (admin only).
-- `POST /admin/users` – Create a new user (email + password) directly from the admin panel (admin only, auto-approved).
-- `DELETE /admin/users/:id` – Delete a user account (admin only; exact deletion vs soft-delete semantics TBD).
+- `POST /admin/users` – Create a new user (email + password, optional role) directly from the admin panel (admin only, auto-approved).
+- `DELETE /admin/users/:id` – Delete a user account (admin only). Removes the user and their trips.
 
-> These endpoints are **not implemented yet**; they are part of the planned **Pre-MVP5: Admin & User Approval** phase and will be fully specified here (request/response bodies, errors) when implemented.
+See the **Admin** tag in Swagger (`/api-docs`) for full request/response schemas and error codes.
 
 **Chat / GetStream Integration (Pre-MVP5, planned):**
 

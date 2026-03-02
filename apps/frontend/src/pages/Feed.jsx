@@ -359,28 +359,64 @@ const Feed = () => {
                             disabled={loadingCommentId === trip.id}
                             aria-label={t("feed.addComment")}
                           />
-                          <label className="btn ghost btn-sm">
-                            <span>{t("trips.attachImage", "Attach image")}</span>
+                          <label
+                            className="trip-detail-comment-icon-btn trip-detail-comment-attach"
+                            title={t("trips.attachImage", "Attach image")}
+                            aria-label={t("trips.attachImage", "Attach image")}
+                          >
+                            <span className="trip-detail-comment-icon" aria-hidden>
+                              <svg
+                                width="20"
+                                height="20"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+                              </svg>
+                            </span>
                             <input
                               type="file"
                               accept="image/jpeg,image/png,image/gif,image/webp"
                               className="sr-only"
                               onChange={(e) => {
                                 const f = e.target.files?.[0];
-                                if (f && f.size <= 5 * 1024 * 1024) setCommentImageByTripId((prev) => ({ ...prev, [trip.id]: f }));
+                                if (f && f.size <= 5 * 1024 * 1024)
+                                  setCommentImageByTripId((prev) => ({ ...prev, [trip.id]: f }));
                                 e.target.value = "";
                               }}
                             />
                           </label>
                           <button
                             type="submit"
-                            className="btn primary btn-sm"
+                            className="trip-detail-comment-icon-btn trip-detail-comment-send"
                             disabled={
                               loadingCommentId === trip.id ||
                               (!(commentInputByTripId[trip.id] ?? "").trim() && !commentImageByTripId[trip.id])
                             }
                           >
-                            {loadingCommentId === trip.id ? t("labels.loading") : t("feed.postComment")}
+                            <span className="trip-detail-comment-icon" aria-hidden>
+                              {loadingCommentId === trip.id ? (
+                                <span className="trip-detail-chat-loading">⋯</span>
+                              ) : (
+                                <svg
+                                  width="20"
+                                  height="20"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
+                                  <path d="M22 2L11 13" />
+                                  <path d="M22 2l-7 20-4-9-9-4 20-7z" />
+                                </svg>
+                              )}
+                            </span>
                           </button>
                         </div>
                       </form>

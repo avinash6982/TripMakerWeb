@@ -1,0 +1,66 @@
+---
+description: End-to-end testing workflow for new functionality (browser/CLI, 3 rounds of use cases, multi-user where relevant).
+alwaysApply: true
+---
+
+# Testing Workflow for New Functionality
+
+## Principle
+
+When building or changing functionality, always **understand current behavior first**, then **implement**, then **verify with multiple rounds of real use-case testing** before marking the work complete.
+
+This applies across:
+- **Web frontend:** Use a real browser view (Cursor browser MCP or system browser).
+- **Backend/API:** Use CLI tools (e.g. `curl`, HTTP clients, test scripts).
+- **Mobile (future):** Until a mobile app exists, review code and flows only.
+
+## Required Workflow
+
+1. **Baseline check (before making changes)**
+   - For web UI changes, open the relevant page in a browser and exercise the current flow end-to-end.
+   - For backend/API changes, use CLI (e.g. `curl` or a script) to hit the existing endpoints and capture current responses.
+   - For multi-user flows (e.g. admin vs regular user, collaborators), use the documented dev/test users from `TEST_USER.md` (e.g. `dev@tripmaker.com`, `test1@tripmaker.com`, `test2@tripmaker.com`) to understand behavior for each role.
+
+2. **Implement the change**
+   - Keep the app in a demo-ready state; follow existing architecture and patterns.
+   - Update documentation alongside code (see `.cursorrules` for the core doc-update rules).
+
+3. **Verification: 3 rounds of use-case testing**
+   - **Round 1 – Happy path:** Run the primary end-to-end flow in the correct environment:
+     - Web: in a browser view.
+     - Backend/API only: via CLI.
+   - **Round 2 – Variants / roles:** Repeat with at least one variant:
+     - Different user role/account (e.g. pending vs approved user, admin vs non-admin).
+     - Alternative input or edge value where relevant.
+   - **Round 3 – Error / edge cases:** Intentionally trigger at least one failure or edge case (e.g. invalid data, unauthorized access) and verify that:
+     - The system responds with correct status codes and messages.
+     - The UI shows clear, user-friendly errors where applicable.
+
+4. **Only then mark the task complete**
+   - Do **not** mark a feature or task as complete until all three rounds of testing have been performed and pass without regressions.
+   - For each completed task, briefly summarize which flows and user accounts were used in the three rounds when updating `DEVELOPMENT_STATUS.md`.
+
+## Tool Choice by Surface
+
+- **Web frontend**
+  - Always use a **browser view** to test UI changes (desktop and, when relevant, mobile viewport sizes).
+  - Use the Cursor browser MCP for automated navigation/inspection where possible; fall back to a system browser if needed.
+
+- **Backend / API**
+  - Use **CLI-based testing** such as `curl`, shell scripts, or HTTP clients run from the terminal.
+  - Swagger UI can be used as a supplement, but at least one round must be via CLI.
+
+- **Mobile (future)**
+  - Until a dedicated mobile client exists, focus on **code-level review and architecture**; once mobile is introduced, update this rule with equivalent device/emulator testing steps.
+
+## Blockers and Safety Stop
+
+- If at any point you **cannot**:
+  - Access a browser view for web flows, **or**
+  - Use CLI to reach backend/API endpoints, **or**
+  - Otherwise run the three required testing rounds,
+- Then:
+  - **Stop the implementation work for that task**, and
+  - **Report the blocker to the user** (describe exactly which access is missing or which command/page fails),
+  - Do **not** proceed to mark the feature as implemented or complete until the blocker is resolved.
+

@@ -61,6 +61,24 @@ const Login = () => {
     } catch (error) {
       setStatus("error");
       const msg = error?.message || "";
+      if (/pending admin approval/i.test(msg)) {
+        setMessage(
+          t(
+            "auth.messages.pendingApproval",
+            "Your account is pending admin approval. Please try again after an admin approves your account."
+          )
+        );
+        return;
+      }
+      if (/rejected/i.test(msg)) {
+        setMessage(
+          t(
+            "auth.messages.rejectedAccount",
+            "Your account has been rejected. Please contact the admin for details."
+          )
+        );
+        return;
+      }
       setMessage(
         /incorrect|invalid|credentials|wrong password/i.test(msg)
           ? t("auth.messages.invalidCredentials")

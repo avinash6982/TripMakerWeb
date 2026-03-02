@@ -239,6 +239,17 @@ ul {
   animation: page-header-spin 0.7s linear infinite;
 }
 
+/* Generic inline button spinner (used in small admin buttons) */
+.btn-spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  border: 2px solid rgba(15, 23, 42, 0.18);
+  border-top-color: rgba(15, 23, 42, 0.8);
+  animation: page-header-spin 0.7s linear infinite;
+  display: inline-block;
+}
+
 @keyframes page-header-spin {
   to {
     transform: rotate(360deg);
@@ -1044,14 +1055,14 @@ button.text-link {
 
 /* Auth: prominent error so invalid login / password mismatch are visible (Recommendations POV) */
 .auth-form .message.error {
-  margin: 0.75rem 0 0;
+  margin: 0;
   padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid #fecaca;
 }
 
 .auth-form .message.success {
-  margin: 0.75rem 0 0;
+  margin: 0;
   padding: var(--space-3);
   border-radius: var(--radius-md);
   border: 1px solid #bbf7d0;
@@ -2686,6 +2697,11 @@ button.text-link {
 .trips-page .container {
   position: relative;
   z-index: 1;
+}
+
+/* Admin users page – match top gap under app navbar with other pages */
+.admin-users-page {
+  padding: var(--space-4) 0 5rem;
 }
 
 .trips-header {
@@ -6863,6 +6879,124 @@ button.text-link {
 
 .muted {
   color: var(--muted);
+}
+
+/* ========== Admin: users table ========== */
+.admin-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin-top: 0.75rem;
+}
+
+.admin-users-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-sm);
+  background: var(--color-bg-elevated);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.admin-users-table th:last-child,
+.admin-users-table td:last-child {
+  text-align: right;
+}
+
+.admin-users-table td:last-child .admin-user-actions {
+  justify-content: flex-end;
+}
+
+.admin-users-table th {
+  background: var(--color-bg-subtle);
+  font-weight: var(--font-medium);
+  color: var(--muted-strong);
+}
+
+.admin-users-table tbody tr:hover {
+  background: var(--color-row-hover, rgba(15, 23, 42, 0.02));
+}
+
+.admin-user-actions {
+  display: inline-flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.admin-btn-with-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem 0.75rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.admin-table-rows label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.admin-table-rows select {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  padding: 0.15rem 0.5rem;
+  font-size: 0.8rem;
+  background: #fff;
+}
+
+.admin-table-pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.admin-table-pagination-buttons {
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.admin-page-btn {
+  min-width: auto;
+  padding-inline: 0.6rem;
+}
+
+.admin-status-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: var(--font-medium);
+}
+
+.admin-status-badge-pending {
+  background: rgba(245, 158, 11, 0.12);
+  color: #92400e;
+}
+
+.admin-status-badge-approved {
+  background: rgba(16, 185, 129, 0.12);
+  color: #065f46;
+}
+
+.admin-status-badge-rejected {
+  background: rgba(239, 68, 68, 0.12);
+  color: #b91c1c;
 }
 
 /* Tablet: single-column planner, desktop nav stays in one row */

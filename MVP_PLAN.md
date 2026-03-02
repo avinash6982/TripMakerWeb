@@ -1,8 +1,8 @@
 # 🎯 TripMaker MVP Plan & Feature Breakdown
 
 > **Last Updated:** March 2026  
-> **Current Phase:** Post-MVP4; planning Pre-MVP5 phases (Admin/User Approval and Chat infra) before MVP5  
-> **Status:** MVP1–MVP4 100%; Design Optimization complete; UI Enhancement (mobile) phase closed (no active UI issues); next structural phases are **Pre-MVP5: Admin & User Approval** and **Pre-MVP5: Chat Infrastructure (GetStream)**. See [MVP_ROADMAP.md](MVP_ROADMAP.md).
+> **Current Phase:** Post-MVP4; preparing Pre-MVP5 Chat Infrastructure (GetStream) before MVP5  
+> **Status:** MVP1–MVP4 100%; Design Optimization complete; UI Enhancement (mobile) phase closed (no active UI issues); **Pre-MVP5: Admin & User Approval complete (admin dashboard, gating, self-delete)**; next structural phase is **Pre-MVP5: Chat Infrastructure (GetStream)**. See [MVP_ROADMAP.md](MVP_ROADMAP.md).
 
 ---
 
@@ -164,7 +164,7 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 ---
 
-### 🛡️ Pre-MVP5: Admin & User Approval (PLANNING)
+### 🛡️ Pre-MVP5: Admin & User Approval (COMPLETE – March 2026)
 
 **Goal:** Protect free-tier resources (AI, R2, MongoDB, etc.) by adding an approval layer and a robust admin panel so only approved users can log in and use the app.
 
@@ -177,14 +177,14 @@ Media uploads in chat (3.6) will use **Cloudflare R2** for storage. User-level l
 
 | # | Feature | Status | Priority |
 |---|---------|--------|----------|
-| A.1 | Extend user model with `role` (`user` \| `admin`) and `status` (`pending` \| `approved` \| `rejected`) | 🟡 Planned | P0 |
-| A.2 | Seed at least one admin user (known credentials in dev; config/seed for prod) | 🟡 Planned | P0 |
-| A.3 | Registration flow: create users as `status: "pending"` and show "You will be able to log in after your account has been approved by the admin." | 🟡 Planned | P0 |
-| A.4 | Login gating: `/login` only succeeds for `status === "approved"`; pending/rejected users get a clear error and cannot obtain a token | 🟡 Planned | P0 |
-| A.5 | Admin-only API endpoints for user management (list/filter users, approve/reject, change role, create user, delete user) | 🟡 Planned | P0 |
-| A.6 | Admin dashboard UI (web) for managing users: pending queue, all-users view, detail view, status/role controls, delete and create user | 🟡 Planned | P1 |
-| A.7 | Self-service account deletion endpoint + UI (user-initiated delete) | 🟡 Planned | P1 |
-| A.8 | Documentation updates: architecture (data model, flows), API reference (planned admin endpoints), docs for initial admin setup | 🟡 Planned | P0 |
+| A.1 | Extend user model with `role` (`user` \| `admin`) and `status` (`pending` \| `approved` \| `rejected`) | ✅ Done | P0 |
+| A.2 | Seed at least one admin user (known credentials in dev; config/seed for prod) | ✅ Done | P0 |
+| A.3 | Registration flow: create users as `status: "pending"` and show "You will be able to log in after your account has been approved by the admin." | ✅ Done | P0 |
+| A.4 | Login gating: `/login` only succeeds for `status === "approved"`; pending/rejected users get a clear error and cannot obtain a token | ✅ Done | P0 |
+| A.5 | Admin-only API endpoints for user management (list/filter users, approve/reject, change role, create user, delete user) | ✅ Done | P0 |
+| A.6 | Admin dashboard UI (web) for managing users: pending queue, all-users view, detail view, status/role controls, delete and create user | ✅ Done | P1 |
+| A.7 | Self-service account deletion endpoint + UI (user-initiated delete) | ✅ Done | P1 |
+| A.8 | Documentation updates: architecture (data model, flows), API reference (planned admin endpoints), docs for initial admin setup | ✅ Done | P0 |
 | A.9 | Future (separate MVP): email & OTP flows (signup/login/password reset/notifications) using a zero- or low-cost email provider | 🟡 Planned | P2 (later phase) |
 
 #### High-Level Tasks

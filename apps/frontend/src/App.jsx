@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import Trips from "./pages/Trips";
 import TripDetail from "./pages/TripDetail";
 import TripGallery from "./pages/TripGallery";
+import AdminUsers from "./pages/AdminUsers";
 import Feed from "./pages/Feed";
 import { getStoredUser } from "./services/auth";
 
@@ -16,6 +17,17 @@ const RequireAuth = ({ children }) => {
   const user = getStoredUser();
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+  return children;
+};
+
+const RequireAdmin = ({ children }) => {
+  const user = getStoredUser();
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (user.role !== "admin") {
+    return <Navigate to="/home" replace />;
   }
   return children;
 };
@@ -77,6 +89,14 @@ const App = () => {
             <RequireAuth>
               <Profile />
             </RequireAuth>
+          }
+        />
+        <Route
+          path="admin/users"
+          element={
+            <RequireAdmin>
+              <AdminUsers />
+            </RequireAdmin>
           }
         />
       </Route>
